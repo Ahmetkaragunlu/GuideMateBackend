@@ -5,8 +5,8 @@ package com.ahmetkaragunlu.guidematebackend.common.config;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.repository.RoleRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,6 @@ public class DataInitializer implements CommandLineRunner {
         for (RoleType roleType : RoleType.values()) {
             String roleName = roleType.name();
             if (roleRepository.findByName(roleName).isEmpty()) {
-                // Yoksa kaydet (String olarak kaydeder)
                 roleRepository.save(new Role(roleName));
                 System.out.println("Role eklendi: " + roleName);
             }

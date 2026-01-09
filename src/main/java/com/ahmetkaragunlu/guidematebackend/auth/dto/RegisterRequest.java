@@ -2,7 +2,9 @@ package com.ahmetkaragunlu.guidematebackend.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
 
 public record RegisterRequest(
         @NotBlank(message = "{validation.firstName.notBlank}")
@@ -18,6 +20,6 @@ public record RegisterRequest(
         String email,
 
         @NotBlank(message = "{validation.password.notBlank}")
-        @Size(min = 6, message = "{validation.password.size}")
+        @Pattern(regexp = "^\\d{6}$", message = "{validation.password.numeric}")
         String password
 ) {}
