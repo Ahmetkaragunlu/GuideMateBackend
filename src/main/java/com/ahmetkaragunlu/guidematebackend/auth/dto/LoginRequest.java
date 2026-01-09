@@ -9,8 +9,6 @@ public record LoginRequest(
         @NotBlank(message = "{validation.email.notBlank}")
         @Email(message = "{validation.email.invalid}")
         String email,
-
         @NotBlank(message = "{validation.password.notBlank}")
-        @Pattern(regexp = "^\\d{6}$", message = "{validation.password.numeric}")
         String password
 ) {}

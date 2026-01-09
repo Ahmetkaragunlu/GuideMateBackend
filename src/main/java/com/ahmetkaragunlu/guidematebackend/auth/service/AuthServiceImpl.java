@@ -29,7 +29,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -117,7 +118,9 @@ public class AuthServiceImpl implements AuthService {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                     .setAudience(Collections.singletonList(googleClientId))
                     .build();
+
             GoogleIdToken idToken = verifier.verify(request.idToken());
+
             if (idToken == null) {
                 throw new BusinessException(ErrorCode.GOOGLE_LOGIN_FAILED);
             }
@@ -140,8 +143,8 @@ public class AuthServiceImpl implements AuthService {
 
             return createAuthResponse(user);
 
-        } catch (Exception e) {
-            log.error("Google login hatası: ", e);
+        } catch (GeneralSecurityException | IOException e) {
+            log.error("Google login verification failed: {}", e.getMessage(), e);
             throw new BusinessException(ErrorCode.GOOGLE_LOGIN_FAILED);
         }
     }
@@ -185,10 +188,8 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRole(role);
         user.setRoleSelected(true);
-        userRepository.save(user);
         return createAuthResponse(user);
     }
-
 
     private AuthResponse createAuthResponse(User user) {
         if (!user.isActive()) {
