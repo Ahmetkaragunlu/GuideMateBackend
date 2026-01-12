@@ -57,7 +57,6 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Herkese Açık Olanlar (Public)
                         .requestMatchers(
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/login",
@@ -67,14 +66,12 @@ public class SecurityConfig {
                                 "/api/v1/auth/reset-password"
                         ).permitAll()
 
-                        // 2. Sadece Giriş Yapmışlara Açık Olanlar (Authenticated)
                         .requestMatchers(
                                 "/api/v1/auth/logout",
                                 "/api/v1/auth/refresh-token",
                                 "/api/v1/auth/select-role"
                         ).authenticated()
 
-                        // 3. Geri Kalan Her Şey
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
