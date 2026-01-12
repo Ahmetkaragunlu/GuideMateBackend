@@ -9,7 +9,7 @@ public interface AuthService {
 
     AuthResponse refreshToken(String refreshToken);
 
-    void logout(String refreshToken);
+    String logout(String refreshToken);
 
     String confirmAccount(String token);
 
