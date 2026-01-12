@@ -52,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final MessageSource messageSource;
+    private final EmailService emailService;
 
     @Value("${google.client-id}")
     private String googleClientId;
@@ -65,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public String register(RegisterRequest request) {
+    public String register(RegisterRequest request, String deviceId) {
         if (userRepository.existsByEmail(request.email())) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
@@ -78,11 +79,10 @@ public class AuthServiceImpl implements AuthService {
         user.setActive(false);
         user.setRoleSelected(false);
         user.setAuthProvider(AuthProvider.LOCAL);
-
         userRepository.save(user);
-
         ConfirmationToken token = new ConfirmationToken(user);
         confirmationTokenRepository.save(token);
+        emailService.sendConfirmationEmail(user.getEmail(), token.getToken());
 
         return getMessage("auth.register.success");
     }
@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, String deviceId) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
@@ -106,12 +106,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        return createAuthResponse(user);
+        return createAuthResponse(user, deviceId);
     }
 
     @Override
     @Transactional
-    public AuthResponse googleLogin(GoogleLoginRequest request) {
+    public AuthResponse googleLogin(GoogleLoginRequest request, String deviceId) {
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                     .setAudience(Collections.singletonList(googleClientId))
@@ -139,7 +139,7 @@ public class AuthServiceImpl implements AuthService {
                 return userRepository.save(newUser);
             });
 
-            return createAuthResponse(user);
+            return createAuthResponse(user, deviceId);
 
         } catch (GeneralSecurityException | IOException e) {
             log.error("Google login verification failed: {}", e.getMessage(), e);
@@ -149,12 +149,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponse refreshToken(String requestRefreshToken) {
+    public AuthResponse refreshToken(String requestRefreshToken, String deviceId) {
         RefreshToken token = refreshTokenRepository.findByToken(requestRefreshToken)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
+
         if (token.isExpired()) {
             refreshTokenRepository.delete(token);
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
+        }
+
+        if (!token.getDeviceId().equals(deviceId)) {
+            log.warn("Security Alert: Token device mismatch! User: {}, TokenDevice: {}, RequestDevice: {}",
+                    token.getUser().getEmail(), token.getDeviceId(), deviceId);
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
         User user = token.getUser();
@@ -173,7 +180,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponse selectRole(RoleSelectionRequest request, String email) {
+    public AuthResponse selectRole(RoleSelectionRequest request, String email, String deviceId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -186,16 +193,17 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRole(role);
         user.setRoleSelected(true);
-        return createAuthResponse(user);
+
+        return createAuthResponse(user, deviceId);
     }
 
-    private AuthResponse createAuthResponse(User user) {
+    private AuthResponse createAuthResponse(User user, String deviceId) {
         if (!user.isActive()) {
             throw new BusinessException(ErrorCode.ACCOUNT_NOT_ACTIVE);
         }
 
         String accessToken = jwtService.generateToken(user);
-        RefreshToken refreshToken = createRefreshToken(user);
+        RefreshToken refreshToken = createRefreshToken(user, deviceId);
 
         String roleName = (user.getRole() != null) ? user.getRole().getName() : null;
 
@@ -208,11 +216,13 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    private RefreshToken createRefreshToken(User user) {
+    // 👇 Yardımcı metod güncellendi
+    private RefreshToken createRefreshToken(User user, String deviceId) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
         refreshToken.setToken(UUID.randomUUID().toString());
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshExpiration));
+        refreshToken.setDeviceId(deviceId);
         return refreshTokenRepository.save(refreshToken);
     }
 
@@ -251,6 +261,8 @@ public class AuthServiceImpl implements AuthService {
 
         PasswordResetToken token = new PasswordResetToken(user);
         passwordResetTokenRepository.save(token);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), token.getToken());
 
         return getMessage("auth.forgotPassword.sent");
     }

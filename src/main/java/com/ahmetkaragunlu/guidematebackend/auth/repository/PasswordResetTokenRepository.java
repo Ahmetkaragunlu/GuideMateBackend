@@ -26,4 +26,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
             "AND p.expiresAt > :now")
     Optional<PasswordResetToken> findValidToken(@Param("token") String token,
                                                 @Param("now") LocalDateTime now);
+
+    void deleteByExpiresAtBefore(LocalDateTime now);
 }

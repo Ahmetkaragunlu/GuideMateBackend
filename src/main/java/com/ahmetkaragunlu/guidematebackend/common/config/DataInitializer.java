@@ -25,7 +25,7 @@ public class DataInitializer implements CommandLineRunner {
             String roleName = roleType.name();
             if (roleRepository.findByName(roleName).isEmpty()) {
                 roleRepository.save(new Role(roleName));
-                System.out.println("Role eklendi: " + roleName);
+                System.out.println("Role added: " + roleName);
             }
         }
     }
