@@ -50,8 +50,10 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendPasswordResetEmail(String to, String token) {
         try {
+
+            String resetUrl = "http://localhost:8080/api/v1/auth/reset-password-form?token=" + token;
             String subject = getMessage("email.passwordReset.subject");
-            String body = getMessage("email.passwordReset.body", token);
+            String body = getMessage("email.passwordReset.body", resetUrl);
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);

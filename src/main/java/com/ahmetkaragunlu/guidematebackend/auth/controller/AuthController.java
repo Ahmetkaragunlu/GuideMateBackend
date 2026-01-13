@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -64,8 +65,16 @@ public class AuthController {
     }
 
     @GetMapping("/confirm")
-    public ResponseEntity<String> confirmAccount(@RequestParam("token") String token) {
-        return ResponseEntity.ok(authService.confirmAccount(token));
+    public ModelAndView confirmAccount(@RequestParam("token") String token) {
+        authService.confirmAccount(token);
+        return new ModelAndView("email-confirmation");
+    }
+
+    @GetMapping("/reset-password-form")
+    public ModelAndView showResetPasswordForm(@RequestParam("token") String token) {
+        ModelAndView mav = new ModelAndView("reset-password");
+        mav.addObject("token", token);
+        return mav;
     }
 
     @PostMapping("/forgot-password")

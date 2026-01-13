@@ -10,7 +10,7 @@ public interface AuthService {
     AuthResponse refreshToken(String requestRefreshToken, String deviceId);
     AuthResponse selectRole(RoleSelectionRequest request, String email, String deviceId);
     String logout(String requestRefreshToken);
-    String confirmAccount(String token);
+    void confirmAccount(String token);
     String forgotPassword(ForgotPasswordRequest request);
     String resetPassword(ResetPasswordRequest request);
 }

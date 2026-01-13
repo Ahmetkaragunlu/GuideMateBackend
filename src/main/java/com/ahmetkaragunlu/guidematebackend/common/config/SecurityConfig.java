@@ -57,21 +57,21 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/google",
                                 "/api/v1/auth/confirm",
                                 "/api/v1/auth/forgot-password",
-                                "/api/v1/auth/reset-password"
+                                "/api/v1/auth/reset-password",
+                                "/api/v1/auth/reset-password-form",
+                                "/api/v1/auth/refresh-token"
                         ).permitAll()
-
                         .requestMatchers(
                                 "/api/v1/auth/logout",
-                                "/api/v1/auth/refresh-token",
                                 "/api/v1/auth/select-role"
                         ).authenticated()
-
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

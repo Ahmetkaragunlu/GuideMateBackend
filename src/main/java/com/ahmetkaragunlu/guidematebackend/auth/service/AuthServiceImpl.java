@@ -216,7 +216,6 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    // 👇 Yardımcı metod güncellendi
     private RefreshToken createRefreshToken(User user, String deviceId) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
@@ -228,7 +227,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public String confirmAccount(String token) {
+    public void confirmAccount(String token) {
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
 
@@ -243,7 +242,7 @@ public class AuthServiceImpl implements AuthService {
         confirmationToken.confirm();
         confirmationToken.getUser().setActive(true);
 
-        return getMessage("auth.account.confirmed");
+        getMessage("auth.account.confirmed");
     }
 
     @Override
