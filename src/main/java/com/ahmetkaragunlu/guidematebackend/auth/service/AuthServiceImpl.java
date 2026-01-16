@@ -125,28 +125,16 @@ public class AuthServiceImpl implements AuthService {
 
             GoogleIdToken.Payload payload = idToken.getPayload();
             String email = payload.getEmail();
-            String firstName = (String) payload.get("given_name");
-            String lastName = (String) payload.get("family_name");
 
-            User user = userRepository.findByEmail(email).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setEmail(email);
-                newUser.setFirstName(firstName != null ? firstName : "Google");
-                newUser.setLastName(lastName != null ? lastName : "User");
-                newUser.setActive(true);
-                newUser.setAuthProvider(AuthProvider.GOOGLE);
-                newUser.setRoleSelected(false);
-                return userRepository.save(newUser);
-            });
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
             return createAuthResponse(user, deviceId);
 
         } catch (GeneralSecurityException | IOException e) {
-            log.error("Google login verification failed: {}", e.getMessage(), e);
             throw new BusinessException(ErrorCode.GOOGLE_LOGIN_FAILED);
         }
     }
-
     @Override
     @Transactional
     public AuthResponse refreshToken(String requestRefreshToken, String deviceId) {
