@@ -162,7 +162,8 @@ public class AuthServiceImpl implements AuthService {
                 token.getToken(),
                 getMessage("auth.login.success"),
                 user.isRoleSelected(),
-                roleName
+                roleName,
+                user.getFirstName()
         );
     }
 
@@ -200,7 +201,8 @@ public class AuthServiceImpl implements AuthService {
                 refreshToken.getToken(),
                 getMessage("auth.login.success"),
                 user.isRoleSelected(),
-                roleName
+                roleName,
+                user.getFirstName()
         );
     }
 
