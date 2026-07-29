@@ -1,14 +1,16 @@
 package com.ahmetkaragunlu.guidematebackend.auth.service;
 
+import com.ahmetkaragunlu.guidematebackend.common.exception.EmailDeliveryException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
@@ -21,15 +23,17 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${app.public-base-url}")
+    private String publicBaseUrl;
+
     private String getMessage(String key, Object... args) {
         return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
     }
 
-    @Async
     @Override
     public void sendConfirmationEmail(String to, String token) {
         try {
-            String confirmationUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + token;
+            String confirmationUrl = buildUrl("/api/v1/auth/confirm", token);
             String subject = getMessage("email.confirmation.subject");
             String body = getMessage("email.confirmation.body", confirmationUrl);
 
@@ -40,18 +44,16 @@ public class EmailServiceImpl implements EmailService {
             message.setText(body);
 
             mailSender.send(message);
-            log.info("Confirmation email sent to: {}", to);
-        } catch (Exception e) {
-            log.error("Error sending confirmation email: ", e);
+        } catch (MailException exception) {
+            log.error("Confirmation email delivery failed: {}", exception.getClass().getSimpleName());
+            throw new EmailDeliveryException(exception);
         }
     }
 
-    @Async
     @Override
     public void sendPasswordResetEmail(String to, String token) {
         try {
-
-            String resetUrl = "http://localhost:8080/api/v1/auth/reset-password-form?token=" + token;
+            String resetUrl = buildUrl("/api/v1/auth/reset-password-form", token);
             String subject = getMessage("email.passwordReset.subject");
             String body = getMessage("email.passwordReset.body", resetUrl);
 
@@ -62,9 +64,22 @@ public class EmailServiceImpl implements EmailService {
             message.setText(body);
 
             mailSender.send(message);
-            log.info("Password reset email sent to: {}", to);
-        } catch (Exception e) {
-            log.error("Error sending password reset email: ", e);
+        } catch (MailException exception) {
+            log.error("Password reset email delivery failed: {}", exception.getClass().getSimpleName());
+            throw new EmailDeliveryException(exception);
         }
+    }
+
+    private String buildUrl(String path, String token) {
+        String normalizedBaseUrl = publicBaseUrl.endsWith("/")
+                ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1)
+                : publicBaseUrl;
+        return UriComponentsBuilder
+                .fromUriString(normalizedBaseUrl)
+                .path(path)
+                .queryParam("token", token)
+                .build()
+                .encode()
+                .toUriString();
     }
 }

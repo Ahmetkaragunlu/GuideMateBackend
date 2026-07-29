@@ -1,52 +1,41 @@
 package com.ahmetkaragunlu.guidematebackend.user.domain;
 
 
-import com.ahmetkaragunlu.guidematebackend.auth.domain.ConfirmationToken;
-import com.ahmetkaragunlu.guidematebackend.auth.domain.PasswordResetToken;
 import com.ahmetkaragunlu.guidematebackend.common.domain.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 @Getter
 @Setter
-@ToString(callSuper = true, exclude = {"role", "confirmationTokens", "password"})
+@ToString(callSuper = true, exclude = {"role", "password"})
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_active", columnList = "active")
+        @Index(name = "idx_user_account_status", columnList = "account_status")
 })
 public class User extends BaseEntity implements UserDetails {
 
-    @NotBlank(message = "{validation.user.firstName.notBlank}")
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
-    @NotBlank(message = "{validation.user.lastName.notBlank}")
-    @Column(name = "last_name", nullable = false)
+    @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @NotBlank(message = "{validation.user.email.notBlank}")
-    @Email(message = "{validation.user.email.invalid}")
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 320)
     private String email;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false, length = 100)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "auth_provider")
-    private AuthProvider authProvider;
+    @Column(name = "google_subject", unique = true, length = 255)
+    private String googleSubject;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
@@ -55,23 +44,19 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "role_selected")
     private boolean roleSelected = false;
 
-    @Column(name = "active")
-    private boolean active = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status", nullable = false, length = 32)
+    private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ConfirmationToken> confirmationTokens = new ArrayList<>();
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<PasswordResetToken> passwordResetTokens = new ArrayList<>();
-
-    public void addPasswordResetToken(PasswordResetToken token) {
-        this.passwordResetTokens.add(token);
-        token.setUser(this);
+    public void activate() {
+        this.accountStatus = AccountStatus.ACTIVE;
     }
 
-    public void addConfirmationToken(ConfirmationToken token) {
-        this.confirmationTokens.add(token);
-        token.setUser(this);
+    public void incrementTokenVersion() {
+        this.tokenVersion++;
     }
 
     // ==================== UserDetails Implementation ====================
@@ -112,7 +97,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return active;
+        return accountStatus == AccountStatus.ACTIVE;
     }
 
     // ==================== Equals & HashCode ====================
@@ -130,13 +115,4 @@ public class User extends BaseEntity implements UserDetails {
         return Objects.hash(email);
     }
 
-    // ==================== Lifecycle Callbacks ====================
-
-    @PrePersist
-    @PreUpdate
-    public void prepareData() {
-        if (this.email != null) {
-            this.email = this.email.toLowerCase().trim();
-        }
-    }
 }

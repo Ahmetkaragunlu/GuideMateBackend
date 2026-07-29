@@ -7,12 +7,10 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "confirmation_tokens", indexes = {
@@ -28,13 +26,14 @@ public class ConfirmationToken extends AbstractToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public ConfirmationToken(User user) {
-        super(LocalDateTime.now().plusHours(24));
+    public ConfirmationToken(User user, String token) {
+        super(token, LocalDateTime.now().plusHours(24));
         this.user = user;
     }
 
     public void confirm() {
         this.confirmedAt = LocalDateTime.now();
+        markUsed();
     }
 
     public boolean isConfirmed() {

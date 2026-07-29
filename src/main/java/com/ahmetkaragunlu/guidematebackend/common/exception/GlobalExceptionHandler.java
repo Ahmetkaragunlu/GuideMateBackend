@@ -1,102 +1,126 @@
 package com.ahmetkaragunlu.guidematebackend.common.exception;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
     private final MessageSource messageSource;
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
-        String message = messageSource.getMessage(
-                ex.getErrorCode().getMessageKey(),
-                null,
-                LocaleContextHolder.getLocale()
-        );
-
-        ErrorResponse response = new ErrorResponse(
-                ex.getErrorCode().getCode(),
-                message
-        );
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimit(RateLimitException exception) {
         return ResponseEntity
-                .status(ex.getErrorCode().getHttpStatus())
-                .body(response);
+                .status(ErrorCode.RATE_LIMITED.getHttpStatus())
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(exception.getRetryAfterSeconds()))
+                .body(response(ErrorCode.RATE_LIMITED));
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentialsException() {
-        String message = messageSource.getMessage(
-                ErrorCode.INVALID_CREDENTIALS.getMessageKey(),
-                null,
-                LocaleContextHolder.getLocale()
-        );
-
-        ErrorResponse response = new ErrorResponse(
-                ErrorCode.INVALID_CREDENTIALS.getCode(),
-                message
-        );
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
         return ResponseEntity
-                .status(ErrorCode.INVALID_CREDENTIALS.getHttpStatus())
-                .body(response);
+                .status(errorCode.getHttpStatus())
+                .body(response(errorCode));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return ResponseEntity.badRequest().body(errors);
-    }
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        String message = messageSource.getMessage(
-                "error.server.unexpected",
-                null,
-                LocaleContextHolder.getLocale()
-        );
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
+        List<FieldErrorResponse> fieldErrors = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(this::toFieldError)
+                .toList();
 
-        ErrorResponse response = new ErrorResponse(
-                ErrorCode.INTERNAL_SERVER_ERROR.getCode(),
-                message + ex.getMessage()
-        );
+        String message = message(ErrorCode.VALIDATION_FAILED);
+        return ResponseEntity
+                .badRequest()
+                .body(ErrorResponse.validation(message, fieldErrors));
+    }
+
+    @ExceptionHandler({
+            HttpMessageNotReadableException.class,
+            ServletRequestBindingException.class
+    })
+    public ResponseEntity<ErrorResponse> handleMalformedRequest(Exception exception) {
+        return ResponseEntity
+                .badRequest()
+                .body(response(ErrorCode.MALFORMED_REQUEST));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException exception) {
+        return ResponseEntity
+                .status(ErrorCode.UNAUTHORIZED.getHttpStatus())
+                .body(response(ErrorCode.UNAUTHORIZED));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception) {
+        return ResponseEntity
+                .status(ErrorCode.FORBIDDEN.getHttpStatus())
+                .body(response(ErrorCode.FORBIDDEN));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataConflict(DataIntegrityViolationException exception) {
+        return ResponseEntity
+                .status(ErrorCode.DATA_CONFLICT.getHttpStatus())
+                .body(response(ErrorCode.DATA_CONFLICT));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+        log.error("Unexpected server error of type {}", exception.getClass().getName(), exception);
         return ResponseEntity
                 .status(ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-                .body(response);
+                .body(response(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 
-    @ExceptionHandler({DisabledException.class, LockedException.class})
-    public ResponseEntity<ErrorResponse> handleDisabledException() {
-        String message = messageSource.getMessage(
-                ErrorCode.ACCOUNT_NOT_ACTIVE.getMessageKey(),
+    private ErrorResponse response(ErrorCode errorCode) {
+        return ErrorResponse.of(errorCode, message(errorCode));
+    }
+
+    private String message(ErrorCode errorCode) {
+        return messageSource.getMessage(
+                errorCode.getMessageKey(),
                 null,
                 LocaleContextHolder.getLocale()
         );
+    }
 
-        ErrorResponse response = new ErrorResponse(
-                ErrorCode.ACCOUNT_NOT_ACTIVE.getCode(),
-                message
+    private FieldErrorResponse toFieldError(FieldError fieldError) {
+        return new FieldErrorResponse(
+                fieldError.getField(),
+                validationCode(fieldError.getCode()),
+                fieldError.getDefaultMessage()
         );
+    }
 
-        return ResponseEntity
-                .status(ErrorCode.ACCOUNT_NOT_ACTIVE.getHttpStatus())
-                .body(response);
+    private String validationCode(String springCode) {
+        return switch (springCode == null ? "" : springCode) {
+            case "NotBlank", "NotNull" -> "FIELD_REQUIRED";
+            case "Email" -> "INVALID_EMAIL";
+            case "Size" -> "INVALID_SIZE";
+            case "Pattern" -> "INVALID_FORMAT";
+            default -> "INVALID_FIELD";
+        };
     }
 }

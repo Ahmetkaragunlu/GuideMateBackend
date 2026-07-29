@@ -3,7 +3,9 @@ package com.ahmetkaragunlu.guidematebackend.auth.repository;
 
 
 import com.ahmetkaragunlu.guidematebackend.auth.domain.PasswordResetToken;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,16 +18,20 @@ import java.util.Optional;
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
 
     @Modifying
-    @Query("UPDATE PasswordResetToken p SET p.expiresAt = :now " +
-            "WHERE p.user.id = :userId AND p.used = false AND p.expiresAt > :now")
-    void expireActiveTokens(@Param("userId") Long userId, @Param("now") LocalDateTime now);
+    @Query("""
+            UPDATE PasswordResetToken token
+               SET token.used = true, token.usedAt = :now
+             WHERE token.user.id = :userId
+               AND token.used = false
+               AND token.expiresAt > :now
+            """)
+    void invalidateActiveTokens(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
-    @Query("SELECT p FROM PasswordResetToken p " +
-            "WHERE p.token = :token " +
-            "AND p.used = false " +
-            "AND p.expiresAt > :now")
-    Optional<PasswordResetToken> findValidToken(@Param("token") String token,
-                                                @Param("now") LocalDateTime now);
+    Optional<PasswordResetToken> findByToken(String token);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT token FROM PasswordResetToken token WHERE token.token = :token")
+    Optional<PasswordResetToken> findByTokenForUpdate(@Param("token") String token);
 
     void deleteByExpiresAtBefore(LocalDateTime now);
 }

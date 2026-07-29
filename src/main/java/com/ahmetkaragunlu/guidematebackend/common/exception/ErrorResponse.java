@@ -1,14 +1,28 @@
 package com.ahmetkaragunlu.guidematebackend.common.exception;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.List;
 
 public record ErrorResponse(
-        int code,
+        String code,
         String message,
-        LocalDateTime timestamp
+        Instant timestamp,
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        List<FieldErrorResponse> fieldErrors
 ) {
-    public ErrorResponse(int code, String message) {
-        this(code, message, LocalDateTime.now());
+
+    public static ErrorResponse of(ErrorCode errorCode, String message) {
+        return new ErrorResponse(errorCode.name(), message, Instant.now(), List.of());
+    }
+
+    public static ErrorResponse validation(String message, List<FieldErrorResponse> fieldErrors) {
+        return new ErrorResponse(
+                ErrorCode.VALIDATION_FAILED.name(),
+                message,
+                Instant.now(),
+                fieldErrors
+        );
     }
 }

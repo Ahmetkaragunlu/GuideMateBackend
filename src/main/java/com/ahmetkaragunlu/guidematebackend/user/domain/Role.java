@@ -2,29 +2,19 @@ package com.ahmetkaragunlu.guidematebackend.user.domain;
 
 import com.ahmetkaragunlu.guidematebackend.common.domain.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Getter
-@Setter
-@NoArgsConstructor
-@ToString(callSuper = true, exclude = "users")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(callSuper = true)
 @Entity
 @Table(name = "roles", indexes = @Index(name = "idx_role_name", columnList = "name"))
 public class Role extends BaseEntity {
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = true, length = 50)
     private String name;
 
-    @OneToMany(mappedBy = "role")
-    private Set<User> users = new HashSet<>();
-
-    public Role(String name) {
-        this.name = name;
-    }
 }

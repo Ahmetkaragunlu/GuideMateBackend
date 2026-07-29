@@ -9,18 +9,15 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Getter
-@Setter
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractToken extends BaseEntity {
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 64)
     private String token;
 
     @Column(nullable = false)
@@ -32,12 +29,17 @@ public abstract class AbstractToken extends BaseEntity {
     @Column(name = "used_at")
     private LocalDateTime usedAt;
 
-    protected AbstractToken(LocalDateTime expiresAt) {
-        this.token = UUID.randomUUID().toString();
+    protected AbstractToken(String token, LocalDateTime expiresAt) {
+        this.token = token;
         this.expiresAt = expiresAt;
     }
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiresAt);
+    }
+
+    public void markUsed() {
+        this.used = true;
+        this.usedAt = LocalDateTime.now();
     }
 }
