@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -15,6 +16,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.List;
 
@@ -55,14 +59,29 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.validation(message, fieldErrors));
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException exception) {
+        return ResponseEntity
+                .badRequest()
+                .body(ErrorResponse.validation(message(ErrorCode.VALIDATION_FAILED), List.of()));
+    }
+
     @ExceptionHandler({
             HttpMessageNotReadableException.class,
-            ServletRequestBindingException.class
+            ServletRequestBindingException.class,
+            MethodArgumentTypeMismatchException.class
     })
     public ResponseEntity<ErrorResponse> handleMalformedRequest(Exception exception) {
         return ResponseEntity
                 .badRequest()
                 .body(response(ErrorCode.MALFORMED_REQUEST));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSize(MaxUploadSizeExceededException exception) {
+        return ResponseEntity
+                .status(ErrorCode.MEDIA_TOO_LARGE.getHttpStatus())
+                .body(response(ErrorCode.MEDIA_TOO_LARGE));
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -84,6 +103,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.DATA_CONFLICT.getHttpStatus())
                 .body(response(ErrorCode.DATA_CONFLICT));
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrentUpdate(
+            ObjectOptimisticLockingFailureException exception
+    ) {
+        return ResponseEntity
+                .status(ErrorCode.CONCURRENT_UPDATE.getHttpStatus())
+                .body(response(ErrorCode.CONCURRENT_UPDATE));
     }
 
     @ExceptionHandler(Exception.class)

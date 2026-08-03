@@ -8,10 +8,16 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Clock;
 import java.util.Optional;
 
 @Configuration
 public class AuditConfig {
+
+    @Bean
+    public Clock systemClock() {
+        return Clock.systemUTC();
+    }
 
     @Bean
     public AuditorAware<String> auditorProvider() {
