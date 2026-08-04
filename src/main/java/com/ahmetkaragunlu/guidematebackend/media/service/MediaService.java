@@ -57,7 +57,9 @@ public class MediaService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEDIA_NOT_FOUND));
 
         boolean publiclyAccessible = isPubliclyAccessible(mediaAssetId);
-        if (!publiclyAccessible && !media.isOwnedBy(requesterUserId)) {
+        boolean referenceAccessible = referencePolicies.stream()
+                .anyMatch(policy -> policy.isAccessibleTo(mediaAssetId, requesterUserId));
+        if (!publiclyAccessible && !referenceAccessible && !media.isOwnedBy(requesterUserId)) {
             throw new BusinessException(ErrorCode.MEDIA_NOT_FOUND);
         }
 

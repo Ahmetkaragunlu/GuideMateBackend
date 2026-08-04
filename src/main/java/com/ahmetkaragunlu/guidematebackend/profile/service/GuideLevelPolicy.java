@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.profile.service;
 
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideLevel;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideLevel;
 import org.springframework.stereotype.Component;
 
 @Component

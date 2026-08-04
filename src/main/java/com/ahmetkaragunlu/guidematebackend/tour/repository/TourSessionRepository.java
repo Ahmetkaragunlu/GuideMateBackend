@@ -208,14 +208,14 @@ public interface TourSessionRepository extends JpaRepository<TourSession, UUID> 
             SELECT session FROM TourSession session
             WHERE session.tour.id = :tourId
               AND session.tour.approvalStatus = :approvalStatus
-              AND session.status <> :cancelledStatus
+              AND session.status = :sessionStatus
               AND session.startsAt > :now
             ORDER BY session.startsAt ASC
             """)
     List<TourSession> findFuturePublicSessions(
             @Param("tourId") UUID tourId,
             @Param("approvalStatus") TourApprovalStatus approvalStatus,
-            @Param("cancelledStatus") TourSessionStatus cancelledStatus,
+            @Param("sessionStatus") TourSessionStatus sessionStatus,
             @Param("now") Instant now,
             Pageable pageable
     );

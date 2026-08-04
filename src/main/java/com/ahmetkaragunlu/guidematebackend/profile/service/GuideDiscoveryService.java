@@ -4,12 +4,10 @@ import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideSearchItemResponse;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideLevel;
-import com.ahmetkaragunlu.guidematebackend.tour.repository.GuideCompletedSessionCount;
-import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewRankingPolicy;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +29,9 @@ import java.util.stream.Collectors;
 public class GuideDiscoveryService {
 
     private final GuideProfileRepository guideProfileRepository;
-    private final TourSessionRepository tourSessionRepository;
+    private final GuidePerformanceService guidePerformanceService;
     private final MediaUrlFactory mediaUrlFactory;
-    private final GuideLevelPolicy guideLevelPolicy;
+    private final ReviewRankingPolicy reviewRankingPolicy;
 
     @Transactional(readOnly = true)
     public PageResponse<GuideSearchItemResponse> search(String query, int page, int size) {
@@ -55,10 +53,10 @@ public class GuideDiscoveryService {
                         RoleType.ROLE_GUIDE.name(),
                         pageable
                 );
-        Map<Long, Long> completedCounts = completedCounts(profiles.getContent());
+        Map<Long, GuidePerformanceSummary> performance = performance(profiles.getContent());
         return PageResponse.from(profiles.map(profile -> toResponse(
                 profile,
-                completedCounts.getOrDefault(profile.getUserId(), 0L)
+                performance.get(profile.getUserId())
         )));
     }
 
@@ -68,36 +66,28 @@ public class GuideDiscoveryService {
                 AccountStatus.ACTIVE,
                 RoleType.ROLE_GUIDE.name()
         );
-        Map<Long, Long> completedCounts = completedCounts(profiles);
+        Map<Long, GuidePerformanceSummary> performance = performance(profiles);
         return profiles.stream()
-                .map(profile -> toResponse(profile, completedCounts.getOrDefault(profile.getUserId(), 0L)))
+                .map(profile -> toResponse(profile, performance.get(profile.getUserId())))
                 .sorted(Comparator
-                        .comparingLong(GuideSearchItemResponse::completedSessionCount).reversed()
+                        .comparingDouble(this::weightedScore).reversed()
+                        .thenComparing(GuideSearchItemResponse::reviewCount, Comparator.reverseOrder())
+                        .thenComparing(GuideSearchItemResponse::completedSessionCount, Comparator.reverseOrder())
                         .thenComparing(GuideSearchItemResponse::displayName)
                         .thenComparing(GuideSearchItemResponse::guideId))
                 .limit(limit)
                 .toList();
     }
 
-    private Map<Long, Long> completedCounts(List<GuideProfile> profiles) {
+    private Map<Long, GuidePerformanceSummary> performance(List<GuideProfile> profiles) {
         Set<Long> guideIds = profiles.stream().map(GuideProfile::getUserId).collect(Collectors.toSet());
-        if (guideIds.isEmpty()) {
-            return Map.of();
-        }
-        return tourSessionRepository.countCompletedSessionsByGuideIds(
-                        guideIds,
-                        TourSessionStatus.COMPLETED
-                ).stream()
-                .collect(Collectors.toMap(
-                        GuideCompletedSessionCount::getGuideId,
-                        GuideCompletedSessionCount::getCompletedSessionCount
-                ));
+        return guidePerformanceService.getAll(guideIds);
     }
 
-    private GuideSearchItemResponse toResponse(GuideProfile profile, long completedSessionCount) {
-        double averageRating = 0.0;
-        long reviewCount = 0;
-        GuideLevel level = guideLevelPolicy.resolve(completedSessionCount, averageRating, reviewCount);
+    private GuideSearchItemResponse toResponse(
+            GuideProfile profile,
+            GuidePerformanceSummary performance
+    ) {
         MediaReferenceResponse avatar = profile.getAvatar() == null
                 ? null
                 : new MediaReferenceResponse(
@@ -110,12 +100,16 @@ public class GuideDiscoveryService {
                 profile.getSpecialtyTitle(),
                 avatar,
                 profile.getLanguageCodes().stream().sorted().toList(),
-                completedSessionCount,
-                0,
-                averageRating,
-                reviewCount,
-                level
+                performance.completedSessionCount(),
+                performance.totalParticipantCount(),
+                performance.averageRating(),
+                performance.reviewCount(),
+                performance.level()
         );
+    }
+
+    private double weightedScore(GuideSearchItemResponse guide) {
+        return reviewRankingPolicy.weightedScore(guide.averageRating(), guide.reviewCount());
     }
 
     private String trimToNull(String query) {

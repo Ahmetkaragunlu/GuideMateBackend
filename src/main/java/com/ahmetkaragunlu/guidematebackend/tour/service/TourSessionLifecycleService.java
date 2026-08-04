@@ -1,6 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.service;
 
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationLifecycleService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class TourSessionLifecycleService {
     );
 
     private final TourSessionRepository tourSessionRepository;
+    private final ReservationLifecycleService reservationLifecycleService;
     private final Clock clock;
 
     @Scheduled(fixedDelayString = "${tour.lifecycle-delay-ms:60000}")
@@ -31,6 +33,9 @@ public class TourSessionLifecycleService {
         tourSessionRepository.findByStatusInAndStartsAtBefore(COMPLETION_CANDIDATE_STATUSES, now)
                 .stream()
                 .filter(session -> !session.endsAt().isAfter(now))
-                .forEach(TourSession::complete);
+                .forEach(session -> {
+                    session.complete();
+                    reservationLifecycleService.completeForSession(session.getId());
+                });
     }
 }

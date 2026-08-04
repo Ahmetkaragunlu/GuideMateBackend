@@ -1,7 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.profile.dto;
 
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideLevel;
 
 import java.util.List;
 

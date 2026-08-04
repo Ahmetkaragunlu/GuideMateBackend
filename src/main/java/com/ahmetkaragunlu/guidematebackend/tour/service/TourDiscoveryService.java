@@ -6,6 +6,9 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.validation.LanguageCodePolicy;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
@@ -45,6 +48,8 @@ public class TourDiscoveryService {
     private final LanguageCodePolicy languageCodePolicy;
     private final TourInputPolicy tourInputPolicy;
     private final TourMapper tourMapper;
+    private final ReservationCapacityService capacityService;
+    private final ReviewQueryService reviewQueryService;
     private final Clock clock;
 
     @Transactional(readOnly = true)
@@ -78,15 +83,15 @@ public class TourDiscoveryService {
                 clock.instant()
         );
 
-        if (minRating != null && minRating > 0.0) {
-            return new PageResponse<>(List.of(), page, size, 0, 0, true, true);
-        }
-
         Page<TourSession> sessions = tourDiscoveryRepository.search(criteria);
         Map<Long, GuideProfile> profiles = profilesByGuideId(sessions.getContent());
+        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(sessions.getContent()));
+        Map<UUID, ReviewAggregate> reviews = reviewQueryService.tourAggregates(tourIds(sessions.getContent()));
         Page<TourSearchItemResponse> responsePage = sessions.map(session -> tourMapper.toSearchItem(
                 session,
-                profiles.get(session.getTour().getGuide().getId())
+                profiles.get(session.getTour().getGuide().getId()),
+                occupiedCounts.getOrDefault(session.getId(), 0),
+                reviews.getOrDefault(session.getTour().getId(), ReviewAggregate.EMPTY)
         ));
         return PageResponse.from(responsePage);
     }
@@ -113,14 +118,28 @@ public class TourDiscoveryService {
         List<TourSession> sessions = tourSessionRepository.findFuturePublicSessions(
                 tourId,
                 TourApprovalStatus.APPROVED,
-                TourSessionStatus.CANCELLED,
+                TourSessionStatus.OPEN_FOR_BOOKING,
                 clock.instant(),
-                PageRequest.of(0, 1)
+                PageRequest.of(0, 50)
         );
-        TourSession session = sessions.stream().findFirst()
+        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(sessions));
+        TourSession session = sessions.stream()
+                .filter(candidate -> capacityService.availableCapacity(
+                        candidate,
+                        occupiedCounts.getOrDefault(candidate.getId(), 0)
+                ) > 0)
+                .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
         GuideProfile profile = requirePublicGuideProfile(session.getTour());
-        return tourMapper.toDetail(session.getTour(), List.of(session), profile);
+        ReviewAggregate reviews = reviewQueryService.tourAggregates(List.of(tourId))
+                .getOrDefault(tourId, ReviewAggregate.EMPTY);
+        return tourMapper.toDetail(
+                session.getTour(),
+                List.of(session),
+                profile,
+                occupiedCounts,
+                reviews
+        );
     }
 
     @Transactional(readOnly = true)
@@ -131,7 +150,26 @@ public class TourDiscoveryService {
                 )
                 .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
         GuideProfile profile = requirePublicGuideProfile(session.getTour());
-        return tourMapper.toDetail(session.getTour(), List.of(session), profile);
+        int occupiedCount = capacityService.occupiedCount(sessionId);
+        ReviewAggregate reviews = reviewQueryService.tourAggregates(
+                        List.of(session.getTour().getId())
+                )
+                .getOrDefault(session.getTour().getId(), ReviewAggregate.EMPTY);
+        return tourMapper.toDetail(
+                session.getTour(),
+                List.of(session),
+                profile,
+                Map.of(sessionId, occupiedCount),
+                reviews
+        );
+    }
+
+    private List<UUID> sessionIds(List<TourSession> sessions) {
+        return sessions.stream().map(TourSession::getId).toList();
+    }
+
+    private Set<UUID> tourIds(List<TourSession> sessions) {
+        return sessions.stream().map(session -> session.getTour().getId()).collect(Collectors.toSet());
     }
 
     private Map<Long, GuideProfile> profilesByGuideId(List<TourSession> sessions) {

@@ -30,11 +30,12 @@ public class GuideProfileService {
     private final MediaService mediaService;
     private final GuideProfileMapper guideProfileMapper;
     private final LanguageCodePolicy languageCodePolicy;
+    private final GuidePerformanceService guidePerformanceService;
 
     @Transactional(readOnly = true)
     public GuideProfileResponse getOwnProfile(User currentUser) {
         GuideProfile profile = guideProfileRepository.findByUserId(currentUser.getId()).orElse(null);
-        return guideProfileMapper.toResponse(currentUser, profile);
+        return toResponse(currentUser, profile);
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +43,7 @@ public class GuideProfileService {
         GuideProfile profile = guideProfileRepository.findByUserId(guideId)
                 .filter(this::isPublicProfile)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GUIDE_PROFILE_NOT_FOUND));
-        return guideProfileMapper.toResponse(profile.getUser(), profile);
+        return toResponse(profile.getUser(), profile);
     }
 
     @Transactional
@@ -69,7 +70,15 @@ public class GuideProfileService {
         }
 
         GuideProfile savedProfile = guideProfileRepository.save(profile);
-        return guideProfileMapper.toResponse(currentUser, savedProfile);
+        return toResponse(currentUser, savedProfile);
+    }
+
+    private GuideProfileResponse toResponse(User user, GuideProfile profile) {
+        return guideProfileMapper.toResponse(
+                user,
+                profile,
+                guidePerformanceService.get(user.getId())
+        );
     }
 
     private boolean isPublicProfile(GuideProfile profile) {

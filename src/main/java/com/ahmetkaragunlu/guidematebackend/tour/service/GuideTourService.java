@@ -8,6 +8,9 @@ import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.config.TourProperties;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
@@ -38,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -67,6 +71,8 @@ public class GuideTourService {
     private final TourChangeSnapshotCodec snapshotCodec;
     private final TourSchedulePolicy schedulePolicy;
     private final TourMapper tourMapper;
+    private final ReservationCapacityService capacityService;
+    private final ReviewQueryService reviewQueryService;
     private final TourProperties tourProperties;
     private final Clock clock;
 
@@ -106,7 +112,13 @@ public class GuideTourService {
         );
         tourSessionRepository.save(session);
 
-        TourDetailResponse detail = tourMapper.toDetail(tour, List.of(session), profile);
+        TourDetailResponse detail = tourMapper.toDetail(
+                tour,
+                List.of(session),
+                profile,
+                Map.of(session.getId(), 0),
+                ReviewAggregate.EMPTY
+        );
         return new TourReviewSubmissionResponse(
                 tour.getId(),
                 AdminTourReviewType.NEW_TOUR,
@@ -145,7 +157,11 @@ public class GuideTourService {
                     pageRequest
             );
         };
-        return PageResponse.from(sessions.map(tourMapper::toGuideCard));
+        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(sessions.getContent()));
+        return PageResponse.from(sessions.map(session -> tourMapper.toGuideCard(
+                session,
+                occupiedCounts.getOrDefault(session.getId(), 0)
+        )));
     }
 
     @Transactional(readOnly = true)
@@ -234,7 +250,14 @@ public class GuideTourService {
     private TourDetailResponse detail(Tour tour) {
         List<TourSession> sessions = tourSessionRepository.findAllByTour_IdOrderByStartsAtAsc(tour.getId());
         GuideProfile profile = requireGuideProfile(tour.getGuide().getId());
-        return tourMapper.toDetail(tour, sessions, profile);
+        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(sessions));
+        ReviewAggregate reviews = reviewQueryService.tourAggregates(List.of(tour.getId()))
+                .getOrDefault(tour.getId(), ReviewAggregate.EMPTY);
+        return tourMapper.toDetail(tour, sessions, profile, occupiedCounts, reviews);
+    }
+
+    private List<UUID> sessionIds(List<TourSession> sessions) {
+        return sessions.stream().map(TourSession::getId).toList();
     }
 
     private GuideProfile requireGuideProfile(Long guideId) {

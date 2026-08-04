@@ -8,6 +8,9 @@ import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeRequest;
@@ -35,6 +38,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -50,6 +54,8 @@ public class AdminTourReviewService {
     private final TourContentFactory tourContentFactory;
     private final TourChangeSnapshotCodec snapshotCodec;
     private final TourMapper tourMapper;
+    private final ReservationCapacityService capacityService;
+    private final ReviewQueryService reviewQueryService;
     private final Clock clock;
 
     @Transactional(readOnly = true)
@@ -255,7 +261,12 @@ public class AdminTourReviewService {
         GuideProfile profile = guideProfileRepository.findByUserId(tour.getGuide().getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.GUIDE_PROFILE_NOT_FOUND));
         List<TourSession> sessions = tourSessionRepository.findAllByTour_IdOrderByStartsAtAsc(tour.getId());
-        return tourMapper.toDetail(tour, sessions, profile);
+        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(
+                sessions.stream().map(TourSession::getId).toList()
+        );
+        ReviewAggregate reviews = reviewQueryService.tourAggregates(List.of(tour.getId()))
+                .getOrDefault(tour.getId(), ReviewAggregate.EMPTY);
+        return tourMapper.toDetail(tour, sessions, profile, occupiedCounts, reviews);
     }
 
     private void openEligibleSessions(UUID tourId, Instant now) {

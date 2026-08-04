@@ -64,6 +64,9 @@ public class TourSession extends UuidAuditedEntity {
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 
+    @Column(name = "cancellation_idempotency_key", length = 128)
+    private String cancellationIdempotencyKey;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -110,6 +113,16 @@ public class TourSession extends UuidAuditedEntity {
         return startsAt.plus(durationMinutes, ChronoUnit.MINUTES);
     }
 
+    public boolean hasScheduleChanges(
+            String meetingPoint,
+            Instant startsAt,
+            int durationMinutes
+    ) {
+        return !this.meetingPoint.equals(meetingPoint)
+                || !this.startsAt.equals(startsAt)
+                || this.durationMinutes != durationMinutes;
+    }
+
     public void updateSchedule(
             String meetingPoint,
             Instant startsAt,
@@ -132,11 +145,17 @@ public class TourSession extends UuidAuditedEntity {
         this.status = TourSessionStatus.CLOSED;
     }
 
-    public void cancel(TourCancellationActor actor, String reason, Instant cancelledAt) {
+    public void cancel(
+            TourCancellationActor actor,
+            String reason,
+            Instant cancelledAt,
+            String idempotencyKey
+    ) {
         this.status = TourSessionStatus.CANCELLED;
         this.cancellationActor = Objects.requireNonNull(actor);
         this.cancellationReason = Objects.requireNonNull(reason);
         this.cancelledAt = Objects.requireNonNull(cancelledAt);
+        this.cancellationIdempotencyKey = Objects.requireNonNull(idempotencyKey);
     }
 
     public void complete() {

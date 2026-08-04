@@ -1,5 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.dto.response;
 
+import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideLevel;
+
 public record GuideDashboardResponse(
         long activeSessionCount,
         long pendingReviewCount,

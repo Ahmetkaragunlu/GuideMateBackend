@@ -101,6 +101,13 @@ girer.
   yeni tur ve kritik degisiklik inceleme akisi, rehber yonetimi, admin onayi,
   public tur/rehber kesfi, dashboard, medya referanslari, yetki ve hata
   sozlesmeleri birlikte uygulanmistir.
+- Faz 4 backend kapsami tamamlanmistir: `V5` rezervasyon/yorum semasi, `V6`
+  rehber session iptal idempotency'si, seat hold ve kapasite kilidi, satin alma
+  snapshot'i, turist gezi/detail/iptal API'leri, yorum uygunlugu, puan/populerlik
+  sorgulari ve ortak `GuidePerformanceSummary` projection'i uygulanmistir.
+- Public booking endpoint'i Faz 4'te acilmamistir. `ReservationBookingService`
+  seat hold/finalization ic sinirini sunar; dis API Faz 5'te gercek payment veya
+  wallet sonucuyla ayni transaction akisi icinde baglanir.
 
 ## Ertelenen Maddeler
 
@@ -114,8 +121,13 @@ eklenecektir:
 | Domain'e ozel stabil `ErrorCode` ve mesaj anahtarlari | Faz 2 icin tamamlandi; sonraki feature yazilirken devam eder |
 | Endpoint'e ozel page/size/sort sinirlari | Faz 3 liste endpoint'leri icin tamamlandi; sonraki liste endpoint'lerinde devam eder |
 | `MEDIA_STORAGE_ROOT`, public media URL ve storage dogrulamalari | Tamamlandi: local secret/environment + kontrollu content endpoint'i |
-| Tur/oturum projection'larindaki rezervasyon, kapasite, puan, yorum ve rehber performans metrikleri | Faz 4 reservation/review tablolariyla gercek sorgulara baglanacak; Faz 3'te olmayan veriler sahte uretilmeyip kanonik `0` veya toplam kapasite olarak doner |
+| Tur/oturum projection'larindaki rezervasyon, kapasite, puan, yorum ve rehber performans metrikleri | Tamamlandi: `ReservationCapacityService`, `ReviewQueryService` ve `GuidePerformanceService` gercek sorgulara baglandi |
 | Dashboard `currentMonthEarningsMinor` degeri | Faz 5 `guide_earnings` kayitlariyla gercek sorguya baglanacak; o zamana kadar kanonik `0` doner |
+| Booking API ve `ReservationBookingService` payment/wallet baglantisi | Faz 5'te verified payment veya atomik wallet debit ile acilacak; sahte basari endpoint'i eklenmeyecek |
+| Turist/rehber/admin iptalinde gercek refund ve guide earning duzeltmesi | Faz 5 payment, refund, wallet ve earning kayitlariyla transaction/reconciliation akisina baglanacak |
+| Rezervasyon ve yorum lifecycle bildirimleri | Faz 6 FCM ve notification history ile eklenecek |
+| Suresi dolmus `PENDING_PAYMENT` hold'larini `EXPIRED` yapan scheduler | Faz 7 scheduler/seed kapsaminda eklenecek; kapasite sorgulari su anda suresi dolmus hold'u saymaz |
+| Gec verified payment icin session/reservation lock, kapasite ve tek refund karari | Faz 5 callback/reconciliation akisinda ayni lock sirasi ve idempotency ile tamamlanacak |
 | Google Places kaynakli konum verisinin sunucu tarafinda yeniden dogrulanmasi | Production hazirlik kontrolunde; Faz 3 MVP akisinda Android'den gelen canonical konum alanlari dogrulanip saklanir |
 | Iyzico callback/webhook public base URL konfigurasyonu | Faz 5 basinda |
 | Iyzico Card Storage/hosted save destegi | Faz 5 dis bagimlilik kontrolunde |

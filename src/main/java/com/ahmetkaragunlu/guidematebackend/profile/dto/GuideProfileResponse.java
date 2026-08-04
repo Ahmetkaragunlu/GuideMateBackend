@@ -12,6 +12,7 @@ public record GuideProfileResponse(
         String specialtyTitle,
         String biography,
         List<String> languageCodes,
-        MediaReferenceResponse avatar
+        MediaReferenceResponse avatar,
+        GuidePerformanceSummary performance
 ) {
 }

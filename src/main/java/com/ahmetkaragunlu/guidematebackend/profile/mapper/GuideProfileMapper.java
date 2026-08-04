@@ -4,6 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideProfileResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,11 @@ public class GuideProfileMapper {
 
     private final MediaUrlFactory mediaUrlFactory;
 
-    public GuideProfileResponse toResponse(User user, GuideProfile profile) {
+    public GuideProfileResponse toResponse(
+            User user,
+            GuideProfile profile,
+            GuidePerformanceSummary performance
+    ) {
         String specialtyTitle = profile == null ? "" : profile.getSpecialtyTitle();
         String biography = profile == null ? "" : profile.getBiography();
         List<String> languageCodes = profile == null
@@ -33,7 +38,8 @@ public class GuideProfileMapper {
                 specialtyTitle,
                 biography,
                 languageCodes,
-                avatar
+                avatar,
+                performance
         );
     }
 

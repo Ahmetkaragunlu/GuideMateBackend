@@ -2,6 +2,9 @@ package com.ahmetkaragunlu.guidematebackend.tour.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationCancellationActor;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationLifecycleService;
 import com.ahmetkaragunlu.guidematebackend.tour.config.TourProperties;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
@@ -33,6 +36,8 @@ public class TourSessionService {
     private final TourSchedulePolicy schedulePolicy;
     private final TourMapper tourMapper;
     private final TourProperties tourProperties;
+    private final ReservationCapacityService capacityService;
+    private final ReservationLifecycleService reservationLifecycleService;
     private final Clock clock;
 
     @Transactional
@@ -62,7 +67,7 @@ public class TourSessionService {
                 request.capacity(),
                 TourSessionStatus.OPEN_FOR_BOOKING
         );
-        return tourMapper.toSession(tourSessionRepository.save(session));
+        return tourMapper.toSession(tourSessionRepository.save(session), 0);
     }
 
     @Transactional
@@ -74,6 +79,17 @@ public class TourSessionService {
         TourSession session = requireOwnedSession(currentUser.getId(), sessionId);
         requireVersion(session.getVersion(), request.version());
         requireManageableFuture(session);
+        int occupiedCount = capacityService.occupiedCount(sessionId);
+        if (request.capacity() < occupiedCount) {
+            throw new BusinessException(ErrorCode.CAPACITY_BELOW_BOOKED_COUNT);
+        }
+        if (session.hasScheduleChanges(
+                request.meetingPoint(),
+                request.startsAt(),
+                request.durationMinutes()
+        ) && capacityService.hasActiveReservation(sessionId)) {
+            throw new BusinessException(ErrorCode.SESSION_HAS_RESERVATIONS);
+        }
         schedulePolicy.validateUpdatedSchedule(
                 currentUser.getId(),
                 sessionId,
@@ -89,7 +105,7 @@ public class TourSessionService {
                 request.capacity()
         );
         tourSessionRepository.flush();
-        return tourMapper.toSession(session);
+        return tourMapper.toSession(session, occupiedCount);
     }
 
     @Transactional
@@ -99,9 +115,13 @@ public class TourSessionService {
         if (session.getTour().getApprovalStatus() != TourApprovalStatus.APPROVED) {
             throw new BusinessException(ErrorCode.TOUR_NOT_APPROVED);
         }
+        int occupiedCount = capacityService.occupiedCount(sessionId);
+        if (capacityService.availableCapacity(session, occupiedCount) < 1) {
+            throw new BusinessException(ErrorCode.CAPACITY_NOT_AVAILABLE);
+        }
         session.open();
         tourSessionRepository.flush();
-        return tourMapper.toSession(session);
+        return tourMapper.toSession(session, occupiedCount);
     }
 
     @Transactional
@@ -110,20 +130,44 @@ public class TourSessionService {
         requireManageableFuture(session);
         session.close();
         tourSessionRepository.flush();
-        return tourMapper.toSession(session);
+        return tourMapper.toSession(session, capacityService.occupiedCount(sessionId));
     }
 
     @Transactional
     public TourSessionResponse cancelSession(
             User currentUser,
             UUID sessionId,
+            String idempotencyKey,
             CancelTourSessionRequest request
     ) {
+        String normalizedKey = normalizeIdempotencyKey(idempotencyKey);
         TourSession session = requireOwnedSession(currentUser.getId(), sessionId);
+        if (session.getStatus() == TourSessionStatus.CANCELLED
+                && normalizedKey.equals(session.getCancellationIdempotencyKey())) {
+            return tourMapper.toSession(session, 0);
+        }
         requireManageableFuture(session);
-        session.cancel(TourCancellationActor.GUIDE, request.reason(), clock.instant());
+        session.cancel(
+                TourCancellationActor.GUIDE,
+                request.reason(),
+                clock.instant(),
+                normalizedKey
+        );
+        reservationLifecycleService.cancelForSession(
+                sessionId,
+                ReservationCancellationActor.GUIDE,
+                request.reason(),
+                session.getCancelledAt()
+        );
         tourSessionRepository.flush();
-        return tourMapper.toSession(session);
+        return tourMapper.toSession(session, 0);
+    }
+
+    private String normalizeIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank() || idempotencyKey.length() > 128) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED);
+        }
+        return idempotencyKey.trim();
     }
 
     private TourSession requireOwnedSession(Long guideId, UUID sessionId) {

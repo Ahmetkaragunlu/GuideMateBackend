@@ -4,6 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeSnapshot;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -30,7 +33,9 @@ public class TourMapper {
     public TourDetailResponse toDetail(
             Tour tour,
             List<TourSession> sessions,
-            GuideProfile guideProfile
+            GuideProfile guideProfile,
+            Map<UUID, Integer> occupiedCounts,
+            ReviewAggregate reviews
     ) {
         return new TourDetailResponse(
                 tour.getId(),
@@ -50,14 +55,18 @@ public class TourMapper {
                 tour.getPublishedAt(),
                 tour.getReviewedAt(),
                 tour.getRejectionReason(),
-                0.0,
-                0,
-                sessions.stream().map(this::toSession).toList()
+                reviews.averageRating(),
+                reviews.reviewCount(),
+                sessions.stream()
+                        .map(session -> toSession(
+                                session,
+                                occupiedCounts.getOrDefault(session.getId(), 0)
+                        ))
+                        .toList()
         );
     }
 
-    public TourSessionResponse toSession(TourSession session) {
-        int bookedCount = 0;
+    public TourSessionResponse toSession(TourSession session, int bookedCount) {
         return new TourSessionResponse(
                 session.getId(),
                 session.getTour().getId(),
@@ -77,7 +86,7 @@ public class TourMapper {
         );
     }
 
-    public GuideTourCardResponse toGuideCard(TourSession session) {
+    public GuideTourCardResponse toGuideCard(TourSession session, int bookedCount) {
         Tour tour = session.getTour();
         return new GuideTourCardResponse(
                 tour.getId(),
@@ -95,8 +104,8 @@ public class TourMapper {
                 session.getDurationMinutes(),
                 session.getPriceMinor(),
                 session.getCurrencyCode(),
-                0,
-                session.getCapacity(),
+                bookedCount,
+                Math.max(0, session.getCapacity() - bookedCount),
                 tour.getApprovalStatus(),
                 session.getStatus(),
                 tour.getRejectionReason(),
@@ -104,7 +113,12 @@ public class TourMapper {
         );
     }
 
-    public TourSearchItemResponse toSearchItem(TourSession session, GuideProfile guideProfile) {
+    public TourSearchItemResponse toSearchItem(
+            TourSession session,
+            GuideProfile guideProfile,
+            int bookedCount,
+            ReviewAggregate reviews
+    ) {
         Tour tour = session.getTour();
         return new TourSearchItemResponse(
                 tour.getId(),
@@ -119,11 +133,11 @@ public class TourMapper {
                 session.getDurationMinutes(),
                 session.getPriceMinor(),
                 session.getCurrencyCode(),
-                session.getCapacity(),
+                Math.max(0, session.getCapacity() - bookedCount),
                 sortedLanguages(tour),
                 toMediaReference(tour.getCoverMedia()),
-                0.0,
-                0,
+                reviews.averageRating(),
+                reviews.reviewCount(),
                 toGuideSummary(tour.getGuide(), guideProfile)
         );
     }

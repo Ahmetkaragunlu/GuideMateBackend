@@ -5,10 +5,11 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeRequestStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideDashboardResponse;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideLevel;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourChangeRequestRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
+import com.ahmetkaragunlu.guidematebackend.profile.service.GuidePerformanceService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class GuideDashboardService {
     private final TourRepository tourRepository;
     private final TourSessionRepository tourSessionRepository;
     private final TourChangeRequestRepository changeRequestRepository;
+    private final GuidePerformanceService guidePerformanceService;
     private final TourProperties tourProperties;
     private final Clock clock;
 
@@ -42,19 +44,16 @@ public class GuideDashboardService {
                 guideId,
                 TourChangeRequestStatus.PENDING
         );
-        long completedSessionCount = tourSessionRepository.countByTour_Guide_IdAndStatus(
-                guideId,
-                TourSessionStatus.COMPLETED
-        );
+        GuidePerformanceSummary performance = guidePerformanceService.get(guideId);
 
         return new GuideDashboardResponse(
                 activeSessionCount,
                 pendingReviewCount,
-                completedSessionCount,
-                0,
-                0.0,
-                0,
-                GuideLevel.APPROVED,
+                performance.completedSessionCount(),
+                performance.totalParticipantCount(),
+                performance.averageRating(),
+                performance.reviewCount(),
+                performance.level(),
                 0,
                 tourProperties.currencyCode()
         );
