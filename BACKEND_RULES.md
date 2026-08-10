@@ -85,9 +85,9 @@ girer.
 
 ## Faz Durumu
 
-- Faz 0 Android endpoint'i uretmez. Iyzico Card Storage ve
-  Marketplace/submerchant yetkileri Faz 5 basinda dogrulanmak uzere
-  ertelenmistir; payout modu henuz kararlastirilmamistir.
+- Faz 0 Android endpoint'i uretmez. Iyzico Card Storage karari destek cevabi
+  gelene kadar `OFF`, payout modu ise Marketplace/Mass Payout yetkisi olmadigi
+  icin acikca `SIMULATED` olarak sabitlenmistir.
 - Faz 1'in gerekli ortak backend temeli hazirdir: `UuidAuditedEntity`, ortak
   pagination response, method security altyapisi ve OpenAPI/JWT standardi.
 - Faz 1 tek basina Android'in cagiracagi yeni business endpoint sunmaz. Yeni
@@ -105,9 +105,25 @@ girer.
   rehber session iptal idempotency'si, seat hold ve kapasite kilidi, satin alma
   snapshot'i, turist gezi/detail/iptal API'leri, yorum uygunlugu, puan/populerlik
   sorgulari ve ortak `GuidePerformanceSummary` projection'i uygulanmistir.
-- Public booking endpoint'i Faz 4'te acilmamistir. `ReservationBookingService`
-  seat hold/finalization ic sinirini sunar; dis API Faz 5'te gercek payment veya
-  wallet sonucuyla ayni transaction akisi icinde baglanir.
+- Faz 5 backend kod kapsami tamamlanmistir: `V7` payment/wallet/finance semasi,
+  iyzico Checkout Form initialize/retrieve/callback/webhook adapter'i, strict
+  `X-IYZ-SIGNATURE-V3`, payment event ve reconciliation girisi, atomik wallet
+  top-up/tur alimi, refund, guide earning, sifreli IBAN, banka hesabi ve
+  `SIMULATED` withdrawal API'leri uygulanmistir. Public booking API gercek
+  verified payment veya atomik wallet debit ile acilmistir; kart bilgisi
+  GuideMate backend'ine gelmez ve saved-card kodu yazilmamistir.
+- Faz 5 kodu test profili, OpenAPI ve local PostgreSQL uzerinde dogrulanmis;
+  local sema `V7`'ye gecmistir. Quick Tunnel uzerinden USD Checkout Form,
+  callback/retrieve, basarili tek wallet credit ve basarisiz odemede credit
+  olusmamasi Sandbox'ta dogrulanmistir. Imzali webhook olayi henuz
+  alinmadigi icin hesapta `X-IYZ-SIGNATURE-V3` aktivasyon cevabi ve ardindan
+  webhook E2E tekrari tamamlanmadan Faz 5'in provider kapanisi bitmis sayilmaz.
+- Mevcut Faz 5 uygulamasi canonical USD ve USD tahsilatla calismaya devam eder.
+  Kullanici tarafindan secilen provider tahsilat para birimi, backend FX quote'u,
+  charge snapshot'i ve ayni para biriminde iade kapsami; Faz 7'den sonra, Faz 8
+  final dogrulamasindan ve Android odeme entegrasyonundan once ayri bir dikey
+  dilim olarak uygulanacaktir. Bu dilim tamamlanana kadar mevcut USD constraint
+  ve contract'lari parca parca gevsetilmez.
 
 ## Ertelenen Maddeler
 
@@ -122,20 +138,25 @@ eklenecektir:
 | Endpoint'e ozel page/size/sort sinirlari | Faz 3 liste endpoint'leri icin tamamlandi; sonraki liste endpoint'lerinde devam eder |
 | `MEDIA_STORAGE_ROOT`, public media URL ve storage dogrulamalari | Tamamlandi: local secret/environment + kontrollu content endpoint'i |
 | Tur/oturum projection'larindaki rezervasyon, kapasite, puan, yorum ve rehber performans metrikleri | Tamamlandi: `ReservationCapacityService`, `ReviewQueryService` ve `GuidePerformanceService` gercek sorgulara baglandi |
-| Dashboard `currentMonthEarningsMinor` degeri | Faz 5 `guide_earnings` kayitlariyla gercek sorguya baglanacak; o zamana kadar kanonik `0` doner |
-| Booking API ve `ReservationBookingService` payment/wallet baglantisi | Faz 5'te verified payment veya atomik wallet debit ile acilacak; sahte basari endpoint'i eklenmeyecek |
-| Turist/rehber/admin iptalinde gercek refund ve guide earning duzeltmesi | Faz 5 payment, refund, wallet ve earning kayitlariyla transaction/reconciliation akisina baglanacak |
+| Dashboard `currentMonthEarningsMinor` degeri | Tamamlandi: `guide_earnings` aylik projection'ina baglandi |
+| Booking API ve `ReservationBookingService` payment/wallet baglantisi | Tamamlandi: hosted verified payment ve atomik wallet debit ayni canonical response'u kullanir |
+| Turist/rehber/admin iptalinde gercek refund ve guide earning duzeltmesi | Tamamlandi: uygun iade ve earning reversal transaction/reconciliation akisina baglandi |
 | Rezervasyon ve yorum lifecycle bildirimleri | Faz 6 FCM ve notification history ile eklenecek |
 | Suresi dolmus `PENDING_PAYMENT` hold'larini `EXPIRED` yapan scheduler | Faz 7 scheduler/seed kapsaminda eklenecek; kapasite sorgulari su anda suresi dolmus hold'u saymaz |
-| Gec verified payment icin session/reservation lock, kapasite ve tek refund karari | Faz 5 callback/reconciliation akisinda ayni lock sirasi ve idempotency ile tamamlanacak |
+| Gec verified payment icin session/reservation lock, kapasite ve tek refund karari | Tamamlandi: session-first lock sirasi, kapasite yeniden kontrolu ve deterministik tek full refund uygulanir |
 | Google Places kaynakli konum verisinin sunucu tarafinda yeniden dogrulanmasi | Production hazirlik kontrolunde; Faz 3 MVP akisinda Android'den gelen canonical konum alanlari dogrulanip saklanir |
-| Iyzico callback/webhook public base URL konfigurasyonu | Faz 5 basinda |
-| Iyzico Card Storage/hosted save destegi | Faz 5 dis bagimlilik kontrolunde |
-| Marketplace/submerchant yetkisi ve `IYZICO`/`SIMULATED` payout karari | Faz 5 dis bagimlilik kontrolunde |
+| Iyzico callback/webhook public base URL konfigurasyonu | Quick Tunnel ve `PAYMENT_CALLBACK_BASE_URL` tamamlandi; callback/retrieve Sandbox'ta dogrulandi, degisen Quick Tunnel URL'si yeni test oturumunda backend ve iyzico panelinde yenilenecek |
+| Iyzico `X-IYZ-SIGNATURE-V3` hesap aktivasyonu | Strict dogrulama ve regression testi tamamlandi; destek cevabi ve hesap aktivasyonu bekleniyor |
+| Iyzico Card Storage/hosted save destegi | Destek cevabi gelene kadar `OFF`; tablo, endpoint veya gecici mock yazilmadi |
+| Coklu provider tahsilat para birimi ve backend FX quote'u | Faz 7'den sonra, Faz 8 ve final Android odeme entegrasyonundan once canonical handoff'taki ayri dikey dilimde; platform/wallet/tur/kazanc USD kalir, yalniz iyzico tahsilat tutari secilen destekli para birimine cevrilir. Baslamadan once FX provider API key/ucret/limitleri ve iyzico hesap currency yetkileri yeniden kontrol edilir |
+| Marketplace/submerchant yetkisi ve `IYZICO`/`SIMULATED` payout karari | Tamamlandi: tahsilat/iade gercek Sandbox, rehber payout `SIMULATED` |
+| Payment/refund timeout ve reconciliation scheduler'lari | Faz 5 callable servisleri hazir; periyodik ve bounded job'lar Faz 7'de eklenecek |
+| `PENDING` guide earning kayitlarini zamani gelince `AVAILABLE` yapma | Session completion mevcut akista baglandi; gec iadesiz iptal gibi kalan durumlar Faz 7 earning scheduler'inda taranacak |
 | FCM service account ve push adapter'i | Faz 6 basinda |
 | WebSocket/STOMP bagimliliklari ve realtime guvenligi | Faz 6 basinda |
 | Docker ve PostgreSQL Testcontainers altyapisi | Faz 8 basinda |
 | Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Faz 8 sonunda |
+| Test profilindeki H2 2.2.224/Flyway destek araligi uyarisi | Build ve migration su anda basarili; Faz 8 bagimlilik denetiminde H2 gercek deger sagliyorsa uyumlu surume getirilir, aksi halde canonical PostgreSQL Testcontainers testleri lehine kaldirilir |
 | PostgreSQL 18 icin mevcut Flyway destek uyarisinin yeniden degerlendirilmesi | Production hazirlik kontrolunde |
 
 Bu liste her faz sonunda yeniden kontrol edilir. Tamamlanan satirlar silinmek

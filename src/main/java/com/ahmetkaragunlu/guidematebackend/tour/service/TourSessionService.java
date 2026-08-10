@@ -2,6 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.tour.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationCancellationActor;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationLifecycleService;
@@ -38,6 +39,7 @@ public class TourSessionService {
     private final TourProperties tourProperties;
     private final ReservationCapacityService capacityService;
     private final ReservationLifecycleService reservationLifecycleService;
+    private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final Clock clock;
 
     @Transactional
@@ -140,7 +142,7 @@ public class TourSessionService {
             String idempotencyKey,
             CancelTourSessionRequest request
     ) {
-        String normalizedKey = normalizeIdempotencyKey(idempotencyKey);
+        String normalizedKey = idempotencyKeyPolicy.normalize(idempotencyKey);
         TourSession session = requireOwnedSession(currentUser.getId(), sessionId);
         if (session.getStatus() == TourSessionStatus.CANCELLED
                 && normalizedKey.equals(session.getCancellationIdempotencyKey())) {
@@ -157,17 +159,11 @@ public class TourSessionService {
                 sessionId,
                 ReservationCancellationActor.GUIDE,
                 request.reason(),
-                session.getCancelledAt()
+                session.getCancelledAt(),
+                currentUser
         );
         tourSessionRepository.flush();
         return tourMapper.toSession(session, 0);
-    }
-
-    private String normalizeIdempotencyKey(String idempotencyKey) {
-        if (idempotencyKey == null || idempotencyKey.isBlank() || idempotencyKey.length() > 128) {
-            throw new BusinessException(ErrorCode.VALIDATION_FAILED);
-        }
-        return idempotencyKey.trim();
     }
 
     private TourSession requireOwnedSession(Long guideId, UUID sessionId) {

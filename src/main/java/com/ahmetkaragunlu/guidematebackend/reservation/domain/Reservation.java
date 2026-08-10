@@ -188,6 +188,15 @@ public class Reservation extends UuidAuditedEntity {
         this.holdExpiresAt = null;
     }
 
+    public void confirmAfterVerifiedPayment() {
+        if (status != ReservationStatus.PENDING_PAYMENT && status != ReservationStatus.EXPIRED) {
+            throw new IllegalStateException("Reservation cannot be confirmed from " + status);
+        }
+        this.status = ReservationStatus.CONFIRMED;
+        this.holdExpiresAt = null;
+        this.activeGuard = true;
+    }
+
     public void expire() {
         requireStatus(ReservationStatus.PENDING_PAYMENT);
         this.status = ReservationStatus.EXPIRED;

@@ -11,6 +11,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.service.GuidePerformanceService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class GuideDashboardService {
     private final TourChangeRequestRepository changeRequestRepository;
     private final GuidePerformanceService guidePerformanceService;
     private final TourProperties tourProperties;
+    private final GuideEarningService guideEarningService;
     private final Clock clock;
 
     @Transactional(readOnly = true)
@@ -54,7 +56,7 @@ public class GuideDashboardService {
                 performance.averageRating(),
                 performance.reviewCount(),
                 performance.level(),
-                0,
+                guideEarningService.currentMonthNet(guideId),
                 tourProperties.currencyCode()
         );
     }

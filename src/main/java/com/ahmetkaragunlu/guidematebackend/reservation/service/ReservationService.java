@@ -3,6 +3,10 @@ package com.ahmetkaragunlu.guidematebackend.reservation.service;
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.Refund;
+import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentRefundService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentIntentService;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.RefundEligibility;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationCancellationActor;
@@ -16,6 +20,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRep
 import com.ahmetkaragunlu.guidematebackend.review.dto.ReviewResponse;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -45,6 +50,11 @@ public class ReservationService {
     private final ReservationMapper reservationMapper;
     private final CancellationPolicy cancellationPolicy;
     private final Clock clock;
+    private final IdempotencyKeyPolicy idempotencyKeyPolicy;
+    private final PaymentRefundService paymentRefundService;
+    private final GuideEarningService guideEarningService;
+    private final ReservationBookingService reservationBookingService;
+    private final PaymentIntentService paymentIntentService;
 
     @Transactional(readOnly = true)
     public PageResponse<ReservationResponse> getMyTrips(
@@ -93,7 +103,7 @@ public class ReservationService {
             String idempotencyKey,
             CancelReservationRequest request
     ) {
-        String normalizedKey = normalizeIdempotencyKey(idempotencyKey);
+        String normalizedKey = idempotencyKeyPolicy.normalize(idempotencyKey);
         Reservation previousCancellation = reservationRepository
                 .findByTourist_IdAndCancellationIdempotencyKey(
                         currentUser.getId(),
@@ -106,6 +116,12 @@ public class ReservationService {
             }
             throw new BusinessException(ErrorCode.IDEMPOTENCY_CONFLICT);
         }
+        Reservation snapshot = reservationRepository.findOwnedDetails(
+                        reservationId,
+                        currentUser.getId()
+                )
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+        reservationBookingService.lockSessionForReservation(snapshot.getId());
         Reservation reservation = reservationRepository.findOwnedByIdForUpdate(
                         reservationId,
                         currentUser.getId()
@@ -128,21 +144,40 @@ public class ReservationService {
                 normalizedKey,
                 refundEligibility
         );
+        paymentIntentService.cancelPendingForReservation(reservation.getId());
         try {
             reservationRepository.flush();
         } catch (DataIntegrityViolationException exception) {
             throw new BusinessException(ErrorCode.IDEMPOTENCY_CONFLICT, exception);
         }
-        return cancellationResponse(reservation);
+        Refund refund = null;
+        if (refundEligibility == RefundEligibility.FULL_REFUND) {
+            refund = paymentRefundService.requestFullRefundForReservation(
+                    reservation.getId(),
+                    currentUser,
+                    "reservation-cancel:" + reservation.getId()
+            );
+            guideEarningService.reverse(reservation.getId());
+        }
+        return cancellationResponse(reservation, refund);
     }
 
     private ReservationCancellationResponse cancellationResponse(Reservation reservation) {
+        return cancellationResponse(
+                reservation,
+                paymentRefundService.findLatestForReservation(reservation.getId())
+        );
+    }
+
+    private ReservationCancellationResponse cancellationResponse(Reservation reservation, Refund refund) {
         return new ReservationCancellationResponse(
                 reservationMapper.toResponse(
                         reservation,
                         reviewQueryService.reviewByReservationId(reservation.getId())
                 ),
-                reservation.getCancellationRefundEligibility()
+                reservation.getCancellationRefundEligibility(),
+                refund == null ? null : refund.getId(),
+                refund == null ? null : refund.getStatus()
         );
     }
 
@@ -157,13 +192,6 @@ public class ReservationService {
         if (actualVersion != requestedVersion) {
             throw new BusinessException(ErrorCode.CONCURRENT_UPDATE);
         }
-    }
-
-    private String normalizeIdempotencyKey(String idempotencyKey) {
-        if (idempotencyKey == null || idempotencyKey.isBlank() || idempotencyKey.length() > 128) {
-            throw new BusinessException(ErrorCode.VALIDATION_FAILED);
-        }
-        return idempotencyKey.trim();
     }
 
     private String trimToNull(String value) {

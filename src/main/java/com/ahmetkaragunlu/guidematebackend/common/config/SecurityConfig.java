@@ -79,6 +79,8 @@ public class SecurityConfig {
                                 "/api/v1/media/*/content"
                         ).permitAll()
                         .requestMatchers(
+                                "/api/v1/payments/iyzico/callback",
+                                "/api/v1/payments/iyzico/webhook",
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/google",

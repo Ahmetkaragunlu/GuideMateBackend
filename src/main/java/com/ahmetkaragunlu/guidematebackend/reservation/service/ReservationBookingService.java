@@ -2,6 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.reservation.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
 import com.ahmetkaragunlu.guidematebackend.reservation.config.ReservationProperties;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.PurchaseSnapshot;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
@@ -41,6 +42,7 @@ public class ReservationBookingService {
     private final PurchaseSnapshotFactory snapshotFactory;
     private final PurchaseSnapshotCodec snapshotCodec;
     private final ReservationProperties properties;
+    private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final CancellationPolicy cancellationPolicy;
     private final Clock clock;
 
@@ -53,7 +55,7 @@ public class ReservationBookingService {
     ) {
         requireTourist(currentUser);
         requireParticipantCount(participantCount);
-        String normalizedKey = normalizeIdempotencyKey(idempotencyKey);
+        String normalizedKey = idempotencyKeyPolicy.normalize(idempotencyKey);
         Reservation previous = reservationRepository.findByTourist_IdAndIdempotencyKey(
                 currentUser.getId(),
                 normalizedKey
@@ -106,15 +108,48 @@ public class ReservationBookingService {
     }
 
     @Transactional
-    public Reservation finalizeAfterPaymentVerification(UUID reservationId) {
+    public ReservationFinalizationResult finalizeAfterPaymentVerification(UUID reservationId) {
+        TourSession session = lockSessionForReservation(reservationId);
         Reservation reservation = reservationRepository.findByIdForUpdate(reservationId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
-        if (reservation.isHoldExpired(clock.instant())) {
-            reservation.expire();
-            return reservation;
+        if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+            return new ReservationFinalizationResult(reservation, false);
         }
-        reservation.confirm();
-        return reservation;
+
+        Instant now = clock.instant();
+        if (reservation.getStatus() == ReservationStatus.PENDING_PAYMENT
+                && !reservation.isHoldExpired(now)) {
+            reservation.confirm();
+            return new ReservationFinalizationResult(reservation, false);
+        }
+        if (reservation.getStatus() == ReservationStatus.PENDING_PAYMENT) {
+            reservation.expire();
+            reservationRepository.flush();
+        } else if (reservation.getStatus() != ReservationStatus.EXPIRED) {
+            return new ReservationFinalizationResult(reservation, true);
+        }
+
+        if (!isBookable(session, now) || hasAnotherActiveReservation(reservation, now)) {
+            return new ReservationFinalizationResult(reservation, true);
+        }
+        int availableCapacity = capacityService.availableCapacity(
+                session,
+                capacityService.occupiedCount(session.getId())
+        );
+        if (reservation.getParticipantCount() > availableCapacity) {
+            return new ReservationFinalizationResult(reservation, true);
+        }
+        reservation.confirmAfterVerifiedPayment();
+        reservationRepository.flush();
+        return new ReservationFinalizationResult(reservation, false);
+    }
+
+    @Transactional
+    public TourSession lockSessionForReservation(UUID reservationId) {
+        Reservation snapshot = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+        return tourSessionRepository.findByIdForUpdate(snapshot.getSession().getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
     }
 
     @Transactional
@@ -144,16 +179,37 @@ public class ReservationBookingService {
     }
 
     private void requireBookable(TourSession session, Instant now) {
+        if (!isBookable(session, now)) {
+            throw new BusinessException(ErrorCode.SESSION_NOT_BOOKABLE);
+        }
+    }
+
+    private boolean isBookable(TourSession session, Instant now) {
         User guide = session.getTour().getGuide();
-        boolean bookable = session.getTour().getApprovalStatus() == TourApprovalStatus.APPROVED
+        return session.getTour().getApprovalStatus() == TourApprovalStatus.APPROVED
                 && session.getStatus() == TourSessionStatus.OPEN_FOR_BOOKING
                 && session.getStartsAt().isAfter(now)
                 && guide.getAccountStatus() == AccountStatus.ACTIVE
                 && guide.getRole() != null
                 && RoleType.ROLE_GUIDE.name().equals(guide.getRole().getName());
-        if (!bookable) {
-            throw new BusinessException(ErrorCode.SESSION_NOT_BOOKABLE);
+    }
+
+    private boolean hasAnotherActiveReservation(Reservation reservation, Instant now) {
+        Reservation active = reservationRepository.findActiveBySessionAndTouristForUpdate(
+                        reservation.getSession().getId(),
+                        reservation.getTourist().getId(),
+                        ACTIVE_STATUSES
+                )
+                .orElse(null);
+        if (active == null || active.getId().equals(reservation.getId())) {
+            return false;
         }
+        if (active.isHoldExpired(now)) {
+            active.expire();
+            reservationRepository.flush();
+            return false;
+        }
+        return true;
     }
 
     private void requireTourist(User currentUser) {
@@ -169,10 +225,4 @@ public class ReservationBookingService {
         }
     }
 
-    private String normalizeIdempotencyKey(String idempotencyKey) {
-        if (idempotencyKey == null || idempotencyKey.isBlank() || idempotencyKey.length() > 128) {
-            throw new BusinessException(ErrorCode.VALIDATION_FAILED);
-        }
-        return idempotencyKey.trim();
-    }
 }
