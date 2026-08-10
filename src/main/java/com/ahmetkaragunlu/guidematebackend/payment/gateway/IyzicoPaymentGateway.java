@@ -48,6 +48,10 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
         request.setBuyer(toBuyer(command.buyer()));
         request.setBillingAddress(toAddress(command.buyer()));
         request.setBasketItems(List.of(toBasketItem(command)));
+        if (!isBlank(command.providerCustomerKey())) {
+            request.setCardUserKey(command.providerCustomerKey());
+            request.setPaymentWithNewCardEnabled(true);
+        }
 
         try {
             CheckoutFormInitialize response = CheckoutFormInitialize.create(request, options);
@@ -97,7 +101,8 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
                     toMinor(response.getPaidPrice()),
                     response.getCurrency(),
                     response.getPaymentStatus(),
-                    successful ? null : normalizeFailureCode(response.getErrorCode())
+                    successful ? null : normalizeFailureCode(response.getErrorCode()),
+                    successful ? toProviderCard(response) : null
             );
         } catch (PaymentGatewayException exception) {
             throw exception;
@@ -171,6 +176,26 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
         item.setItemType(BasketItemType.VIRTUAL.name());
         item.setPrice(toMajor(command.amountMinor()));
         return item;
+    }
+
+    private ProviderCardDetails toProviderCard(CheckoutForm response) {
+        if (isBlank(response.getCardUserKey())) {
+            return null;
+        }
+        return new ProviderCardDetails(
+                response.getCardUserKey(),
+                response.getCardToken(),
+                null,
+                response.getBankName(),
+                null,
+                response.getCardFamily(),
+                response.getCardAssociation(),
+                response.getCardType(),
+                response.getLastFourDigits(),
+                null,
+                null,
+                null
+        );
     }
 
     private BigDecimal toMajor(long amountMinor) {

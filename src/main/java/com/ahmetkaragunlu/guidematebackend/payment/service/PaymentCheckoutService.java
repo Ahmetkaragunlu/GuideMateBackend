@@ -23,6 +23,7 @@ public class PaymentCheckoutService {
     private final PaymentIntentService paymentIntentService;
     private final HostedPaymentGateway paymentGateway;
     private final BuyerProfileProvider buyerProfileProvider;
+    private final SavedPaymentMethodStateService savedPaymentMethodStateService;
     private final ProviderFailureCodeMapper failureCodeMapper;
 
     public Payment checkoutTour(
@@ -71,7 +72,8 @@ public class PaymentCheckoutService {
                     payment.getAmountMinor(),
                     payment.getCurrencyCode(),
                     itemName,
-                    buyerProfileProvider.get(user)
+                    buyerProfileProvider.get(user),
+                    savedPaymentMethodStateService.findProviderCustomerKey(user.getId())
             ));
             return paymentIntentService.completeInitialization(payment.getId(), session, conversationId);
         } catch (PaymentGatewayException exception) {

@@ -22,6 +22,7 @@ public class PaymentVerificationService {
     private final PaymentResultService paymentResultService;
     private final HostedPaymentGateway paymentGateway;
     private final SensitiveDataCipher dataCipher;
+    private final SavedPaymentMethodStateService savedPaymentMethodStateService;
 
     public Payment verifyToken(String token, String eventType, String eventSeed) {
         if (token == null || token.isBlank() || token.length() > MAX_PROVIDER_TOKEN_LENGTH) {
@@ -51,11 +52,15 @@ public class PaymentVerificationService {
                 nullToEmpty(result.providerPaymentId()),
                 nullToEmpty(result.providerStatus())
         ));
-        return paymentResultService.apply(
+        Payment verifiedPayment = paymentResultService.apply(
                 payment.getId(),
                 result,
                 new ProviderVerifiedEvent(eventType, providerEventId, payloadHash)
         );
+        if (result.successful()) {
+            savedPaymentMethodStateService.capture(verifiedPayment.getUser().getId(), result.providerCard());
+        }
+        return verifiedPayment;
     }
 
     private String nullToEmpty(String value) {

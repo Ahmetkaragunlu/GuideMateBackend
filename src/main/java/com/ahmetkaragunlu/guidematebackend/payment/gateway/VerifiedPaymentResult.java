@@ -9,6 +9,7 @@ public record VerifiedPaymentResult(
         long amountMinor,
         String currencyCode,
         String providerStatus,
-        String providerFailureCode
+        String providerFailureCode,
+        ProviderCardDetails providerCard
 ) {
 }

@@ -43,4 +43,34 @@ class PaymentStateTest {
 
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
     }
+
+    @Test
+    void acceptsVerifiedSuccessAfterProviderRetryFollowingFailure() {
+        Payment payment = Payment.hosted(
+                new User(),
+                PaymentPurpose.WALLET_TOP_UP,
+                null,
+                1000,
+                "USD",
+                "provider-retry-key"
+        );
+        payment.markRequiresAction(
+                "encrypted-token",
+                "token-fingerprint",
+                "conversation-id",
+                "https://provider.example/checkout",
+                Instant.parse("2026-08-10T01:00:00Z")
+        );
+        payment.markVerifying();
+        payment.fail("PAYMENT_METHOD_DECLINED");
+
+        payment.succeed(
+                "provider-payment",
+                "provider-transaction",
+                Instant.parse("2026-08-10T00:30:00Z")
+        );
+
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
+        assertThat(payment.getFailureCode()).isNull();
+    }
 }

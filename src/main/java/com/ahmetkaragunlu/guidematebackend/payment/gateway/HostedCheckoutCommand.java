@@ -8,6 +8,7 @@ public record HostedCheckoutCommand(
         long amountMinor,
         String currencyCode,
         String itemName,
-        BuyerProfile buyer
+        BuyerProfile buyer,
+        String providerCustomerKey
 ) {
 }

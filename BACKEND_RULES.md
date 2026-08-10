@@ -85,9 +85,10 @@ girer.
 
 ## Faz Durumu
 
-- Faz 0 Android endpoint'i uretmez. Iyzico Card Storage karari destek cevabi
-  gelene kadar `OFF`, payout modu ise Marketplace/Mass Payout yetkisi olmadigi
-  icin acikca `SIMULATED` olarak sabitlenmistir.
+- Faz 0 Android endpoint'i uretmez. Iyzico Card Storage/hosted save destegi
+  destek cevabiyla dogrulanmis ve backend uygulamasi tamamlanmistir. Payout modu
+  Marketplace/Mass Payout yetkisi olmadigi icin acikca `SIMULATED` olarak
+  sabitlenmistir.
 - Faz 1'in gerekli ortak backend temeli hazirdir: `UuidAuditedEntity`, ortak
   pagination response, method security altyapisi ve OpenAPI/JWT standardi.
 - Faz 1 tek basina Android'in cagiracagi yeni business endpoint sunmaz. Yeni
@@ -105,19 +106,30 @@ girer.
   rehber session iptal idempotency'si, seat hold ve kapasite kilidi, satin alma
   snapshot'i, turist gezi/detail/iptal API'leri, yorum uygunlugu, puan/populerlik
   sorgulari ve ortak `GuidePerformanceSummary` projection'i uygulanmistir.
-- Faz 5 backend kod kapsami tamamlanmistir: `V7` payment/wallet/finance semasi,
-  iyzico Checkout Form initialize/retrieve/callback/webhook adapter'i, strict
+- Faz 5 backend kod kapsami tamamlanmistir: `V7` payment/wallet/finance ve `V8`
+  provider-backed saved-card semasi, iyzico Checkout Form
+  initialize/retrieve/callback/webhook adapter'i, strict
   `X-IYZ-SIGNATURE-V3`, payment event ve reconciliation girisi, atomik wallet
   top-up/tur alimi, refund, guide earning, sifreli IBAN, banka hesabi ve
   `SIMULATED` withdrawal API'leri uygulanmistir. Public booking API gercek
-  verified payment veya atomik wallet debit ile acilmistir; kart bilgisi
-  GuideMate backend'ine gelmez ve saved-card kodu yazilmamistir.
-- Faz 5 kodu test profili, OpenAPI ve local PostgreSQL uzerinde dogrulanmis;
-  local sema `V7`'ye gecmistir. Quick Tunnel uzerinden USD Checkout Form,
+  verified payment veya atomik wallet debit ile acilmistir. Saved-card listesi,
+  silme ve varsayilan kart API'leri uygulanmistir; ham kart numarasi, SKT ve CVV
+  GuideMate backend'ine gelmez, provider key/tokenlari sifreli saklanir.
+- Faz 5'in `V7` ve `V8` kapsami test profili, OpenAPI ve local PostgreSQL
+  uzerinde dogrulanmis; local sema `V8`'e gecmistir. Quick Tunnel uzerinden USD
+  Checkout Form,
   callback/retrieve, basarili tek wallet credit ve basarisiz odemede credit
-  olusmamasi Sandbox'ta dogrulanmistir. Imzali webhook olayi henuz
-  alinmadigi icin hesapta `X-IYZ-SIGNATURE-V3` aktivasyon cevabi ve ardindan
-  webhook E2E tekrari tamamlanmadan Faz 5'in provider kapanisi bitmis sayilmaz.
+  olusmamasi Sandbox'ta dogrulanmistir. Iyzico destek ekibi
+  `X-IYZ-SIGNATURE-V3` ozelligini hesapta aktif etmistir. Gercek imzali webhook,
+  ilk kart kaydetme, maskeli listeleme, sonraki Checkout Form'da kayitli kartla
+  odeme, varsayilan kart, provider-backed silme ve duplicate callback
+  idempotency E2E senaryolari tamamlanmistir. Faz 5 provider kapsami kapanmistir.
+- Final Android odeme entegrasyonunda odeme aksiyonu istek/hosted checkout devam
+  ederken devre disi kalir. Ayni kullanici odeme niyetinde idempotency key ve
+  mevcut payment/checkout yeniden kullanilir; retry, yeniden cizim veya process
+  recreation yeni odeme baslatmaz. UI korumasi tamamlayicidir; asil cift islem
+  guvencesi backend idempotency, provider event deduplication ve veritabani
+  kisitlarinda kalir.
 - Mevcut Faz 5 uygulamasi canonical USD ve USD tahsilatla calismaya devam eder.
   Kullanici tarafindan secilen provider tahsilat para birimi, backend FX quote'u,
   charge snapshot'i ve ayni para biriminde iade kapsami; Faz 7'den sonra, Faz 8
@@ -146,8 +158,8 @@ eklenecektir:
 | Gec verified payment icin session/reservation lock, kapasite ve tek refund karari | Tamamlandi: session-first lock sirasi, kapasite yeniden kontrolu ve deterministik tek full refund uygulanir |
 | Google Places kaynakli konum verisinin sunucu tarafinda yeniden dogrulanmasi | Production hazirlik kontrolunde; Faz 3 MVP akisinda Android'den gelen canonical konum alanlari dogrulanip saklanir |
 | Iyzico callback/webhook public base URL konfigurasyonu | Quick Tunnel ve `PAYMENT_CALLBACK_BASE_URL` tamamlandi; callback/retrieve Sandbox'ta dogrulandi, degisen Quick Tunnel URL'si yeni test oturumunda backend ve iyzico panelinde yenilenecek |
-| Iyzico `X-IYZ-SIGNATURE-V3` hesap aktivasyonu | Strict dogrulama ve regression testi tamamlandi; destek cevabi ve hesap aktivasyonu bekleniyor |
-| Iyzico Card Storage/hosted save destegi | Destek cevabi gelene kadar `OFF`; tablo, endpoint veya gecici mock yazilmadi |
+| Iyzico `X-IYZ-SIGNATURE-V3` hesap aktivasyonu | Tamamlandi: destek ekibi hesapta ozelligi aktif etti; strict backend dogrulamasi ve gercek imzali webhook E2E basarili |
+| Iyzico Card Storage/hosted save destegi | Backend kapsami tamamlandi: destek onayi, `V8`, sifreli provider key/token saklama, maskeli listeleme, sonraki hosted checkout'ta kayitli kartla odeme, varsayilan kart, provider-backed silme ve duplicate callback idempotency E2E dogrulandi. Android mock kart verisi final Android entegrasyonunda bu API ile degistirilecek |
 | Coklu provider tahsilat para birimi ve backend FX quote'u | Faz 7'den sonra, Faz 8 ve final Android odeme entegrasyonundan once canonical handoff'taki ayri dikey dilimde; platform/wallet/tur/kazanc USD kalir, yalniz iyzico tahsilat tutari secilen destekli para birimine cevrilir. Baslamadan once FX provider API key/ucret/limitleri ve iyzico hesap currency yetkileri yeniden kontrol edilir |
 | Marketplace/submerchant yetkisi ve `IYZICO`/`SIMULATED` payout karari | Tamamlandi: tahsilat/iade gercek Sandbox, rehber payout `SIMULATED` |
 | Payment/refund timeout ve reconciliation scheduler'lari | Faz 5 callable servisleri hazir; periyodik ve bounded job'lar Faz 7'de eklenecek |
