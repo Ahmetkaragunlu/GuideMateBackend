@@ -3,6 +3,9 @@ package com.ahmetkaragunlu.guidematebackend.reservation.service;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.reservation.config.ReservationProperties;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.PurchaseSnapshot;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -44,6 +48,7 @@ public class ReservationBookingService {
     private final ReservationProperties properties;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final CancellationPolicy cancellationPolicy;
+    private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
     @Transactional
@@ -120,6 +125,7 @@ public class ReservationBookingService {
         if (reservation.getStatus() == ReservationStatus.PENDING_PAYMENT
                 && !reservation.isHoldExpired(now)) {
             reservation.confirm();
+            publishConfirmation(reservation);
             return new ReservationFinalizationResult(reservation, false);
         }
         if (reservation.getStatus() == ReservationStatus.PENDING_PAYMENT) {
@@ -141,6 +147,7 @@ public class ReservationBookingService {
         }
         reservation.confirmAfterVerifiedPayment();
         reservationRepository.flush();
+        publishConfirmation(reservation);
         return new ReservationFinalizationResult(reservation, false);
     }
 
@@ -223,6 +230,30 @@ public class ReservationBookingService {
         if (participantCount < 1) {
             throw new BusinessException(ErrorCode.INVALID_PARTICIPANT_COUNT);
         }
+    }
+
+    private void publishConfirmation(Reservation reservation) {
+        Map<String, Object> payload = Map.of(
+                "reservationId", reservation.getId().toString(),
+                "sessionId", reservation.getSession().getId().toString(),
+                "tourId", reservation.getSession().getTour().getId().toString(),
+                "tourTitle", reservation.getSession().getTour().getTitle(),
+                "participantCount", reservation.getParticipantCount(),
+                "amountMinor", reservation.getTotalPriceMinor(),
+                "currencyCode", reservation.getCurrencyCode()
+        );
+        notificationPublisher.publish(new NotificationCommand(
+                reservation.getTourist().getId(),
+                NotificationType.RESERVATION_CONFIRMED,
+                null,
+                payload
+        ));
+        notificationPublisher.publish(new NotificationCommand(
+                reservation.getSession().getTour().getGuide().getId(),
+                NotificationType.TOUR_PURCHASED,
+                reservation.getTourist().getId(),
+                payload
+        ));
     }
 
 }

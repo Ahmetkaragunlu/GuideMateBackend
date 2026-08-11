@@ -9,6 +9,15 @@ kararlari icin ana kaynak:
 Bir celiski olursa kullanicinin en son acik karari uygulanir. Android kaynak
 kodu backend fazlarinda degistirilmez.
 
+Faz 6 icin kullanicinin acikca onayladigi tek Android istisnasi Firebase
+bootstrap konfigurasyonudur: ignore edilen `app/google-services.json`, Google
+Services Gradle plugin'i, Firebase BoM/Messaging bagimliligi ve manifest
+`POST_NOTIFICATIONS` izin bildirimi hazirlanabilir. Android Kotlin/Java servis,
+Firebase Installation ID (FID) kaydi, notification channel/runtime permission,
+repository, UI ve entegrasyon kodu backend tamamlandiktan sonraki Android
+calismasina kalir. STOMP istemci bagimliligi da backend WebSocket sozlesmesi
+kesinlestikten sonra secilir.
+
 ## Faz Kapsami
 
 - Yalniz mevcut fazi dogrudan veya dolayli etkileyen kararlar ele alinir.
@@ -136,6 +145,17 @@ girer.
   final dogrulamasindan ve Android odeme entegrasyonundan once ayri bir dikey
   dilim olarak uygulanacaktir. Bu dilim tamamlanana kadar mevcut USD constraint
   ve contract'lari parca parca gevsetilmez.
+- Faz 6 backend kapsami tamamlanmistir: `V9` notification, `V10` chat ve `V11`
+  Firebase Installation ID semalari; kalici notification history/unread,
+  tercihler, FID kaydi, commit-sonrasi FCM teslimati, lifecycle bildirimleri,
+  guide-tourist tekil sohbeti, REST history/read/unread akislari ve JWT korumali
+  private STOMP kuyruklari uygulanmistir. Android entegrasyonu bu backend
+  sozlesmesini tuketecek ayri calismadir; backend tamamlama sirasinda Android
+  kaynak kodu degistirilmez.
+- Faz 6; temiz test migration/context'i, OpenAPI sozlesmesi, kalici chat/unread
+  ve FCM transaction-siniri regression testleri ile; ayrica local PostgreSQL
+  `V11`, Hibernate validate, Firebase credential ve STOMP broker baslangiciyla
+  dogrulanmistir.
 
 ## Ertelenen Maddeler
 
@@ -153,7 +173,7 @@ eklenecektir:
 | Dashboard `currentMonthEarningsMinor` degeri | Tamamlandi: `guide_earnings` aylik projection'ina baglandi |
 | Booking API ve `ReservationBookingService` payment/wallet baglantisi | Tamamlandi: hosted verified payment ve atomik wallet debit ayni canonical response'u kullanir |
 | Turist/rehber/admin iptalinde gercek refund ve guide earning duzeltmesi | Tamamlandi: uygun iade ve earning reversal transaction/reconciliation akisina baglandi |
-| Rezervasyon ve yorum lifecycle bildirimleri | Faz 6 FCM ve notification history ile eklenecek |
+| Rezervasyon ve yorum lifecycle bildirimleri | Tamamlandi: notification history ayni domain transaction'inda, FCM teslimati commit sonrasinda calisir |
 | Suresi dolmus `PENDING_PAYMENT` hold'larini `EXPIRED` yapan scheduler | Faz 7 scheduler/seed kapsaminda eklenecek; kapasite sorgulari su anda suresi dolmus hold'u saymaz |
 | Gec verified payment icin session/reservation lock, kapasite ve tek refund karari | Tamamlandi: session-first lock sirasi, kapasite yeniden kontrolu ve deterministik tek full refund uygulanir |
 | Google Places kaynakli konum verisinin sunucu tarafinda yeniden dogrulanmasi | Production hazirlik kontrolunde; Faz 3 MVP akisinda Android'den gelen canonical konum alanlari dogrulanip saklanir |
@@ -164,8 +184,10 @@ eklenecektir:
 | Marketplace/submerchant yetkisi ve `IYZICO`/`SIMULATED` payout karari | Tamamlandi: tahsilat/iade gercek Sandbox, rehber payout `SIMULATED` |
 | Payment/refund timeout ve reconciliation scheduler'lari | Faz 5 callable servisleri hazir; periyodik ve bounded job'lar Faz 7'de eklenecek |
 | `PENDING` guide earning kayitlarini zamani gelince `AVAILABLE` yapma | Session completion mevcut akista baglandi; gec iadesiz iptal gibi kalan durumlar Faz 7 earning scheduler'inda taranacak |
-| FCM service account ve push adapter'i | Faz 6 basinda |
-| WebSocket/STOMP bagimliliklari ve realtime guvenligi | Faz 6 basinda |
+| FCM service account, FID kaydi ve push adapter'i | Tamamlandi: credential Git disinda, FID API'si ve semantic payload siniri uygulanmistir |
+| WebSocket/STOMP bagimliliklari ve realtime guvenligi | Tamamlandi: CONNECT JWT, katilimci kontrolu ve yalniz private user queue teslimati uygulanmistir |
+| `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Faz 7 scheduler kapsaminda; Faz 6 kalici kayit ve callable teslimat altyapisini hazirlar |
+| Android FID kaydi, FCM service/channel/permission ve REST/STOMP repository entegrasyonu | Backend tamamlandiktan sonraki Android entegrasyonunda; backend endpoint ve destination sozlesmeleri degistirilmeden tuketilir |
 | Docker ve PostgreSQL Testcontainers altyapisi | Faz 8 basinda |
 | Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Faz 8 sonunda |
 | Test profilindeki H2 2.2.224/Flyway destek araligi uyarisi | Build ve migration su anda basarili; Faz 8 bagimlilik denetiminde H2 gercek deger sagliyorsa uyumlu surume getirilir, aksi halde canonical PostgreSQL Testcontainers testleri lehine kaldirilir |

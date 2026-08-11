@@ -6,6 +6,9 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
@@ -37,6 +40,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,6 +60,7 @@ public class AdminTourReviewService {
     private final TourMapper tourMapper;
     private final ReservationCapacityService capacityService;
     private final ReviewQueryService reviewQueryService;
+    private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
     @Transactional(readOnly = true)
@@ -124,6 +129,13 @@ public class AdminTourReviewService {
             );
             tour.applyApprovedChange(snapshot, cover);
             changeRequest.approve(reviewer, now);
+            publishDecision(
+                    tour,
+                    currentAdmin,
+                    NotificationType.TOUR_CHANGE_APPROVED,
+                    reviewId,
+                    null
+            );
             return decision(
                     reviewId,
                     AdminTourReviewType.TOUR_CHANGE,
@@ -140,6 +152,7 @@ public class AdminTourReviewService {
         }
         tour.approve(reviewer, now);
         openEligibleSessions(tour.getId(), now);
+        publishDecision(tour, currentAdmin, NotificationType.TOUR_APPROVED, reviewId, null);
         return decision(
                 reviewId,
                 AdminTourReviewType.NEW_TOUR,
@@ -159,6 +172,13 @@ public class AdminTourReviewService {
             Tour tour = tourRepository.findByIdForUpdate(changeRequest.getTour().getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
             changeRequest.reject(reviewer, reason, now);
+            publishDecision(
+                    tour,
+                    currentAdmin,
+                    NotificationType.TOUR_CHANGE_REJECTED,
+                    reviewId,
+                    reason
+            );
             return decision(
                     reviewId,
                     AdminTourReviewType.TOUR_CHANGE,
@@ -175,6 +195,7 @@ public class AdminTourReviewService {
         }
         tour.reject(reviewer, reason, now);
         closeManageableSessions(tour.getId());
+        publishDecision(tour, currentAdmin, NotificationType.TOUR_REJECTED, reviewId, reason);
         return decision(
                 reviewId,
                 AdminTourReviewType.NEW_TOUR,
@@ -305,5 +326,27 @@ public class AdminTourReviewService {
 
     private String displayName(User user) {
         return (user.getFirstName() + " " + user.getLastName()).trim();
+    }
+
+    private void publishDecision(
+            Tour tour,
+            User admin,
+            NotificationType type,
+            UUID reviewId,
+            String rejectionReason
+    ) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("tourId", tour.getId().toString());
+        payload.put("reviewId", reviewId.toString());
+        payload.put("tourTitle", tour.getTitle());
+        if (rejectionReason != null) {
+            payload.put("rejectionReason", rejectionReason);
+        }
+        notificationPublisher.publish(new NotificationCommand(
+                tour.getGuide().getId(),
+                type,
+                admin.getId(),
+                payload
+        ));
     }
 }

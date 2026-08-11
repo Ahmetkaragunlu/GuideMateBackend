@@ -4,6 +4,9 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.BankAccount;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -30,6 +34,7 @@ public class WithdrawalService {
     private final BankAccountService bankAccountService;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final PaymentProperties paymentProperties;
+    private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
     @Transactional
@@ -82,6 +87,17 @@ public class WithdrawalService {
                 now
         );
         withdrawal.complete("SIMULATED-" + withdrawal.getId(), now);
+        notificationPublisher.publish(new NotificationCommand(
+                guide.getId(),
+                NotificationType.WITHDRAWAL_COMPLETED,
+                null,
+                Map.of(
+                        "withdrawalId", withdrawal.getId().toString(),
+                        "bankAccountId", bankAccount.getId().toString(),
+                        "amountMinor", withdrawal.getAmountMinor(),
+                        "currencyCode", withdrawal.getCurrencyCode()
+                )
+        ));
         return withdrawal;
     }
 

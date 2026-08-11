@@ -1,0 +1,48 @@
+package com.ahmetkaragunlu.guidematebackend.notification.repository;
+
+import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface NotificationRepository extends JpaRepository<Notification, UUID> {
+
+    @EntityGraph(attributePaths = "actor")
+    Page<Notification> findByRecipient_IdOrderByCreatedAtDescIdDesc(Long recipientId, Pageable pageable);
+
+    long countByRecipient_IdAndReadAtIsNull(Long recipientId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT notification FROM Notification notification WHERE notification.id = :id")
+    Optional<Notification> findByIdForUpdate(@Param("id") UUID id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT notification FROM Notification notification
+            WHERE notification.id = :id AND notification.recipient.id = :recipientId
+            """)
+    Optional<Notification> findOwnedByIdForUpdate(
+            @Param("id") UUID id,
+            @Param("recipientId") Long recipientId
+    );
+
+    @Modifying
+    @Query("""
+            UPDATE Notification notification
+            SET notification.readAt = :readAt
+            WHERE notification.recipient.id = :recipientId AND notification.readAt IS NULL
+            """)
+    int markAllRead(@Param("recipientId") Long recipientId, @Param("readAt") Instant readAt);
+}

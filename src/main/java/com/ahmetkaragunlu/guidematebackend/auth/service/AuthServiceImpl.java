@@ -21,6 +21,7 @@ import com.ahmetkaragunlu.guidematebackend.common.security.JwtService;
 import com.ahmetkaragunlu.guidematebackend.common.security.SecureTokenService;
 import com.ahmetkaragunlu.guidematebackend.common.util.EmailNormalizer;
 import com.ahmetkaragunlu.guidematebackend.common.validation.PasswordPolicy;
+import com.ahmetkaragunlu.guidematebackend.notification.service.DeviceRegistrationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -42,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +69,7 @@ public class AuthServiceImpl implements AuthService {
     private final AccountStatusPolicy accountStatusPolicy;
     private final MessageSource messageSource;
     private final EmailService emailService;
+    private final DeviceRegistrationService deviceRegistrationService;
 
     @Override
     @Transactional(noRollbackFor = EmailDeliveryException.class)
@@ -182,6 +185,10 @@ public class AuthServiceImpl implements AuthService {
         String validatedInstallationId = installationIdValidator.validate(installationId);
         String email = emailNormalizer.normalize(principalEmail);
         refreshSessionService.revoke(refreshToken, email, validatedInstallationId);
+        userRepository.findByEmail(email).ifPresent(user -> deviceRegistrationService.deactivate(
+                user.getId(),
+                UUID.fromString(validatedInstallationId)
+        ));
         return message("auth.logout.success");
     }
 

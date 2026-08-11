@@ -2,6 +2,9 @@ package com.ahmetkaragunlu.guidematebackend.payment.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
@@ -22,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -40,6 +45,7 @@ public class PaymentRefundService {
     private final UserRepository userRepository;
     private final WalletAccountService walletAccountService;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
     @Transactional
@@ -112,6 +118,7 @@ public class PaymentRefundService {
                     "refund-credit:" + refund.getId(),
                     now
             );
+            publishRefund(refund, NotificationType.REFUND_COMPLETED);
             return refund;
         }
 
@@ -124,9 +131,32 @@ public class PaymentRefundService {
         ));
         if (payment.getProviderTransactionId() == null || payment.getProviderTransactionId().isBlank()) {
             refund.requireManualReview("PROVIDER_REFERENCE_MISSING");
+            publishRefund(refund, NotificationType.REFUND_MANUAL_REVIEW);
             return refund;
         }
+        publishRefund(refund, NotificationType.REFUND_REQUESTED);
         eventPublisher.publishEvent(new RefundRequestedEvent(refund.getId()));
         return refund;
+    }
+
+    private void publishRefund(Refund refund, NotificationType type) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("refundId", refund.getId().toString());
+        payload.put("paymentId", refund.getPayment().getId().toString());
+        payload.put("amountMinor", refund.getAmountMinor());
+        payload.put("currencyCode", refund.getCurrencyCode());
+        if (refund.getPayment().getReservation() != null) {
+            payload.put("reservationId", refund.getPayment().getReservation().getId().toString());
+            payload.put(
+                    "tourId",
+                    refund.getPayment().getReservation().getSession().getTour().getId().toString()
+            );
+        }
+        notificationPublisher.publish(new NotificationCommand(
+                refund.getPayment().getUser().getId(),
+                type,
+                null,
+                payload
+        ));
     }
 }

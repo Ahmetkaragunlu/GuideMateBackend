@@ -7,6 +7,9 @@ import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentRefundService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -31,6 +35,7 @@ public class ReservationLifecycleService {
     private final PaymentRefundService paymentRefundService;
     private final GuideEarningService guideEarningService;
     private final PaymentIntentService paymentIntentService;
+    private final NotificationPublisher notificationPublisher;
 
     @Transactional
     public void cancelForSession(
@@ -56,6 +61,18 @@ public class ReservationLifecycleService {
                         );
                         guideEarningService.reverse(reservation.getId());
                     }
+                    notificationPublisher.publish(new NotificationCommand(
+                            reservation.getTourist().getId(),
+                            NotificationType.TOUR_CANCELLED,
+                            requestedBy.getId(),
+                            Map.of(
+                                    "reservationId", reservation.getId().toString(),
+                                    "sessionId", reservation.getSession().getId().toString(),
+                                    "tourId", reservation.getSession().getTour().getId().toString(),
+                                    "tourTitle", reservation.getSession().getTour().getTitle(),
+                                    "refundEligibility", eligibility.name()
+                            )
+                    ));
                 });
     }
 
@@ -68,6 +85,17 @@ public class ReservationLifecycleService {
                 .forEach(reservation -> {
                     reservation.complete();
                     guideEarningService.makeAvailable(reservation.getId());
+                    notificationPublisher.publish(new NotificationCommand(
+                            reservation.getTourist().getId(),
+                            NotificationType.REVIEW_REQUEST,
+                            null,
+                            Map.of(
+                                    "reservationId", reservation.getId().toString(),
+                                    "sessionId", reservation.getSession().getId().toString(),
+                                    "tourId", reservation.getSession().getTour().getId().toString(),
+                                    "tourTitle", reservation.getSession().getTour().getTitle()
+                            )
+                    ));
                 });
     }
 }

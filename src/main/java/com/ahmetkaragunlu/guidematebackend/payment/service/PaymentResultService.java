@@ -3,6 +3,9 @@ package com.ahmetkaragunlu.guidematebackend.payment.service;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.security.SensitiveDataCipher;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentEvent;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentPurpose;
@@ -25,6 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -39,6 +44,7 @@ public class PaymentResultService {
     private final GuideEarningService guideEarningService;
     private final ProviderFailureCodeMapper failureCodeMapper;
     private final SensitiveDataCipher dataCipher;
+    private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
     @Transactional
@@ -62,6 +68,9 @@ public class PaymentResultService {
         PaymentStatus previousStatus = payment.getStatus();
         if (!providerResult.successful()) {
             applyFailure(payment, providerResult.providerFailureCode());
+            if (payment.getStatus() != previousStatus) {
+                publishPaymentResult(payment, NotificationType.PAYMENT_FAILED);
+            }
             saveEvent(payment, providerResult, providerEvent);
             return payment;
         }
@@ -73,6 +82,7 @@ public class PaymentResultService {
                     clock.instant()
             );
             applySuccessfulPayment(payment, previousStatus);
+            publishPaymentResult(payment, NotificationType.PAYMENT_SUCCEEDED);
         }
         saveEvent(payment, providerResult, providerEvent);
         return payment;
@@ -195,5 +205,23 @@ public class PaymentResultService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private void publishPaymentResult(Payment payment, NotificationType type) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("paymentId", payment.getId().toString());
+        payload.put("purpose", payment.getPurpose().name());
+        payload.put("amountMinor", payment.getAmountMinor());
+        payload.put("currencyCode", payment.getCurrencyCode());
+        if (payment.getReservation() != null) {
+            payload.put("reservationId", payment.getReservation().getId().toString());
+            payload.put("tourId", payment.getReservation().getSession().getTour().getId().toString());
+        }
+        notificationPublisher.publish(new NotificationCommand(
+                payment.getUser().getId(),
+                type,
+                null,
+                payload
+        ));
     }
 }

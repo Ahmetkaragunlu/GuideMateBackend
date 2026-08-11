@@ -76,6 +76,12 @@ public enum ErrorCode {
     BANK_ACCOUNT_INVALID("error.bankAccount.invalid", HttpStatus.BAD_REQUEST),
     BANK_ACCOUNT_ALREADY_EXISTS("error.bankAccount.alreadyExists", HttpStatus.CONFLICT),
 
+    NOTIFICATION_NOT_FOUND("error.notification.notFound", HttpStatus.NOT_FOUND),
+    CHAT_NOT_FOUND("error.chat.notFound", HttpStatus.NOT_FOUND),
+    CHAT_PARTICIPANT_INVALID("error.chat.participantInvalid", HttpStatus.BAD_REQUEST),
+    CHAT_MESSAGE_NOT_FOUND("error.chat.messageNotFound", HttpStatus.NOT_FOUND),
+    CHAT_MESSAGE_TOO_LONG("error.chat.messageTooLong", HttpStatus.BAD_REQUEST),
+
     INVALID_TOKEN("error.token.invalid", HttpStatus.BAD_REQUEST),
     TOKEN_EXPIRED("error.token.expired", HttpStatus.BAD_REQUEST),
     TOKEN_ALREADY_USED("error.token.alreadyUsed", HttpStatus.BAD_REQUEST),

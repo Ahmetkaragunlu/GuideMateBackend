@@ -81,6 +81,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/payments/iyzico/callback",
                                 "/api/v1/payments/iyzico/webhook",
+                                "/ws",
+                                "/ws/**",
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/google",

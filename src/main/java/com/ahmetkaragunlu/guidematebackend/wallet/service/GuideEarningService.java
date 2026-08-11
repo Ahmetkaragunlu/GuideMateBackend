@@ -1,6 +1,9 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.service;
 
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarning;
@@ -19,6 +22,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.math.BigInteger;
 
@@ -31,6 +35,7 @@ public class GuideEarningService {
     private final GuideEarningRepository earningRepository;
     private final WalletAccountService walletAccountService;
     private final PaymentProperties paymentProperties;
+    private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
     @Transactional
@@ -73,6 +78,18 @@ public class GuideEarningService {
                 "earning-credit:" + earning.getId(),
                 clock.instant()
         );
+        notificationPublisher.publish(new NotificationCommand(
+                guide.getId(),
+                NotificationType.EARNING_AVAILABLE,
+                null,
+                Map.of(
+                        "earningId", earning.getId().toString(),
+                        "reservationId", earning.getReservation().getId().toString(),
+                        "tourId", earning.getReservation().getSession().getTour().getId().toString(),
+                        "amountMinor", earning.getNetMinor(),
+                        "currencyCode", earning.getCurrencyCode()
+                )
+        ));
     }
 
     @Transactional

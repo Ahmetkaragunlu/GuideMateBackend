@@ -7,6 +7,9 @@ import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolic
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Refund;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentRefundService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.RefundEligibility;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationCancellationActor;
@@ -55,6 +58,7 @@ public class ReservationService {
     private final GuideEarningService guideEarningService;
     private final ReservationBookingService reservationBookingService;
     private final PaymentIntentService paymentIntentService;
+    private final NotificationPublisher notificationPublisher;
 
     @Transactional(readOnly = true)
     public PageResponse<ReservationResponse> getMyTrips(
@@ -159,6 +163,7 @@ public class ReservationService {
             );
             guideEarningService.reverse(reservation.getId());
         }
+        publishCancellation(reservation);
         return cancellationResponse(reservation, refund);
     }
 
@@ -199,5 +204,27 @@ public class ReservationService {
             return null;
         }
         return value.trim();
+    }
+
+    private void publishCancellation(Reservation reservation) {
+        Map<String, Object> payload = Map.of(
+                "reservationId", reservation.getId().toString(),
+                "sessionId", reservation.getSession().getId().toString(),
+                "tourId", reservation.getSession().getTour().getId().toString(),
+                "tourTitle", reservation.getSession().getTour().getTitle(),
+                "refundEligibility", reservation.getCancellationRefundEligibility().name()
+        );
+        notificationPublisher.publish(new NotificationCommand(
+                reservation.getTourist().getId(),
+                NotificationType.RESERVATION_CANCELLED,
+                null,
+                payload
+        ));
+        notificationPublisher.publish(new NotificationCommand(
+                reservation.getSession().getTour().getGuide().getId(),
+                NotificationType.RESERVATION_CANCELLED,
+                reservation.getTourist().getId(),
+                payload
+        ));
     }
 }
