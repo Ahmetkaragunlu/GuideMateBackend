@@ -1,8 +1,12 @@
 package com.ahmetkaragunlu.guidematebackend.payment.dto;
 
-import jakarta.validation.constraints.Positive;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.CheckoutLocale;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.UUID;
 
 public record WalletTopUpRequest(
-        @Positive(message = "{validation.amount.positive}") long amountMinor
+        @NotNull UUID quoteId,
+        @NotNull CheckoutLocale locale
 ) {
 }

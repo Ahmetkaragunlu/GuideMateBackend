@@ -187,10 +187,32 @@ public interface TourSessionRepository extends JpaRepository<TourSession, UUID> 
             @Param("status") TourSessionStatus status
     );
 
-    List<TourSession> findByStatusInAndStartsAtBefore(
+    List<TourSession> findByStatusInAndStartsAtBeforeOrderByStartsAtAsc(
             Collection<TourSessionStatus> statuses,
-            Instant startsBefore
+            Instant startsBefore,
+            Pageable pageable
     );
+
+    @Query("""
+            SELECT session.id FROM TourSession session
+            WHERE session.tour.approvalStatus = :approvalStatus
+              AND session.status IN :statuses
+              AND session.upcomingReminderSentAt IS NULL
+              AND session.startsAt > :now
+              AND session.startsAt <= :until
+            ORDER BY session.startsAt, session.id
+            """)
+    List<UUID> findUpcomingReminderCandidateIds(
+            @Param("approvalStatus") TourApprovalStatus approvalStatus,
+            @Param("statuses") Collection<TourSessionStatus> statuses,
+            @Param("now") Instant now,
+            @Param("until") Instant until,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"tour", "tour.guide"})
+    @Query("SELECT session FROM TourSession session WHERE session.id = :sessionId")
+    Optional<TourSession> findReminderDetails(@Param("sessionId") UUID sessionId);
 
     @EntityGraph(attributePaths = {"tour", "tour.guide", "tour.coverMedia"})
     @Query("""

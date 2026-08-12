@@ -24,7 +24,10 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "device_registrations",
-        indexes = @Index(name = "idx_device_registration_user_active", columnList = "user_id, active"),
+        indexes = {
+                @Index(name = "idx_device_registration_user_active", columnList = "user_id, active"),
+                @Index(name = "idx_device_registration_cleanup", columnList = "active, last_seen_at")
+        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uq_device_registration_installation", columnNames = "installation_id"),
                 @UniqueConstraint(

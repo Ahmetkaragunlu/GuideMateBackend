@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -65,6 +66,22 @@ public class DeviceRegistrationService {
         registrationRepository.findByInstallationId(installationId)
                 .filter(registration -> registration.getUser().getId().equals(userId))
                 .ifPresent(DeviceRegistration::deactivate);
+    }
+
+    @Transactional
+    public void deactivateIfInactive(UUID registrationId, Instant lastSeenBefore) {
+        registrationRepository.findByIdForUpdate(registrationId)
+                .filter(DeviceRegistration::isActive)
+                .filter(registration -> !registration.getLastSeenAt().isAfter(lastSeenBefore))
+                .ifPresent(DeviceRegistration::deactivate);
+    }
+
+    @Transactional
+    public void deleteIfExpired(UUID registrationId, Instant lastSeenBefore) {
+        registrationRepository.findByIdForUpdate(registrationId)
+                .filter(registration -> !registration.isActive())
+                .filter(registration -> !registration.getLastSeenAt().isAfter(lastSeenBefore))
+                .ifPresent(registrationRepository::delete);
     }
 
     private DeviceRegistrationResponse toResponse(DeviceRegistration registration) {

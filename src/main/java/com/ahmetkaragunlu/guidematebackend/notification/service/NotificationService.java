@@ -34,6 +34,18 @@ public class NotificationService implements NotificationPublisher {
     @Override
     @Transactional
     public UUID publish(NotificationCommand command) {
+        if (command.deduplicationKey() != null) {
+            Notification existing = notificationRepository
+                    .findByRecipient_IdAndTypeAndDeduplicationKey(
+                            command.recipientId(),
+                            command.type(),
+                            command.deduplicationKey()
+                    )
+                    .orElse(null);
+            if (existing != null) {
+                return existing.getId();
+            }
+        }
         NotificationPushStatus pushStatus = preferenceService.isPushEnabled(
                 command.recipientId(),
                 command.type()
@@ -43,7 +55,8 @@ public class NotificationService implements NotificationPublisher {
                 command.type(),
                 command.actorId() == null ? null : userRepository.getReferenceById(command.actorId()),
                 payloadCodec.encode(command.payload()),
-                pushStatus
+                pushStatus,
+                command.deduplicationKey()
         ));
         if (pushStatus == NotificationPushStatus.PENDING) {
             eventPublisher.publishEvent(new NotificationCreatedEvent(notification.getId()));

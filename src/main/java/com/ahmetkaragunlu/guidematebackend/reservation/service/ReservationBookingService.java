@@ -51,6 +51,29 @@ public class ReservationBookingService {
     private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
+    @Transactional(readOnly = true)
+    public ReservationPurchasePreview previewPurchase(
+            User currentUser,
+            UUID sessionId,
+            int participantCount
+    ) {
+        requireTourist(currentUser);
+        requireParticipantCount(participantCount);
+        TourSession session = tourSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
+        requireBookable(session, clock.instant());
+        int occupiedCount = capacityService.occupiedCount(sessionId);
+        if (participantCount > capacityService.availableCapacity(session, occupiedCount)) {
+            throw new BusinessException(ErrorCode.CAPACITY_NOT_AVAILABLE);
+        }
+        return new ReservationPurchasePreview(
+                sessionId,
+                participantCount,
+                calculateTotalPrice(session, participantCount),
+                session.getCurrencyCode()
+        );
+    }
+
     @Transactional
     public Reservation createHold(
             User currentUser,
@@ -84,12 +107,7 @@ public class ReservationBookingService {
             throw new BusinessException(ErrorCode.CAPACITY_NOT_AVAILABLE);
         }
 
-        long totalPriceMinor;
-        try {
-            totalPriceMinor = Math.multiplyExact(session.getPriceMinor(), participantCount);
-        } catch (ArithmeticException exception) {
-            throw new BusinessException(ErrorCode.DATA_CONFLICT, exception);
-        }
+        long totalPriceMinor = calculateTotalPrice(session, participantCount);
         PurchaseSnapshot snapshot = snapshotFactory.create(session, participantCount, totalPriceMinor);
         Reservation reservation = Reservation.hold(
                 session,
@@ -229,6 +247,14 @@ public class ReservationBookingService {
     private void requireParticipantCount(int participantCount) {
         if (participantCount < 1) {
             throw new BusinessException(ErrorCode.INVALID_PARTICIPANT_COUNT);
+        }
+    }
+
+    private long calculateTotalPrice(TourSession session, int participantCount) {
+        try {
+            return Math.multiplyExact(session.getPriceMinor(), participantCount);
+        } catch (ArithmeticException exception) {
+            throw new BusinessException(ErrorCode.DATA_CONFLICT, exception);
         }
     }
 

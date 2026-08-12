@@ -1,5 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.notification.service;
 
+import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.DeviceRegistration;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,17 +26,20 @@ public class NotificationPushDeliveryStateService {
     private final NotificationRepository notificationRepository;
     private final DeviceRegistrationRepository registrationRepository;
     private final NotificationPayloadCodec payloadCodec;
+    private final SchedulerProperties schedulerProperties;
     private final Clock clock;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public PushAttempt begin(UUID notificationId, boolean pushAvailable) {
         Notification notification = notificationRepository.findByIdForUpdate(notificationId).orElse(null);
+        Instant now = clock.instant();
         if (notification == null
                 || notification.getPushStatus() == NotificationPushStatus.SENT
-                || notification.getPushStatus() == NotificationPushStatus.NOT_REQUESTED) {
+                || notification.getPushStatus() == NotificationPushStatus.NOT_REQUESTED
+                || !notification.canAttemptPush(now, schedulerProperties.notificationMaxAttempts())) {
             return null;
         }
-        notification.markPushAttempt(clock.instant());
+        notification.markPushAttempt(now, now.plus(schedulerProperties.notificationRetryDelay()));
         if (!pushAvailable) {
             notification.markPushNotRequested();
             return null;

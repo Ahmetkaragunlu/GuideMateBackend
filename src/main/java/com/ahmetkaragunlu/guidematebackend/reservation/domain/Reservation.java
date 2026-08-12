@@ -30,7 +30,11 @@ import java.util.Objects;
         indexes = {
                 @Index(name = "idx_reservation_session_status", columnList = "session_id, status"),
                 @Index(name = "idx_reservation_tourist_created", columnList = "tourist_id, created_at"),
-                @Index(name = "idx_reservation_hold_expiry", columnList = "status, hold_expires_at")
+                @Index(name = "idx_reservation_hold_expiry", columnList = "status, hold_expires_at"),
+                @Index(
+                        name = "idx_reservation_upcoming_reminder",
+                        columnList = "status, upcoming_reminder_sent_at, session_id"
+                )
         },
         uniqueConstraints = {
                 @UniqueConstraint(
@@ -86,6 +90,9 @@ public class Reservation extends UuidAuditedEntity {
 
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
+
+    @Column(name = "upcoming_reminder_sent_at")
+    private Instant upcomingReminderSentAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "cancellation_refund_eligibility", length = 16)
@@ -201,6 +208,12 @@ public class Reservation extends UuidAuditedEntity {
         requireStatus(ReservationStatus.PENDING_PAYMENT);
         this.status = ReservationStatus.EXPIRED;
         this.activeGuard = null;
+    }
+
+    public void markUpcomingReminderSent(Instant sentAt) {
+        if (upcomingReminderSentAt == null) {
+            upcomingReminderSentAt = Objects.requireNonNull(sentAt);
+        }
     }
 
     public void cancel(

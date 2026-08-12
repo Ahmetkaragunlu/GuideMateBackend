@@ -1,6 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.payment.service;
 
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Refund;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.RefundStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.ProviderRefundResult;
@@ -23,6 +24,7 @@ public class PaymentRefundStateService {
 
     private final RefundRepository refundRepository;
     private final PaymentProperties properties;
+    private final SchedulerProperties schedulerProperties;
     private final ProviderFailureCodeMapper failureCodeMapper;
     private final NotificationPublisher notificationPublisher;
     private final Clock clock;
@@ -32,16 +34,18 @@ public class PaymentRefundStateService {
         Refund refund = refundRepository.findByIdForUpdate(refundId).orElse(null);
         if (refund == null
                 || (refund.getStatus() != RefundStatus.REQUESTED
-                && refund.getStatus() != RefundStatus.FAILED)) {
+                && refund.getStatus() != RefundStatus.FAILED)
+                || refund.getProcessingAttemptCount() >= schedulerProperties.refundMaxAttempts()
+                || wasAttemptedRecently(refund)) {
             return null;
         }
-        refund.markProcessing();
+        refund.markProcessing(clock.instant());
         return new RefundProcessingCommand(
                 refund.getId(),
                 "guidemate-refund-" + refund.getId(),
                 refund.getPayment().getProviderTransactionId(),
-                refund.getAmountMinor(),
-                refund.getCurrencyCode(),
+                refund.getChargeAmountMinor(),
+                refund.getChargeCurrencyCode(),
                 properties.sandboxBuyer().ipAddress()
         );
     }
@@ -73,12 +77,21 @@ public class PaymentRefundStateService {
         });
     }
 
+    private boolean wasAttemptedRecently(Refund refund) {
+        return refund.getLastProcessingAttemptAt() != null
+                && refund.getLastProcessingAttemptAt()
+                .plus(schedulerProperties.refundRetryDelay())
+                .isAfter(clock.instant());
+    }
+
     private void publishRefund(Refund refund, NotificationType type) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("refundId", refund.getId().toString());
         payload.put("paymentId", refund.getPayment().getId().toString());
         payload.put("amountMinor", refund.getAmountMinor());
         payload.put("currencyCode", refund.getCurrencyCode());
+        payload.put("chargeAmountMinor", refund.getChargeAmountMinor());
+        payload.put("chargeCurrencyCode", refund.getChargeCurrencyCode());
         if (refund.getPayment().getReservation() != null) {
             payload.put("reservationId", refund.getPayment().getReservation().getId().toString());
         }

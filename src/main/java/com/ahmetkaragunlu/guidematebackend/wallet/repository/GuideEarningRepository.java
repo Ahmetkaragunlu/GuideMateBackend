@@ -23,6 +23,22 @@ public interface GuideEarningRepository extends JpaRepository<GuideEarning, UUID
     @Query("SELECT earning FROM GuideEarning earning WHERE earning.reservation.id = :reservationId")
     Optional<GuideEarning> findByReservationIdForUpdate(@Param("reservationId") UUID reservationId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT earning FROM GuideEarning earning WHERE earning.id = :earningId")
+    Optional<GuideEarning> findByIdForUpdate(@Param("earningId") UUID earningId);
+
+    @Query("""
+            SELECT earning.id FROM GuideEarning earning
+            WHERE earning.status = :status
+              AND earning.availableAt <= :now
+            ORDER BY earning.availableAt, earning.id
+            """)
+    List<UUID> findAvailabilityCandidateIds(
+            @Param("status") GuideEarningStatus status,
+            @Param("now") Instant now,
+            Pageable pageable
+    );
+
     @Query("SELECT earning FROM GuideEarning earning "
             + "WHERE earning.reservation.session.tour.guide.id = :guideId "
             + "AND earning.createdAt >= :from AND earning.createdAt < :until "

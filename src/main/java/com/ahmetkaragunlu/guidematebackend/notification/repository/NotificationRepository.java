@@ -1,6 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.notification.repository;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +40,29 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     Optional<Notification> findOwnedByIdForUpdate(
             @Param("id") UUID id,
             @Param("recipientId") Long recipientId
+    );
+
+    Optional<Notification> findByRecipient_IdAndTypeAndDeduplicationKey(
+            Long recipientId,
+            NotificationType type,
+            String deduplicationKey
+    );
+
+    @Query("""
+            SELECT notification.id FROM Notification notification
+            WHERE notification.pushStatus IN :statuses
+              AND notification.pushAttemptCount < :maxAttempts
+              AND (
+                  notification.nextPushAttemptAt IS NULL
+                  OR notification.nextPushAttemptAt <= :now
+              )
+            ORDER BY notification.createdAt, notification.id
+            """)
+    List<UUID> findPushRetryCandidateIds(
+            @Param("statuses") Collection<NotificationPushStatus> statuses,
+            @Param("now") Instant now,
+            @Param("maxAttempts") int maxAttempts,
+            Pageable pageable
     );
 
     @Modifying

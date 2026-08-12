@@ -40,7 +40,7 @@ public class WalletAccountService {
     public Wallet getOrCreateForUpdate(User user) {
         return walletRepository.findByUserIdForUpdate(user.getId())
                 .orElseGet(() -> walletRepository.saveAndFlush(
-                        new Wallet(user, paymentProperties.currencyCode())
+                        new Wallet(user, paymentProperties.canonicalCurrencyCode())
                 ));
     }
 
@@ -48,7 +48,7 @@ public class WalletAccountService {
     public WalletBalance getBalance(User user) {
         Wallet wallet = walletRepository.findByUser_Id(user.getId()).orElse(null);
         if (wallet == null) {
-            return new WalletBalance(0, 0, paymentProperties.currencyCode());
+            return new WalletBalance(0, 0, paymentProperties.canonicalCurrencyCode());
         }
         return balance(wallet);
     }

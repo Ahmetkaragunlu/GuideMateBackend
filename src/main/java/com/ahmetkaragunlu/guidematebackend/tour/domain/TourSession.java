@@ -23,7 +23,11 @@ import java.util.Objects;
 @Entity
 @Table(name = "tour_sessions", indexes = {
         @Index(name = "idx_tour_session_tour", columnList = "tour_id"),
-        @Index(name = "idx_tour_session_status_start", columnList = "status, starts_at")
+        @Index(name = "idx_tour_session_status_start", columnList = "status, starts_at"),
+        @Index(
+                name = "idx_tour_session_upcoming_reminder",
+                columnList = "status, upcoming_reminder_sent_at, starts_at"
+        )
 })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TourSession extends UuidAuditedEntity {
@@ -63,6 +67,9 @@ public class TourSession extends UuidAuditedEntity {
 
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
+
+    @Column(name = "upcoming_reminder_sent_at")
+    private Instant upcomingReminderSentAt;
 
     @Column(name = "cancellation_idempotency_key", length = 128)
     private String cancellationIdempotencyKey;
@@ -160,5 +167,11 @@ public class TourSession extends UuidAuditedEntity {
 
     public void complete() {
         this.status = TourSessionStatus.COMPLETED;
+    }
+
+    public void markUpcomingReminderSent(Instant sentAt) {
+        if (upcomingReminderSentAt == null) {
+            upcomingReminderSentAt = Objects.requireNonNull(sentAt);
+        }
     }
 }

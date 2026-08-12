@@ -22,8 +22,8 @@ public class PaymentRefundProcessor {
             ProviderRefundResult result = paymentGateway.refund(new ProviderRefundCommand(
                     command.conversationId(),
                     command.providerTransactionId(),
-                    command.amountMinor(),
-                    command.currencyCode(),
+                    command.chargeAmountMinor(),
+                    command.chargeCurrencyCode(),
                     command.ipAddress()
             ));
             stateService.complete(command.refundId(), result);

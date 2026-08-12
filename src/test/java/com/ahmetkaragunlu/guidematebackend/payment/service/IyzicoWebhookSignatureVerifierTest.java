@@ -6,6 +6,8 @@ import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.net.URI;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,6 +21,14 @@ class IyzicoWebhookSignatureVerifierTest {
                     "USD",
                     Duration.ofMinutes(30),
                     "https://example.test",
+                    new PaymentProperties.Fx(
+                            URI.create("https://api.frankfurter.dev"),
+                            Duration.ofMinutes(10),
+                            Duration.ofSeconds(3),
+                            Duration.ofSeconds(5),
+                            Set.of("USD", "TRY", "EUR", "GBP"),
+                            "ECB"
+                    ),
                     new PaymentProperties.Iyzico(
                             "test-api-key",
                             "test-secret-key",

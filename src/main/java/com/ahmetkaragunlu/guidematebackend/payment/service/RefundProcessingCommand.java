@@ -6,8 +6,8 @@ public record RefundProcessingCommand(
         UUID refundId,
         String conversationId,
         String providerTransactionId,
-        long amountMinor,
-        String currencyCode,
+        long chargeAmountMinor,
+        String chargeCurrencyCode,
         String ipAddress
 ) {
 }

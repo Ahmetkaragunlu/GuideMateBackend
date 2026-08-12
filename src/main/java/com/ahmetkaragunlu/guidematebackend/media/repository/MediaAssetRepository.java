@@ -4,6 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,8 +25,9 @@ public interface MediaAssetRepository extends JpaRepository<MediaAsset, UUID> {
 
     List<MediaAsset> findByStatusInAndCreatedAtBeforeOrderByCreatedAt(
             Collection<MediaStatus> statuses,
-            Instant createdBefore
+            Instant createdBefore,
+            Pageable pageable
     );
 
-    List<MediaAsset> findByStatusOrderByCreatedAt(MediaStatus status);
+    List<MediaAsset> findByStatusOrderByCreatedAt(MediaStatus status, Pageable pageable);
 }

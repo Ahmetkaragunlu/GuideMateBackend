@@ -37,7 +37,7 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
     @Override
     public HostedCheckoutSession initialize(HostedCheckoutCommand command) {
         CreateCheckoutFormInitializeRequest request = new CreateCheckoutFormInitializeRequest();
-        request.setLocale(Locale.EN.getValue());
+        request.setLocale(command.locale().providerValue());
         request.setConversationId(command.conversationId());
         request.setPrice(toMajor(command.amountMinor()));
         request.setPaidPrice(toMajor(command.amountMinor()));

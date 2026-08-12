@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
@@ -28,7 +29,11 @@ import java.util.Objects;
         indexes = {
                 @Index(name = "idx_payment_user_created", columnList = "user_id, created_at"),
                 @Index(name = "idx_payment_reservation", columnList = "reservation_id"),
-                @Index(name = "idx_payment_status_updated", columnList = "status, updated_at")
+                @Index(name = "idx_payment_status_updated", columnList = "status, updated_at"),
+                @Index(
+                        name = "idx_payment_reconciliation",
+                        columnList = "status, expires_at, last_reconciliation_at"
+                )
         },
         uniqueConstraints = @UniqueConstraint(
                 name = "uq_payment_idempotency",
@@ -59,6 +64,25 @@ public class Payment extends UuidAuditedEntity {
 
     @Column(name = "currency_code", nullable = false, updatable = false, length = 3)
     private String currencyCode;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fx_quote_id", unique = true, updatable = false)
+    private PaymentFxQuote fxQuote;
+
+    @Column(name = "charge_amount_minor", updatable = false)
+    private Long chargeAmountMinor;
+
+    @Column(name = "charge_currency_code", updatable = false, length = 3)
+    private String chargeCurrencyCode;
+
+    @Column(name = "fx_rate", updatable = false, precision = 24, scale = 12)
+    private java.math.BigDecimal fxRate;
+
+    @Column(name = "fx_rate_source", updatable = false, length = 64)
+    private String fxRateSource;
+
+    @Column(name = "fx_quoted_at", updatable = false)
+    private Instant fxQuotedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
@@ -98,6 +122,12 @@ public class Payment extends UuidAuditedEntity {
     @Column(name = "failure_code", length = 64)
     private String failureCode;
 
+    @Column(name = "reconciliation_attempt_count", nullable = false)
+    private int reconciliationAttemptCount;
+
+    @Column(name = "last_reconciliation_at")
+    private Instant lastReconciliationAt;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -109,6 +139,7 @@ public class Payment extends UuidAuditedEntity {
             Reservation reservation,
             long amountMinor,
             String currencyCode,
+            PaymentFxQuote fxQuote,
             PaymentProvider provider,
             String idempotencyKey,
             PaymentStatus status,
@@ -120,6 +151,14 @@ public class Payment extends UuidAuditedEntity {
         this.reservation = reservation;
         this.amountMinor = amountMinor;
         this.currencyCode = Objects.requireNonNull(currencyCode);
+        this.fxQuote = fxQuote;
+        if (fxQuote != null) {
+            this.chargeAmountMinor = fxQuote.getChargeAmountMinor();
+            this.chargeCurrencyCode = fxQuote.getChargeCurrencyCode();
+            this.fxRate = fxQuote.getFxRate();
+            this.fxRateSource = fxQuote.getRateSource();
+            this.fxQuotedAt = fxQuote.getQuotedAt();
+        }
         this.provider = provider;
         this.idempotencyKey = Objects.requireNonNull(idempotencyKey);
         this.status = Objects.requireNonNull(status);
@@ -130,17 +169,18 @@ public class Payment extends UuidAuditedEntity {
             User user,
             PaymentPurpose purpose,
             Reservation reservation,
-            long amountMinor,
-            String currencyCode,
+            PaymentFxQuote fxQuote,
             String idempotencyKey
     ) {
+        Objects.requireNonNull(fxQuote);
         return new Payment(
                 user,
                 purpose,
                 PaymentMethod.HOSTED_CARD,
                 reservation,
-                amountMinor,
-                currencyCode,
+                fxQuote.getBaseAmountMinor(),
+                fxQuote.getBaseCurrencyCode(),
+                fxQuote,
                 PaymentProvider.IYZICO,
                 idempotencyKey,
                 PaymentStatus.PENDING,
@@ -163,6 +203,7 @@ public class Payment extends UuidAuditedEntity {
                 Objects.requireNonNull(reservation),
                 amountMinor,
                 currencyCode,
+                null,
                 null,
                 idempotencyKey,
                 PaymentStatus.SUCCEEDED,
@@ -245,6 +286,17 @@ public class Payment extends UuidAuditedEntity {
             return;
         }
         this.status = PaymentStatus.TIMEOUT;
+    }
+
+    public void markReconciliationAttempt(Instant attemptedAt) {
+        reconciliationAttemptCount++;
+        lastReconciliationAt = Objects.requireNonNull(attemptedAt);
+    }
+
+    public void markReconciliationUncertain() {
+        if (status == PaymentStatus.VERIFYING) {
+            status = PaymentStatus.TIMEOUT;
+        }
     }
 
     private void requireStatus(PaymentStatus expected) {

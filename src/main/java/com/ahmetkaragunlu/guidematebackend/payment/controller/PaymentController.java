@@ -3,11 +3,16 @@ package com.ahmetkaragunlu.guidematebackend.payment.controller;
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.dto.PaymentResponse;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.CheckoutCurrenciesResponse;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.PaymentQuoteResponse;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.TourPaymentQuoteRequest;
 import com.ahmetkaragunlu.guidematebackend.payment.dto.TourCheckoutRequest;
 import com.ahmetkaragunlu.guidematebackend.payment.dto.WalletTopUpRequest;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.WalletTopUpQuoteRequest;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentCheckoutService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentIntentService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentQueryService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentQuoteService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -42,6 +47,40 @@ public class PaymentController {
     private final PaymentCheckoutService checkoutService;
     private final PaymentIntentService paymentIntentService;
     private final PaymentQueryService paymentQueryService;
+    private final PaymentQuoteService paymentQuoteService;
+
+    @Operation(summary = "List enabled hosted checkout currencies")
+    @GetMapping("/checkout/currencies")
+    public ResponseEntity<CheckoutCurrenciesResponse> getCheckoutCurrencies() {
+        return ResponseEntity.ok(paymentQuoteService.getCurrencyOptions());
+    }
+
+    @Operation(summary = "Quote a hosted card charge for a tour purchase")
+    @PostMapping("/checkout/tour/quote")
+    public ResponseEntity<PaymentQuoteResponse> quoteTour(
+            @Valid @RequestBody TourPaymentQuoteRequest request,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(paymentQuoteService.quoteTour(
+                currentUser,
+                request.sessionId(),
+                request.participantCount(),
+                request.chargeCurrencyCode()
+        ));
+    }
+
+    @Operation(summary = "Quote a hosted card charge for a wallet top-up")
+    @PostMapping("/checkout/wallet-top-up/quote")
+    public ResponseEntity<PaymentQuoteResponse> quoteWalletTopUp(
+            @Valid @RequestBody WalletTopUpQuoteRequest request,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(paymentQuoteService.quoteWalletTopUp(
+                currentUser,
+                request.amountMinor(),
+                request.chargeCurrencyCode()
+        ));
+    }
 
     @Operation(summary = "Purchase a tour with hosted card checkout or wallet balance")
     @PostMapping("/checkout/tour")
@@ -58,6 +97,8 @@ public class PaymentController {
                 request.sessionId(),
                 request.participantCount(),
                 request.method(),
+                request.quoteId(),
+                request.locale(),
                 idempotencyKey
         );
         return ResponseEntity.ok(paymentQueryService.getOwned(currentUser, payment));
@@ -75,7 +116,8 @@ public class PaymentController {
     ) {
         Payment payment = checkoutService.checkoutWalletTopUp(
                 currentUser,
-                request.amountMinor(),
+                request.quoteId(),
+                request.locale(),
                 idempotencyKey
         );
         return ResponseEntity.ok(paymentQueryService.getOwned(currentUser, payment));

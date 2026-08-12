@@ -4,9 +4,9 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.security.SensitiveDataCipher;
 import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
-import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentMethod;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentFxQuote;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentPurpose;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.HostedCheckoutSession;
@@ -41,7 +41,7 @@ public class PaymentIntentService {
     private final GuideEarningService guideEarningService;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final SensitiveDataCipher dataCipher;
-    private final PaymentProperties properties;
+    private final PaymentQuoteStateService paymentQuoteStateService;
     private final Clock clock;
 
     @Transactional
@@ -49,6 +49,7 @@ public class PaymentIntentService {
             User tourist,
             UUID sessionId,
             int participantCount,
+            UUID quoteId,
             String idempotencyKey
     ) {
         String normalizedKey = idempotencyKeyPolicy.normalize(idempotencyKey);
@@ -58,30 +59,38 @@ public class PaymentIntentService {
                 participantCount,
                 normalizedKey
         );
+        PaymentFxQuote quote = paymentQuoteStateService.requireTourQuote(tourist, quoteId, reservation);
         Payment previous = paymentRepository.findByUser_IdAndPurposeAndIdempotencyKey(
                 tourist.getId(),
                 PaymentPurpose.TOUR_BOOKING,
                 normalizedKey
         ).orElse(null);
         if (previous != null) {
-            requireSameIntent(previous, PaymentMethod.HOSTED_CARD, reservation, reservation.getTotalPriceMinor());
+            requireSameIntent(
+                    previous,
+                    PaymentMethod.HOSTED_CARD,
+                    reservation,
+                    reservation.getTotalPriceMinor(),
+                    quote.getId()
+            );
             return new HostedPaymentIntent(previous, previous.getStatus() == PaymentStatus.PENDING);
         }
+        requireUnusedQuote(quote.getId());
         Payment payment = Payment.hosted(
                 userRepository.getReferenceById(tourist.getId()),
                 PaymentPurpose.TOUR_BOOKING,
                 reservation,
-                reservation.getTotalPriceMinor(),
-                reservation.getCurrencyCode(),
+                quote,
                 normalizedKey
         );
         return new HostedPaymentIntent(paymentRepository.saveAndFlush(payment), true);
     }
 
     @Transactional
-    public HostedPaymentIntent createTopUpIntent(User tourist, long amountMinor, String idempotencyKey) {
+    public HostedPaymentIntent createTopUpIntent(User tourist, UUID quoteId, String idempotencyKey) {
         requireTourist(tourist);
-        requirePositiveAmount(amountMinor);
+        PaymentFxQuote quote = paymentQuoteStateService.requireWalletTopUpQuote(tourist, quoteId);
+        long amountMinor = quote.getBaseAmountMinor();
         String normalizedKey = idempotencyKeyPolicy.normalize(idempotencyKey);
         Payment previous = paymentRepository.findByUser_IdAndPurposeAndIdempotencyKey(
                 tourist.getId(),
@@ -89,15 +98,15 @@ public class PaymentIntentService {
                 normalizedKey
         ).orElse(null);
         if (previous != null) {
-            requireSameIntent(previous, PaymentMethod.HOSTED_CARD, null, amountMinor);
+            requireSameIntent(previous, PaymentMethod.HOSTED_CARD, null, amountMinor, quote.getId());
             return new HostedPaymentIntent(previous, previous.getStatus() == PaymentStatus.PENDING);
         }
+        requireUnusedQuote(quote.getId());
         Payment payment = Payment.hosted(
                 userRepository.getReferenceById(tourist.getId()),
                 PaymentPurpose.WALLET_TOP_UP,
                 null,
-                amountMinor,
-                properties.currencyCode(),
+                quote,
                 normalizedKey
         );
         return new HostedPaymentIntent(paymentRepository.saveAndFlush(payment), true);
@@ -123,7 +132,13 @@ public class PaymentIntentService {
                 normalizedKey
         ).orElse(null);
         if (previous != null) {
-            requireSameIntent(previous, PaymentMethod.WALLET, reservation, reservation.getTotalPriceMinor());
+            requireSameIntent(
+                    previous,
+                    PaymentMethod.WALLET,
+                    reservation,
+                    reservation.getTotalPriceMinor(),
+                    null
+            );
             return previous;
         }
 
@@ -242,10 +257,15 @@ public class PaymentIntentService {
             Payment payment,
             PaymentMethod method,
             Reservation reservation,
-            long amountMinor
+            long amountMinor,
+            UUID quoteId
     ) {
         if (payment.getMethod() != method
                 || payment.getAmountMinor() != amountMinor
+                || !java.util.Objects.equals(
+                payment.getFxQuote() == null ? null : payment.getFxQuote().getId(),
+                quoteId
+        )
                 || !java.util.Objects.equals(
                 payment.getReservation() == null ? null : payment.getReservation().getId(),
                 reservation == null ? null : reservation.getId()
@@ -254,9 +274,9 @@ public class PaymentIntentService {
         }
     }
 
-    private void requirePositiveAmount(long amountMinor) {
-        if (amountMinor <= 0) {
-            throw new BusinessException(ErrorCode.INVALID_AMOUNT);
+    private void requireUnusedQuote(UUID quoteId) {
+        if (paymentRepository.findByFxQuote_Id(quoteId).isPresent()) {
+            throw new BusinessException(ErrorCode.IDEMPOTENCY_CONFLICT);
         }
     }
 

@@ -139,12 +139,18 @@ girer.
   recreation yeni odeme baslatmaz. UI korumasi tamamlayicidir; asil cift islem
   guvencesi backend idempotency, provider event deduplication ve veritabani
   kisitlarinda kalir.
-- Mevcut Faz 5 uygulamasi canonical USD ve USD tahsilatla calismaya devam eder.
-  Kullanici tarafindan secilen provider tahsilat para birimi, backend FX quote'u,
-  charge snapshot'i ve ayni para biriminde iade kapsami; Faz 7'den sonra, Faz 8
-  final dogrulamasindan ve Android odeme entegrasyonundan once ayri bir dikey
-  dilim olarak uygulanacaktir. Bu dilim tamamlanana kadar mevcut USD constraint
-  ve contract'lari parca parca gevsetilmez.
+- Coklu provider tahsilat para birimi backend kapsami tamamlanmistir: canonical
+  platform, tur, wallet, kazanc ve withdrawal parasi USD kalir; hosted kart
+  tahsilati config ile etkin `USD`, `TRY`, `EUR`, `GBP` alt kumesinden secilir.
+  `V13` kalici, kullanici/amaca bagli ve kisa omurlu FX quote'larini; payment ve
+  refund charge snapshot'larini ekler. Frankfurter ECB referans kuru API key
+  istemeden dar provider adapter'i, timeout ve `BigDecimal` minor-unit yuvarlama
+  politikasi arkasinda kullanilir.
+- Currency-options, tur quote ve wallet top-up quote API'leri eklenmistir. Hosted
+  initialize yalniz gecerli `quoteId` ve dinamik `TR/EN` locale ile baslar;
+  retrieve/webhook/reconciliation gercek charge amount/currency snapshot'ini
+  dogrular. Provider iadesi ayni charge currency'de, internal ledger reversal
+  canonical USD olarak calisir. Ayni quote ikinci bir odemede kullanilamaz.
 - Faz 6 backend kapsami tamamlanmistir: `V9` notification, `V10` chat ve `V11`
   Firebase Installation ID semalari; kalici notification history/unread,
   tercihler, FID kaydi, commit-sonrasi FCM teslimati, lifecycle bildirimleri,
@@ -156,6 +162,30 @@ girer.
   ve FCM transaction-siniri regression testleri ile; ayrica local PostgreSQL
   `V11`, Hibernate validate, Firebase credential ve STOMP broker baslangiciyla
   dogrulanmistir.
+- Faz 7 backend kapsami tamamlanmistir: `V12` operasyonel recovery semasi,
+  bounded reservation timeout, payment reconciliation, refund recovery,
+  guide earning availability, FCM retry, yaklasan tur hatirlatma ve eski FID
+  cleanup scheduler'lari uygulanmistir. Session ve medya scheduler'lari da ayni
+  batch sinirina alinmistir. Provider ve FCM cagrilari acik DB transaction'i
+  tasimaz; refund commit-sonrasi teslimati bounded async executor kullanir.
+- Gec `TIMEOUT` tour payment'i artik otomatik iade edilmez; session/reservation
+  lock altinda kapasite yeniden kontrol edilir, yer varsa rezervasyon kesinlesir,
+  yoksa mevcut idempotent tek tam iade akisi calisir.
+- Local demo seed yalniz `local` profilde, `DEMO_SEED_ENABLED=true` ve Git disi
+  password ile idempotent guide/tourist hesaplari ve guide profili olusturur.
+  Varsayilan olarak kapalidir; production migration'i demo veri icermez.
+- Faz 7; tum Maven testleri, temiz H2 Flyway `V1-V12`, Spring context/OpenAPI ve
+  local PostgreSQL `V12` migration + Hibernate validate + gercek uygulama
+  baslangiciyla dogrulanmistir. Iki cihazli gercek LAN UI akisi Android'in FID,
+  REST ve STOMP entegrasyonu tamamlandiginda yapilacak final E2E kontroludur.
+- Iki cihazli LAN UI kontrolu tur satin alma ve odeme testini zorunlu olarak
+  kapsamaz. Kart ve wallet ile tur satin alma; Android odeme entegrasyonu
+  tamamlandiginda payment/reservation/refund sonucu, bakiye, kapasite ve ayni
+  odeme niyetinin tekrar kullanimi birlikte dogrulanarak ayri E2E test edilir.
+- `SIMULATED` withdrawal ayni transaction'da `PENDING -> PROCESSING -> COMPLETED`
+  olur ve external provider belirsizligi tasimaz. Bu nedenle sahte withdrawal
+  reconciliation job'u eklenmemistir; gercek payout modu eklenirse provider
+  status/retrieve sozlesmesiyle birlikte uygulanmasi zorunludur.
 
 ## Ertelenen Maddeler
 
@@ -174,19 +204,19 @@ eklenecektir:
 | Booking API ve `ReservationBookingService` payment/wallet baglantisi | Tamamlandi: hosted verified payment ve atomik wallet debit ayni canonical response'u kullanir |
 | Turist/rehber/admin iptalinde gercek refund ve guide earning duzeltmesi | Tamamlandi: uygun iade ve earning reversal transaction/reconciliation akisina baglandi |
 | Rezervasyon ve yorum lifecycle bildirimleri | Tamamlandi: notification history ayni domain transaction'inda, FCM teslimati commit sonrasinda calisir |
-| Suresi dolmus `PENDING_PAYMENT` hold'larini `EXPIRED` yapan scheduler | Faz 7 scheduler/seed kapsaminda eklenecek; kapasite sorgulari su anda suresi dolmus hold'u saymaz |
+| Suresi dolmus `PENDING_PAYMENT` hold'larini `EXPIRED` yapan scheduler | Tamamlandi: bounded aday sorgusu, session-first lock, reservation re-check ve ilgili non-terminal payment timeout ayni transaction'da uygulanir |
 | Gec verified payment icin session/reservation lock, kapasite ve tek refund karari | Tamamlandi: session-first lock sirasi, kapasite yeniden kontrolu ve deterministik tek full refund uygulanir |
 | Google Places kaynakli konum verisinin sunucu tarafinda yeniden dogrulanmasi | Production hazirlik kontrolunde; Faz 3 MVP akisinda Android'den gelen canonical konum alanlari dogrulanip saklanir |
 | Iyzico callback/webhook public base URL konfigurasyonu | Quick Tunnel ve `PAYMENT_CALLBACK_BASE_URL` tamamlandi; callback/retrieve Sandbox'ta dogrulandi, degisen Quick Tunnel URL'si yeni test oturumunda backend ve iyzico panelinde yenilenecek |
 | Iyzico `X-IYZ-SIGNATURE-V3` hesap aktivasyonu | Tamamlandi: destek ekibi hesapta ozelligi aktif etti; strict backend dogrulamasi ve gercek imzali webhook E2E basarili |
 | Iyzico Card Storage/hosted save destegi | Backend kapsami tamamlandi: destek onayi, `V8`, sifreli provider key/token saklama, maskeli listeleme, sonraki hosted checkout'ta kayitli kartla odeme, varsayilan kart, provider-backed silme ve duplicate callback idempotency E2E dogrulandi. Android mock kart verisi final Android entegrasyonunda bu API ile degistirilecek |
-| Coklu provider tahsilat para birimi ve backend FX quote'u | Faz 7'den sonra, Faz 8 ve final Android odeme entegrasyonundan once canonical handoff'taki ayri dikey dilimde; platform/wallet/tur/kazanc USD kalir, yalniz iyzico tahsilat tutari secilen destekli para birimine cevrilir. Baslamadan once FX provider API key/ucret/limitleri ve iyzico hesap currency yetkileri yeniden kontrol edilir |
+| Coklu provider tahsilat para birimi ve backend FX quote'u | Backend tamamlandi: `V13`, Frankfurter ECB adapter'i, config-backed `USD/TRY/EUR/GBP`, currency-options + quote API'leri, quote-bound initialize, charge retrieve/refund snapshot'i ve hata sozlesmesi uygulanip temiz test/local PostgreSQL/OpenAPI ile dogrulandi. Android secim/quote UI'i ve her etkin para birimindeki iyzico Sandbox E2E final Android entegrasyonu/Faz 8 kontrolunde yapilacak |
 | Marketplace/submerchant yetkisi ve `IYZICO`/`SIMULATED` payout karari | Tamamlandi: tahsilat/iade gercek Sandbox, rehber payout `SIMULATED` |
-| Payment/refund timeout ve reconciliation scheduler'lari | Faz 5 callable servisleri hazir; periyodik ve bounded job'lar Faz 7'de eklenecek |
-| `PENDING` guide earning kayitlarini zamani gelince `AVAILABLE` yapma | Session completion mevcut akista baglandi; gec iadesiz iptal gibi kalan durumlar Faz 7 earning scheduler'inda taranacak |
+| Payment/refund timeout ve reconciliation scheduler'lari | Tamamlandi: kalici attempt/timestamp state'i, bounded retry ve stale `PROCESSING` refund icin guvenli `MANUAL_REVIEW` uygulanir |
+| `PENDING` guide earning kayitlarini zamani gelince `AVAILABLE` yapma | Tamamlandi: bounded earning scheduler mevcut idempotent wallet credit akisini kullanir |
 | FCM service account, FID kaydi ve push adapter'i | Tamamlandi: credential Git disinda, FID API'si ve semantic payload siniri uygulanmistir |
 | WebSocket/STOMP bagimliliklari ve realtime guvenligi | Tamamlandi: CONNECT JWT, katilimci kontrolu ve yalniz private user queue teslimati uygulanmistir |
-| `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Faz 7 scheduler kapsaminda; Faz 6 kalici kayit ve callable teslimat altyapisini hazirlar |
+| `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Tamamlandi: kalici retry sayaci/zamani, maksimum deneme, reminder deduplication ve tourist/guide reminder marker'lari uygulanir |
 | Android FID kaydi, FCM service/channel/permission ve REST/STOMP repository entegrasyonu | Backend tamamlandiktan sonraki Android entegrasyonunda; backend endpoint ve destination sozlesmeleri degistirilmeden tuketilir |
 | Docker ve PostgreSQL Testcontainers altyapisi | Faz 8 basinda |
 | Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Faz 8 sonunda |

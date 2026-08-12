@@ -1,5 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.service;
 
+import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationLifecycleService;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
@@ -9,6 +10,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,13 +31,18 @@ public class TourSessionLifecycleService {
     private final TourSessionRepository tourSessionRepository;
     private final ReservationLifecycleService reservationLifecycleService;
     private final NotificationPublisher notificationPublisher;
+    private final SchedulerProperties schedulerProperties;
     private final Clock clock;
 
     @Scheduled(fixedDelayString = "${tour.lifecycle-delay-ms:60000}")
     @Transactional
     public void completeFinishedSessions() {
         Instant now = clock.instant();
-        tourSessionRepository.findByStatusInAndStartsAtBefore(COMPLETION_CANDIDATE_STATUSES, now)
+        tourSessionRepository.findByStatusInAndStartsAtBeforeOrderByStartsAtAsc(
+                        COMPLETION_CANDIDATE_STATUSES,
+                        now,
+                        PageRequest.of(0, schedulerProperties.batchSize())
+                )
                 .stream()
                 .filter(session -> !session.endsAt().isAfter(now))
                 .forEach(session -> {

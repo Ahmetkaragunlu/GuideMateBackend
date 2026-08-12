@@ -61,6 +61,16 @@ public class GuideEarningService {
     @Transactional
     public void makeAvailable(UUID reservationId) {
         GuideEarning earning = earningRepository.findByReservationIdForUpdate(reservationId).orElse(null);
+        makeAvailable(earning);
+    }
+
+    @Transactional
+    public void makeAvailableById(UUID earningId) {
+        GuideEarning earning = earningRepository.findByIdForUpdate(earningId).orElse(null);
+        makeAvailable(earning);
+    }
+
+    private void makeAvailable(GuideEarning earning) {
         if (earning == null
                 || earning.getStatus() != GuideEarningStatus.PENDING
                 || earning.getAvailableAt().isAfter(clock.instant())) {

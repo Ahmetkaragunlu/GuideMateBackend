@@ -199,4 +199,35 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             @Param("mediaAssetId") UUID mediaAssetId,
             @Param("touristId") Long touristId
     );
+
+    @Query("""
+            SELECT reservation.id FROM Reservation reservation
+            WHERE reservation.status = :status
+              AND reservation.holdExpiresAt <= :now
+            ORDER BY reservation.holdExpiresAt, reservation.id
+            """)
+    List<UUID> findExpiredHoldCandidateIds(
+            @Param("status") ReservationStatus status,
+            @Param("now") Instant now,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT reservation.id FROM Reservation reservation
+            WHERE reservation.status = :status
+              AND reservation.upcomingReminderSentAt IS NULL
+              AND reservation.session.startsAt > :now
+              AND reservation.session.startsAt <= :until
+            ORDER BY reservation.session.startsAt, reservation.id
+            """)
+    List<UUID> findUpcomingReminderCandidateIds(
+            @Param("status") ReservationStatus status,
+            @Param("now") Instant now,
+            @Param("until") Instant until,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"session", "session.tour", "session.tour.guide", "tourist"})
+    @Query("SELECT reservation FROM Reservation reservation WHERE reservation.id = :reservationId")
+    Optional<Reservation> findReminderDetails(@Param("reservationId") UUID reservationId);
 }

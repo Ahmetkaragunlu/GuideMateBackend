@@ -105,7 +105,7 @@ public class PaymentResultService {
         }
 
         Reservation reservation = payment.getReservation();
-        if (mustRefund) {
+        if (previousStatus == PaymentStatus.CANCELLED) {
             reservationBookingService.expire(reservation.getId());
             refundService.requestFullRefund(
                     payment.getId(),
@@ -164,8 +164,9 @@ public class PaymentResultService {
                 && java.util.Objects.equals(payment.getProviderConversationId(), result.conversationId());
         if (result.successful()) {
             intentMatches = intentMatches
-                    && payment.getAmountMinor() == result.amountMinor()
-                    && payment.getCurrencyCode().equals(result.currencyCode());
+                    && payment.getChargeAmountMinor() != null
+                    && payment.getChargeAmountMinor() == result.amountMinor()
+                    && payment.getChargeCurrencyCode().equals(result.currencyCode());
         }
         if (!intentMatches) {
             throw new BusinessException(ErrorCode.PAYMENT_VERIFICATION_FAILED);

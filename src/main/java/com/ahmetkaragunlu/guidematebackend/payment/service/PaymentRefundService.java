@@ -122,10 +122,20 @@ public class PaymentRefundService {
             return refund;
         }
 
+        long alreadyReservedCharge = refundRepository.sumChargeAmountByPaymentAndStatuses(
+                payment.getId(),
+                RESERVED_REFUND_STATUSES
+        );
+        long refundableChargeAmount = payment.getChargeAmountMinor() - alreadyReservedCharge;
+        if (refundableChargeAmount <= 0) {
+            throw new BusinessException(ErrorCode.REFUND_AMOUNT_EXCEEDED);
+        }
+
         Refund refund = refundRepository.saveAndFlush(Refund.requested(
                 payment,
                 requesterReference,
                 refundableAmount,
+                refundableChargeAmount,
                 idempotencyKey,
                 now
         ));
@@ -145,6 +155,8 @@ public class PaymentRefundService {
         payload.put("paymentId", refund.getPayment().getId().toString());
         payload.put("amountMinor", refund.getAmountMinor());
         payload.put("currencyCode", refund.getCurrencyCode());
+        payload.put("chargeAmountMinor", refund.getChargeAmountMinor());
+        payload.put("chargeCurrencyCode", refund.getChargeCurrencyCode());
         if (refund.getPayment().getReservation() != null) {
             payload.put("reservationId", refund.getPayment().getReservation().getId().toString());
             payload.put(

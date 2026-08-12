@@ -26,7 +26,11 @@ import java.util.Objects;
         name = "refunds",
         indexes = {
                 @Index(name = "idx_refund_payment", columnList = "payment_id"),
-                @Index(name = "idx_refund_status_updated", columnList = "status, updated_at")
+                @Index(name = "idx_refund_status_updated", columnList = "status, updated_at"),
+                @Index(
+                        name = "idx_refund_processing_retry",
+                        columnList = "status, last_processing_attempt_at"
+                )
         },
         uniqueConstraints = @UniqueConstraint(
                 name = "uq_refund_idempotency",
@@ -50,6 +54,12 @@ public class Refund extends UuidAuditedEntity {
     @Column(name = "currency_code", nullable = false, updatable = false, length = 3)
     private String currencyCode;
 
+    @Column(name = "charge_amount_minor", nullable = false, updatable = false)
+    private long chargeAmountMinor;
+
+    @Column(name = "charge_currency_code", nullable = false, updatable = false, length = 3)
+    private String chargeCurrencyCode;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
     private RefundStatus status;
@@ -69,6 +79,12 @@ public class Refund extends UuidAuditedEntity {
     @Column(name = "completed_at")
     private Instant completedAt;
 
+    @Column(name = "processing_attempt_count", nullable = false)
+    private int processingAttemptCount;
+
+    @Column(name = "last_processing_attempt_at")
+    private Instant lastProcessingAttemptAt;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -78,6 +94,8 @@ public class Refund extends UuidAuditedEntity {
             User requestedBy,
             long amountMinor,
             String currencyCode,
+            long chargeAmountMinor,
+            String chargeCurrencyCode,
             String idempotencyKey,
             RefundStatus status,
             Instant requestedAt,
@@ -87,6 +105,8 @@ public class Refund extends UuidAuditedEntity {
         this.requestedBy = Objects.requireNonNull(requestedBy);
         this.amountMinor = amountMinor;
         this.currencyCode = Objects.requireNonNull(currencyCode);
+        this.chargeAmountMinor = chargeAmountMinor;
+        this.chargeCurrencyCode = Objects.requireNonNull(chargeCurrencyCode);
         this.idempotencyKey = Objects.requireNonNull(idempotencyKey);
         this.status = Objects.requireNonNull(status);
         this.requestedAt = Objects.requireNonNull(requestedAt);
@@ -97,6 +117,7 @@ public class Refund extends UuidAuditedEntity {
             Payment payment,
             User requestedBy,
             long amountMinor,
+            long chargeAmountMinor,
             String idempotencyKey,
             Instant requestedAt
     ) {
@@ -105,6 +126,8 @@ public class Refund extends UuidAuditedEntity {
                 requestedBy,
                 amountMinor,
                 payment.getCurrencyCode(),
+                chargeAmountMinor,
+                payment.getChargeCurrencyCode(),
                 idempotencyKey,
                 RefundStatus.REQUESTED,
                 requestedAt,
@@ -124,6 +147,8 @@ public class Refund extends UuidAuditedEntity {
                 requestedBy,
                 amountMinor,
                 payment.getCurrencyCode(),
+                amountMinor,
+                payment.getCurrencyCode(),
                 idempotencyKey,
                 RefundStatus.SUCCEEDED,
                 completedAt,
@@ -131,7 +156,7 @@ public class Refund extends UuidAuditedEntity {
         );
     }
 
-    public void markProcessing() {
+    public void markProcessing(Instant attemptedAt) {
         if (status == RefundStatus.PROCESSING || status == RefundStatus.SUCCEEDED) {
             return;
         }
@@ -140,6 +165,8 @@ public class Refund extends UuidAuditedEntity {
         }
         this.status = RefundStatus.PROCESSING;
         this.failureCode = null;
+        this.processingAttemptCount++;
+        this.lastProcessingAttemptAt = Objects.requireNonNull(attemptedAt);
     }
 
     public void succeed(String providerRefundId, Instant completedAt) {

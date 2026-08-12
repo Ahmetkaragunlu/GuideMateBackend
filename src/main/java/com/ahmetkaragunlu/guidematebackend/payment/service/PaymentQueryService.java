@@ -44,6 +44,12 @@ public class PaymentQueryService {
                 payment.getStatus(),
                 payment.getAmountMinor(),
                 payment.getCurrencyCode(),
+                payment.getFxQuote() == null ? null : payment.getFxQuote().getId(),
+                payment.getChargeAmountMinor(),
+                payment.getChargeCurrencyCode(),
+                payment.getFxRate(),
+                payment.getFxRateSource(),
+                payment.getFxQuotedAt(),
                 payment.getStatus() == PaymentStatus.REQUIRES_ACTION
                         ? payment.getPaymentPageUrl()
                         : null,
@@ -52,6 +58,9 @@ public class PaymentQueryService {
                 payment.getReservation() == null ? null : payment.getReservation().getStatus(),
                 refund == null ? null : refund.getId(),
                 refund == null ? null : refund.getStatus(),
+                refund == null ? null : refund.getAmountMinor(),
+                refund == null ? null : refund.getChargeAmountMinor(),
+                refund == null ? null : refund.getChargeCurrencyCode(),
                 payment.getFailureCode(),
                 payment.getCreatedAt(),
                 payment.getUpdatedAt()
