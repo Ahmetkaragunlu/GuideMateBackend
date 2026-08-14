@@ -86,7 +86,12 @@ public class TourMapper {
         );
     }
 
-    public GuideTourCardResponse toGuideCard(TourSession session, int bookedCount) {
+    public GuideTourCardResponse toGuideCard(
+            TourSession session,
+            int bookedCount,
+            ReviewAggregate reviews,
+            Long netEarningsMinor
+    ) {
         Tour tour = session.getTour();
         return new GuideTourCardResponse(
                 tour.getId(),
@@ -105,7 +110,10 @@ public class TourMapper {
                 session.getPriceMinor(),
                 session.getCurrencyCode(),
                 bookedCount,
-                Math.max(0, session.getCapacity() - bookedCount),
+                session.getCapacity(),
+                reviews.averageRating(),
+                reviews.reviewCount(),
+                netEarningsMinor,
                 tour.getApprovalStatus(),
                 session.getStatus(),
                 tour.getRejectionReason(),
@@ -166,7 +174,7 @@ public class TourMapper {
                 : toMediaReference(profile.getAvatar());
         return new PublicGuideSummaryResponse(
                 guide.getId(),
-                (guide.getFirstName() + " " + guide.getLastName()).trim(),
+                guide.displayName(),
                 avatar
         );
     }

@@ -104,6 +104,7 @@ public class NotificationService implements NotificationPublisher {
                 notification.getId(),
                 notification.getType(),
                 notification.getActor() == null ? null : notification.getActor().getId(),
+                notification.getActor() == null ? null : notification.getActor().displayName(),
                 payloadCodec.decode(notification.getPayloadJson()),
                 notification.isRead(),
                 notification.getReadAt(),

@@ -90,9 +90,8 @@ public class ChatMessageService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         if (!sender.isEnabled()
                 || sender.getTokenVersion() != currentUser.getTokenVersion()
-                || sender.getRole() == null
-                || (!RoleType.ROLE_GUIDE.name().equals(sender.getRole().getName())
-                && !RoleType.ROLE_TOURIST.name().equals(sender.getRole().getName()))) {
+                || (!sender.hasRole(RoleType.ROLE_GUIDE)
+                && !sender.hasRole(RoleType.ROLE_TOURIST))) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
         ChatConversation conversation = conversationRepository.findParticipantConversationForUpdate(
@@ -131,7 +130,7 @@ public class ChatMessageService {
                         "chatId", conversation.getId().toString(),
                         "messageId", message.getId().toString(),
                         "senderId", sender.getId(),
-                        "senderName", displayName(sender),
+                        "senderName", sender.displayName(),
                         "messagePreview", preview(body)
                 )
         ));
@@ -160,7 +159,4 @@ public class ChatMessageService {
                 : body.substring(0, NOTIFICATION_PREVIEW_LENGTH);
     }
 
-    private String displayName(User user) {
-        return (user.getFirstName() + " " + user.getLastName()).trim();
-    }
 }

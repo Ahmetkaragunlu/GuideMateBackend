@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.repository;
 
-import com.ahmetkaragunlu.guidematebackend.tour.dto.request.TourSearchSort;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSearchSort;
 
 import java.time.Instant;
 import java.util.Set;

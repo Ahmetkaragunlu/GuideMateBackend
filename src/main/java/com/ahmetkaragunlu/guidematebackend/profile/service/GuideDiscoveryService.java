@@ -7,7 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideSearchItemResponse;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewRankingPolicy;
+import com.ahmetkaragunlu.guidematebackend.review.domain.ReviewRankingPolicy;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import lombok.RequiredArgsConstructor;
@@ -96,7 +96,7 @@ public class GuideDiscoveryService {
                 );
         return new GuideSearchItemResponse(
                 profile.getUserId(),
-                (profile.getUser().getFirstName() + " " + profile.getUser().getLastName()).trim(),
+                profile.getUser().displayName(),
                 profile.getSpecialtyTitle(),
                 avatar,
                 profile.getLanguageCodes().stream().sorted().toList(),

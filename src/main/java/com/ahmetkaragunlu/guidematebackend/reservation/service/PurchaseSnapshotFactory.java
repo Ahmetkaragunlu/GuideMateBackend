@@ -31,7 +31,7 @@ public class PurchaseSnapshotFactory {
                 tour.getDescription(),
                 tour.getCoverMedia().getId(),
                 tour.getGuide().getId(),
-                (tour.getGuide().getFirstName() + " " + tour.getGuide().getLastName()).trim(),
+                tour.getGuide().displayName(),
                 avatar == null ? null : avatar.getId(),
                 tour.getCountryCode(),
                 tour.getCityPlaceId(),

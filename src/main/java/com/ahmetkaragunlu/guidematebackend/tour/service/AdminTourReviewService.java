@@ -57,6 +57,7 @@ public class AdminTourReviewService {
     private final MediaService mediaService;
     private final TourContentFactory tourContentFactory;
     private final TourChangeSnapshotCodec snapshotCodec;
+    private final TourLocationPolicy locationPolicy;
     private final TourMapper tourMapper;
     private final ReservationCapacityService capacityService;
     private final ReviewQueryService reviewQueryService;
@@ -121,7 +122,7 @@ public class AdminTourReviewService {
             TourChangeSnapshot snapshot = tourContentFactory.validate(
                     snapshotCodec.decode(changeRequest.getProposedSnapshot())
             );
-            requireLocationUnchanged(tour, snapshot);
+            locationPolicy.requireUnchanged(tour, snapshot);
             MediaAsset cover = mediaService.requireAssignableAsset(
                     snapshot.coverMediaId(),
                     tour.getGuide().getId(),
@@ -211,7 +212,7 @@ public class AdminTourReviewService {
                 AdminTourReviewType.NEW_TOUR,
                 tour.getId(),
                 tour.getGuide().getId(),
-                displayName(tour.getGuide()),
+                tour.getGuide().displayName(),
                 tour.getTitle(),
                 tour.getSubmittedAt()
         );
@@ -225,7 +226,7 @@ public class AdminTourReviewService {
                 AdminTourReviewType.TOUR_CHANGE,
                 tour.getId(),
                 tour.getGuide().getId(),
-                displayName(tour.getGuide()),
+                tour.getGuide().displayName(),
                 snapshot.title(),
                 request.getSubmittedAt()
         );
@@ -237,7 +238,7 @@ public class AdminTourReviewService {
                 AdminTourReviewType.NEW_TOUR,
                 tour.getId(),
                 tour.getGuide().getId(),
-                displayName(tour.getGuide()),
+                tour.getGuide().displayName(),
                 tour.getSubmittedAt(),
                 tour.getApprovalStatus().name(),
                 tourDetail(tour),
@@ -254,7 +255,7 @@ public class AdminTourReviewService {
                 AdminTourReviewType.TOUR_CHANGE,
                 tour.getId(),
                 tour.getGuide().getId(),
-                displayName(tour.getGuide()),
+                tour.getGuide().displayName(),
                 request.getSubmittedAt(),
                 request.getStatus().name(),
                 tourDetail(tour),
@@ -313,19 +314,6 @@ public class AdminTourReviewService {
         if (request.getStatus() != TourChangeRequestStatus.PENDING) {
             throw new BusinessException(ErrorCode.TOUR_REVIEW_STATE_INVALID);
         }
-    }
-
-    private void requireLocationUnchanged(Tour tour, TourChangeSnapshot snapshot) {
-        if (!tour.getCountryCode().equals(snapshot.countryCode())
-                || !tour.getCityPlaceId().equals(snapshot.cityPlaceId())
-                || !tour.getCityName().equals(snapshot.cityName())
-                || !tour.getTimeZoneId().equals(snapshot.timeZoneId())) {
-            throw new BusinessException(ErrorCode.TOUR_LOCATION_LOCKED);
-        }
-    }
-
-    private String displayName(User user) {
-        return (user.getFirstName() + " " + user.getLastName()).trim();
     }
 
     private void publishDecision(

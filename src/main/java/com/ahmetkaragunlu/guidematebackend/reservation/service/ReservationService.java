@@ -4,6 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
+import com.ahmetkaragunlu.guidematebackend.common.validation.VersionPolicy;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Refund;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentRefundService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentIntentService;
@@ -54,6 +55,7 @@ public class ReservationService {
     private final CancellationPolicy cancellationPolicy;
     private final Clock clock;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
+    private final VersionPolicy versionPolicy;
     private final PaymentRefundService paymentRefundService;
     private final GuideEarningService guideEarningService;
     private final ReservationBookingService reservationBookingService;
@@ -131,7 +133,7 @@ public class ReservationService {
                         currentUser.getId()
                 )
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
-        requireVersion(reservation.getVersion(), request.version());
+        versionPolicy.requireMatch(reservation.getVersion(), request.version());
         if (reservation.getStatus() != ReservationStatus.PENDING_PAYMENT
                 && reservation.getStatus() != ReservationStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.RESERVATION_NOT_CANCELLABLE);
@@ -191,12 +193,6 @@ public class ReservationService {
                 .map(Reservation::getId)
                 .collect(Collectors.toSet());
         return reviewQueryService.reviewsByReservationIds(reservationIds);
-    }
-
-    private void requireVersion(long actualVersion, long requestedVersion) {
-        if (actualVersion != requestedVersion) {
-            throw new BusinessException(ErrorCode.CONCURRENT_UPDATE);
-        }
     }
 
     private String trimToNull(String value) {

@@ -14,6 +14,7 @@ public record WalletTransactionResponse(
         String currencyCode,
         String referenceType,
         UUID referenceId,
+        String referenceTitle,
         Instant occurredAt
 ) {
 }

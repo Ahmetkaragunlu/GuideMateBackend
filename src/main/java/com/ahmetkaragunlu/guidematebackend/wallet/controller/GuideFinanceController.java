@@ -8,6 +8,7 @@ import com.ahmetkaragunlu.guidematebackend.wallet.domain.Withdrawal;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.AddBankAccountRequest;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.BankAccountResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.GuideEarningResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.MonthlyGuideEarningResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.WithdrawalRequest;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.WithdrawalResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.mapper.WalletMapper;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @Validated
@@ -65,6 +67,15 @@ public class GuideFinanceController {
                 guideEarningService.getYear(currentUser.getId(), year, page, size)
                         .map(walletMapper::toEarning)
         ));
+    }
+
+    @Operation(summary = "List monthly guide earnings for a year")
+    @GetMapping("/earnings/monthly")
+    public ResponseEntity<List<MonthlyGuideEarningResponse>> getMonthlyEarnings(
+            @RequestParam @Min(1970) @Max(9998) int year,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(guideEarningService.getMonthlyEarnings(currentUser.getId(), year));
     }
 
     @Operation(summary = "List active guide bank accounts")

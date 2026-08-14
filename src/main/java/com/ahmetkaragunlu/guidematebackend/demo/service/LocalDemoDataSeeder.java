@@ -89,8 +89,7 @@ public class LocalDemoDataSeeder implements ApplicationRunner {
     }
 
     private void requireExpectedAccount(User user, RoleType roleType) {
-        if (user.getRole() == null
-                || !roleType.name().equals(user.getRole().getName())
+        if (!user.hasRole(roleType)
                 || user.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new IllegalStateException(
                     "Demo seed email belongs to an incompatible existing account"

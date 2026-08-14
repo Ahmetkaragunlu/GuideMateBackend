@@ -7,7 +7,6 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentFxQuote;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.ExchangeRate;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.ExchangeRateProvider;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
-import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
@@ -48,15 +47,10 @@ class PaymentQuoteServiceTest {
     private PaymentFxQuote savedQuote;
     @Mock
     private User tourist;
-    @Mock
-    private Role touristRole;
-
     private PaymentQuoteService service;
 
     @BeforeEach
     void setUp() {
-        when(tourist.getRole()).thenReturn(touristRole);
-        when(touristRole.getName()).thenReturn(RoleType.ROLE_TOURIST.name());
         service = new PaymentQuoteService(
                 reservationBookingService,
                 stateService,
@@ -68,6 +62,7 @@ class PaymentQuoteServiceTest {
 
     @Test
     void convertsCanonicalUsdToChargeMinorUnitsWithCentralRounding() {
+        stubTourist();
         when(exchangeRateProvider.latest("USD", "EUR")).thenReturn(new ExchangeRate(
                 "USD",
                 "EUR",
@@ -89,12 +84,41 @@ class PaymentQuoteServiceTest {
 
     @Test
     void rejectsCurrencyOutsideConfiguredProviderSubset() {
+        stubTourist();
         assertThatThrownBy(() -> service.quoteWalletTopUp(tourist, 1000L, "JPY"))
                 .isInstanceOfSatisfying(BusinessException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.PAYMENT_CURRENCY_NOT_SUPPORTED));
 
         verify(exchangeRateProvider, never()).latest(any(), any());
         verify(stateService, never()).saveWalletTopUpQuote(any(), any(Long.class), any());
+    }
+
+    @Test
+    void exposesCanonicalAndEnabledChargeCurrencies() {
+        assertThat(service.getCurrencyOptions().baseCurrencyCode()).isEqualTo("USD");
+        assertThat(service.getCurrencyOptions().chargeCurrencies())
+                .extracting(option -> option.currencyCode())
+                .containsExactly("EUR", "GBP", "TRY", "USD");
+    }
+
+    @Test
+    void usesIdentityRateForCanonicalUsdWithoutCallingExternalProvider() {
+        stubTourist();
+        when(stateService.saveWalletTopUpQuote(eq(tourist), eq(1000L), any(FxCalculation.class)))
+                .thenReturn(savedQuote);
+
+        service.quoteWalletTopUp(tourist, 1000L, "USD");
+
+        ArgumentCaptor<FxCalculation> calculation = ArgumentCaptor.forClass(FxCalculation.class);
+        verify(stateService).saveWalletTopUpQuote(eq(tourist), eq(1000L), calculation.capture());
+        assertThat(calculation.getValue().chargeAmountMinor()).isEqualTo(1000L);
+        assertThat(calculation.getValue().chargeCurrencyCode()).isEqualTo("USD");
+        assertThat(calculation.getValue().rate()).isEqualByComparingTo("1.000000000000");
+        verify(exchangeRateProvider, never()).latest(any(), any());
+    }
+
+    private void stubTourist() {
+        when(tourist.hasRole(RoleType.ROLE_TOURIST)).thenReturn(true);
     }
 
     private PaymentProperties paymentProperties() {

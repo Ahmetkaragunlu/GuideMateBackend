@@ -58,7 +58,7 @@ public class ChatMapper {
                 : mediaUrlFactory.contentUrl(guideProfile.getAvatar().getId());
         return new ChatParticipantResponse(
                 user.getId(),
-                (user.getFirstName() + " " + user.getLastName()).trim(),
+                user.displayName(),
                 avatarUrl
         );
     }

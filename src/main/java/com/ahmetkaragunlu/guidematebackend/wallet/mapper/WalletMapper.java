@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WalletMapper {
 
-    public WalletTransactionResponse toTransaction(WalletLedgerEntry entry) {
+    public WalletTransactionResponse toTransaction(WalletLedgerEntry entry, String referenceTitle) {
         return new WalletTransactionResponse(
                 entry.getId(),
                 entry.getDirection(),
@@ -22,6 +22,7 @@ public class WalletMapper {
                 entry.getWallet().getCurrencyCode(),
                 entry.getReferenceType(),
                 entry.getReferenceId(),
+                referenceTitle,
                 entry.getOccurredAt()
         );
     }

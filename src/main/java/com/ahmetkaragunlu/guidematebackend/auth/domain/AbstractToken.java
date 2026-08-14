@@ -1,8 +1,5 @@
 package com.ahmetkaragunlu.guidematebackend.auth.domain;
 
-
-
-
 import com.ahmetkaragunlu.guidematebackend.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

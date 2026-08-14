@@ -46,7 +46,18 @@ class PaymentOpenApiContractTest {
                         .doesNotExist())
                 .andExpect(jsonPath("$.paths['/api/v1/wallet']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/wallet/transactions']").exists())
+                .andExpect(jsonPath("$.components.schemas.WalletTransactionResponse.properties.referenceTitle")
+                        .exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/earnings']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/guide/earnings/monthly']").exists())
+                .andExpect(jsonPath("$.components.schemas.MonthlyGuideEarningResponse.properties.year").exists())
+                .andExpect(jsonPath("$.components.schemas.MonthlyGuideEarningResponse.properties.month").exists())
+                .andExpect(jsonPath(
+                        "$.components.schemas.MonthlyGuideEarningResponse.properties.netEarningsMinor"
+                ).exists())
+                .andExpect(jsonPath(
+                        "$.components.schemas.MonthlyGuideEarningResponse.properties.currencyCode"
+                ).exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/bank-accounts']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/bank-accounts/{bankAccountId}/default']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/withdrawals']").exists());

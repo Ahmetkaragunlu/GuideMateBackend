@@ -57,10 +57,7 @@ public class ReviewQueryService {
         var tour = tourRepository.findDetailsById(tourId)
                 .filter(candidate -> candidate.getApprovalStatus() == TourApprovalStatus.APPROVED)
                 .filter(candidate -> candidate.getGuide().getAccountStatus() == AccountStatus.ACTIVE)
-                .filter(candidate -> candidate.getGuide().getRole() != null)
-                .filter(candidate -> RoleType.ROLE_GUIDE.name().equals(
-                        candidate.getGuide().getRole().getName()
-                ))
+                .filter(candidate -> candidate.getGuide().hasRole(RoleType.ROLE_GUIDE))
                 .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
         Page<Review> reviews = reviewRepository.findPublicByTourId(
                 tour.getId(),

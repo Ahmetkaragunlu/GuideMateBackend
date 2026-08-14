@@ -18,8 +18,8 @@ import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -56,7 +56,7 @@ class NotificationPushDeliveryServiceTest {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
-    @MockBean
+    @MockitoBean
     private PushNotificationSender pushNotificationSender;
 
     @Test

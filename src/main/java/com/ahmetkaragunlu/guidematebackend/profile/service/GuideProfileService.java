@@ -84,7 +84,6 @@ public class GuideProfileService {
     private boolean isPublicProfile(GuideProfile profile) {
         User user = profile.getUser();
         return user.getAccountStatus() == AccountStatus.ACTIVE
-                && user.getRole() != null
-                && RoleType.ROLE_GUIDE.name().equals(user.getRole().getName());
+                && user.hasRole(RoleType.ROLE_GUIDE);
     }
 }

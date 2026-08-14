@@ -84,21 +84,18 @@ public class ReservationBookingService {
         requireTourist(currentUser);
         requireParticipantCount(participantCount);
         String normalizedKey = idempotencyKeyPolicy.normalize(idempotencyKey);
-        Reservation previous = reservationRepository.findByTourist_IdAndIdempotencyKey(
-                currentUser.getId(),
-                normalizedKey
-        ).orElse(null);
+        Reservation previous = findPreviousReservation(currentUser.getId(), normalizedKey);
         if (previous != null) {
-            if (previous.getSession().getId().equals(sessionId)
-                    && previous.getParticipantCount() == participantCount) {
-                return previous;
-            }
-            throw new BusinessException(ErrorCode.IDEMPOTENCY_CONFLICT);
+            return requireMatchingReservation(previous, sessionId, participantCount);
         }
 
         Instant now = clock.instant();
         TourSession session = tourSessionRepository.findByIdForUpdate(sessionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
+        previous = findPreviousReservation(currentUser.getId(), normalizedKey);
+        if (previous != null) {
+            return requireMatchingReservation(previous, sessionId, participantCount);
+        }
         requireBookable(session, now);
         expireStaleExistingReservation(currentUser.getId(), sessionId, now);
 
@@ -203,6 +200,23 @@ public class ReservationBookingService {
         throw new BusinessException(ErrorCode.RESERVATION_ALREADY_EXISTS);
     }
 
+    private Reservation findPreviousReservation(Long touristId, String idempotencyKey) {
+        return reservationRepository.findByTourist_IdAndIdempotencyKey(touristId, idempotencyKey)
+                .orElse(null);
+    }
+
+    private Reservation requireMatchingReservation(
+            Reservation reservation,
+            UUID sessionId,
+            int participantCount
+    ) {
+        if (reservation.getSession().getId().equals(sessionId)
+                && reservation.getParticipantCount() == participantCount) {
+            return reservation;
+        }
+        throw new BusinessException(ErrorCode.IDEMPOTENCY_CONFLICT);
+    }
+
     private void requireBookable(TourSession session, Instant now) {
         if (!isBookable(session, now)) {
             throw new BusinessException(ErrorCode.SESSION_NOT_BOOKABLE);
@@ -215,8 +229,7 @@ public class ReservationBookingService {
                 && session.getStatus() == TourSessionStatus.OPEN_FOR_BOOKING
                 && session.getStartsAt().isAfter(now)
                 && guide.getAccountStatus() == AccountStatus.ACTIVE
-                && guide.getRole() != null
-                && RoleType.ROLE_GUIDE.name().equals(guide.getRole().getName());
+                && guide.hasRole(RoleType.ROLE_GUIDE);
     }
 
     private boolean hasAnotherActiveReservation(Reservation reservation, Instant now) {
@@ -238,8 +251,7 @@ public class ReservationBookingService {
     }
 
     private void requireTourist(User currentUser) {
-        if (currentUser.getRole() == null
-                || !RoleType.ROLE_TOURIST.name().equals(currentUser.getRole().getName())) {
+        if (!currentUser.hasRole(RoleType.ROLE_TOURIST)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
     }

@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.tour.dto.request;
+package com.ahmetkaragunlu.guidematebackend.tour.domain;
 
 public enum TourSearchSort {
     STARTS_AT_ASC,

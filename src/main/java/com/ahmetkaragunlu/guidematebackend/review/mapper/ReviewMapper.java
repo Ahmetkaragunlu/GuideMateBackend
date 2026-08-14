@@ -22,7 +22,7 @@ public class ReviewMapper {
         User tourist = review.getReservation().getTourist();
         return new TourReviewResponse(
                 review.getId(),
-                (tourist.getFirstName() + " " + tourist.getLastName()).trim(),
+                tourist.displayName(),
                 null,
                 review.getRating(),
                 review.getComment(),

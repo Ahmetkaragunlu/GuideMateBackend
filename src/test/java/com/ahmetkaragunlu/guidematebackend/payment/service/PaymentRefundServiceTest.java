@@ -1,6 +1,5 @@
 package com.ahmetkaragunlu.guidematebackend.payment.service;
 
-import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
@@ -26,6 +25,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +43,7 @@ class PaymentRefundServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Mock
-    private NotificationPublisher notificationPublisher;
+    private RefundNotificationPublisher refundNotificationPublisher;
 
     private PaymentRefundService service;
 
@@ -54,7 +55,7 @@ class PaymentRefundServiceTest {
                 userRepository,
                 walletAccountService,
                 eventPublisher,
-                notificationPublisher,
+                refundNotificationPublisher,
                 Clock.fixed(Instant.parse("2026-08-13T00:00:00Z"), ZoneOffset.UTC)
         );
     }
@@ -74,7 +75,6 @@ class PaymentRefundServiceTest {
         when(payment.getChargeAmountMinor()).thenReturn(47_758L);
         when(payment.getChargeCurrencyCode()).thenReturn("TRY");
         when(payment.getProviderTransactionId()).thenReturn("provider-transaction");
-        when(payment.getUser()).thenReturn(user);
         when(refundRepository.findByPayment_IdAndIdempotencyKey(paymentId, "refund-key"))
                 .thenReturn(Optional.empty());
         when(refundRepository.sumAmountByPaymentAndStatuses(any(), any())).thenReturn(0L);
@@ -93,5 +93,24 @@ class PaymentRefundServiceTest {
         assertThat(refund.getCurrencyCode()).isEqualTo("USD");
         assertThat(refund.getChargeAmountMinor()).isEqualTo(47_758L);
         assertThat(refund.getChargeCurrencyCode()).isEqualTo("TRY");
+    }
+
+    @Test
+    void returnsExistingRefundForSameIdempotencyKey() {
+        UUID paymentId = UUID.randomUUID();
+        Payment payment = org.mockito.Mockito.mock(Payment.class);
+        Refund previous = org.mockito.Mockito.mock(Refund.class);
+        User user = org.mockito.Mockito.mock(User.class);
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
+        when(payment.getId()).thenReturn(paymentId);
+        when(payment.getStatus()).thenReturn(PaymentStatus.SUCCEEDED);
+        when(refundRepository.findByPayment_IdAndIdempotencyKey(paymentId, "same-refund"))
+                .thenReturn(Optional.of(previous));
+
+        Refund result = service.requestFullRefund(paymentId, user, "same-refund");
+
+        assertThat(result).isSameAs(previous);
+        verify(refundRepository, never()).saveAndFlush(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }

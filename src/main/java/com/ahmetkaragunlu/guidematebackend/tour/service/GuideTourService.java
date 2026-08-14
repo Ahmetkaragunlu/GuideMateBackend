@@ -3,6 +3,7 @@ package com.ahmetkaragunlu.guidematebackend.tour.service;
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import com.ahmetkaragunlu.guidematebackend.common.validation.VersionPolicy;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
@@ -32,6 +33,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -70,9 +72,12 @@ public class GuideTourService {
     private final TourContentFactory tourContentFactory;
     private final TourChangeSnapshotCodec snapshotCodec;
     private final TourSchedulePolicy schedulePolicy;
+    private final TourLocationPolicy locationPolicy;
+    private final VersionPolicy versionPolicy;
     private final TourMapper tourMapper;
     private final ReservationCapacityService capacityService;
     private final ReviewQueryService reviewQueryService;
+    private final GuideEarningService guideEarningService;
     private final TourProperties tourProperties;
     private final Clock clock;
 
@@ -157,10 +162,15 @@ public class GuideTourService {
                     pageRequest
             );
         };
-        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(sessions.getContent()));
+        List<TourSession> content = sessions.getContent();
+        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(content));
+        Map<UUID, ReviewAggregate> reviews = reviewQueryService.tourAggregates(tourIds(content));
+        Map<UUID, Long> earnings = guideEarningService.sessionNetEarnings(sessionIds(content));
         return PageResponse.from(sessions.map(session -> tourMapper.toGuideCard(
                 session,
-                occupiedCounts.getOrDefault(session.getId(), 0)
+                occupiedCounts.getOrDefault(session.getId(), 0),
+                reviews.getOrDefault(session.getTour().getId(), ReviewAggregate.EMPTY),
+                session.getStatus() == TourSessionStatus.CANCELLED ? null : earnings.get(session.getId())
         )));
     }
 
@@ -179,7 +189,7 @@ public class GuideTourService {
     ) {
         Tour tour = tourRepository.findOwnedByIdForUpdate(tourId, currentUser.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
-        requireVersion(tour.getVersion(), request.baseVersion());
+        versionPolicy.requireMatch(tour.getVersion(), request.baseVersion());
         if (tour.getApprovalStatus() == TourApprovalStatus.ARCHIVED
                 || tour.getApprovalStatus() == TourApprovalStatus.PENDING_REVIEW) {
             throw new BusinessException(ErrorCode.TOUR_REVIEW_STATE_INVALID);
@@ -207,7 +217,7 @@ public class GuideTourService {
         if (tour.getApprovalStatus() != TourApprovalStatus.APPROVED) {
             throw new BusinessException(ErrorCode.TOUR_REVIEW_STATE_INVALID);
         }
-        requireLocationUnchanged(tour, snapshot);
+        locationPolicy.requireUnchanged(tour, snapshot);
         if (changeRequestRepository.existsByTour_IdAndStatus(tourId, TourChangeRequestStatus.PENDING)) {
             throw new BusinessException(ErrorCode.TOUR_CHANGE_PENDING);
         }
@@ -260,6 +270,10 @@ public class GuideTourService {
         return sessions.stream().map(TourSession::getId).toList();
     }
 
+    private List<UUID> tourIds(List<TourSession> sessions) {
+        return sessions.stream().map(session -> session.getTour().getId()).distinct().toList();
+    }
+
     private GuideProfile requireGuideProfile(Long guideId) {
         return guideProfileRepository.findByUserId(guideId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GUIDE_PROFILE_NOT_FOUND));
@@ -271,19 +285,4 @@ public class GuideTourService {
                 .forEach(TourSession::close);
     }
 
-    private void requireLocationUnchanged(Tour tour, TourChangeSnapshot snapshot) {
-        boolean changed = !tour.getCountryCode().equals(snapshot.countryCode())
-                || !tour.getCityPlaceId().equals(snapshot.cityPlaceId())
-                || !tour.getCityName().equals(snapshot.cityName())
-                || !tour.getTimeZoneId().equals(snapshot.timeZoneId());
-        if (changed) {
-            throw new BusinessException(ErrorCode.TOUR_LOCATION_LOCKED);
-        }
-    }
-
-    private void requireVersion(long actualVersion, long requestedVersion) {
-        if (actualVersion != requestedVersion) {
-            throw new BusinessException(ErrorCode.CONCURRENT_UPDATE);
-        }
-    }
 }

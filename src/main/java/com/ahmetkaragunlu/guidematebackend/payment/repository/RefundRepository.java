@@ -5,6 +5,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.RefundStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +23,9 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
     Optional<Refund> findFirstByPayment_IdOrderByCreatedAtDesc(UUID paymentId);
 
     Optional<Refund> findFirstByPayment_Reservation_IdOrderByCreatedAtDesc(UUID reservationId);
+
+    @EntityGraph(attributePaths = {"payment", "payment.reservation"})
+    List<Refund> findAllByIdIn(Collection<UUID> ids);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT refund FROM Refund refund WHERE refund.id = :refundId")

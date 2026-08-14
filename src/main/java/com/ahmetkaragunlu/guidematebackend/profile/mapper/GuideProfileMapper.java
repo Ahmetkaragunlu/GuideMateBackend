@@ -34,7 +34,7 @@ public class GuideProfileMapper {
                 user.getId(),
                 user.getFirstName(),
                 user.getLastName(),
-                displayName(user),
+                user.displayName(),
                 specialtyTitle,
                 biography,
                 languageCodes,
@@ -50,7 +50,4 @@ public class GuideProfileMapper {
         return new MediaReferenceResponse(media.getId(), mediaUrlFactory.contentUrl(media.getId()));
     }
 
-    private String displayName(User user) {
-        return (user.getFirstName() + " " + user.getLastName()).trim();
-    }
 }

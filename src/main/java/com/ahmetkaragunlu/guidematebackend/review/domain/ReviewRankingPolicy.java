@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.review.service;
+package com.ahmetkaragunlu.guidematebackend.review.domain;
 
 import org.springframework.stereotype.Component;
 

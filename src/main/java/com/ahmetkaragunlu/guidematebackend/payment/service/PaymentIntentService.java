@@ -281,7 +281,7 @@ public class PaymentIntentService {
     }
 
     private void requireTourist(User user) {
-        if (user.getRole() == null || !RoleType.ROLE_TOURIST.name().equals(user.getRole().getName())) {
+        if (!user.hasRole(RoleType.ROLE_TOURIST)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
     }

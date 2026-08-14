@@ -117,7 +117,7 @@ public class BankAccountService {
     }
 
     private void requireGuide(User user) {
-        if (user.getRole() == null || !RoleType.ROLE_GUIDE.name().equals(user.getRole().getName())) {
+        if (!user.hasRole(RoleType.ROLE_GUIDE)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
     }

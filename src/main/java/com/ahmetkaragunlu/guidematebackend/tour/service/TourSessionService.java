@@ -3,6 +3,7 @@ package com.ahmetkaragunlu.guidematebackend.tour.service;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.validation.IdempotencyKeyPolicy;
+import com.ahmetkaragunlu.guidematebackend.common.validation.VersionPolicy;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationCancellationActor;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationLifecycleService;
@@ -40,6 +41,7 @@ public class TourSessionService {
     private final ReservationCapacityService capacityService;
     private final ReservationLifecycleService reservationLifecycleService;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
+    private final VersionPolicy versionPolicy;
     private final Clock clock;
 
     @Transactional
@@ -79,7 +81,7 @@ public class TourSessionService {
             UpdateTourSessionRequest request
     ) {
         TourSession session = requireOwnedSession(currentUser.getId(), sessionId);
-        requireVersion(session.getVersion(), request.version());
+        versionPolicy.requireMatch(session.getVersion(), request.version());
         requireManageableFuture(session);
         int occupiedCount = capacityService.occupiedCount(sessionId);
         if (request.capacity() < occupiedCount) {
@@ -180,9 +182,4 @@ public class TourSessionService {
         }
     }
 
-    private void requireVersion(long actualVersion, long requestedVersion) {
-        if (actualVersion != requestedVersion) {
-            throw new BusinessException(ErrorCode.CONCURRENT_UPDATE);
-        }
-    }
 }

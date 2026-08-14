@@ -1,7 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.auth.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.EmailDeliveryException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -13,18 +12,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final MessageSource messageSource;
+    private final String fromEmail;
+    private final String publicBaseUrl;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
-
-    @Value("${app.public-base-url}")
-    private String publicBaseUrl;
+    public EmailServiceImpl(
+            JavaMailSender mailSender,
+            MessageSource messageSource,
+            @Value("${spring.mail.username}") String fromEmail,
+            @Value("${app.public-base-url}") String publicBaseUrl
+    ) {
+        this.mailSender = mailSender;
+        this.messageSource = messageSource;
+        this.fromEmail = fromEmail;
+        this.publicBaseUrl = publicBaseUrl;
+    }
 
     private String getMessage(String key, Object... args) {
         return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());

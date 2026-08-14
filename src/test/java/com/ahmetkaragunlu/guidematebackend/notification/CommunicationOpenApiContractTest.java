@@ -27,6 +27,8 @@ class CommunicationOpenApiContractTest {
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/unread-count']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/{notificationId}/read']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/read-all']").exists())
+                .andExpect(jsonPath("$.components.schemas.NotificationResponse.properties.actorDisplayName")
+                        .exists())
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/preferences']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/devices/fcm-registration']").exists())
                 .andExpect(jsonPath(

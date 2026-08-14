@@ -1,36 +1,45 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.service;
 
-import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
+import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarning;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarningStatus;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.MonthlyGuideEarningResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.GuideEarningRepository;
+import com.ahmetkaragunlu.guidematebackend.wallet.repository.MonthlyEarningSummary;
+import com.ahmetkaragunlu.guidematebackend.wallet.repository.SessionEarningSummary;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.math.BigInteger;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class GuideEarningService {
 
     private static final int BASIS_POINT_DIVISOR = 10_000;
+    private static final List<GuideEarningStatus> EARNED_STATUSES = List.of(
+            GuideEarningStatus.PENDING,
+            GuideEarningStatus.AVAILABLE
+    );
 
     private final GuideEarningRepository earningRepository;
     private final WalletAccountService walletAccountService;
@@ -140,6 +149,32 @@ public class GuideEarningService {
     }
 
     @Transactional(readOnly = true)
+    public Map<UUID, Long> sessionNetEarnings(Collection<UUID> sessionIds) {
+        if (sessionIds.isEmpty()) {
+            return Map.of();
+        }
+        return earningRepository.summarizeBySessionIdsAndStatuses(sessionIds, EARNED_STATUSES).stream()
+                .collect(Collectors.toMap(
+                        SessionEarningSummary::getSessionId,
+                        SessionEarningSummary::getNetEarningsMinor
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public List<MonthlyGuideEarningResponse> getMonthlyEarnings(Long guideId, int year) {
+        Instant from = LocalDate.of(year, 1, 1).atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant until = LocalDate.of(year + 1, 1, 1).atStartOfDay().toInstant(ZoneOffset.UTC);
+        return earningRepository.summarizeMonthlyEarnings(
+                        guideId,
+                        from,
+                        until,
+                        GuideEarningStatus.REVERSED
+                ).stream()
+                .map(this::toMonthlyResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public Page<GuideEarning> getYear(Long guideId, int year, int page, int size) {
         Instant from = LocalDate.of(year, 1, 1).atStartOfDay().toInstant(ZoneOffset.UTC);
         Instant until = LocalDate.of(year + 1, 1, 1).atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -153,5 +188,14 @@ public class GuideEarningService {
 
     private long sumNet(List<GuideEarning> earnings) {
         return earnings.stream().mapToLong(GuideEarning::getNetMinor).sum();
+    }
+
+    private MonthlyGuideEarningResponse toMonthlyResponse(MonthlyEarningSummary summary) {
+        return new MonthlyGuideEarningResponse(
+                summary.getYear(),
+                summary.getMonth(),
+                summary.getNetEarningsMinor(),
+                summary.getCurrencyCode()
+        );
     }
 }

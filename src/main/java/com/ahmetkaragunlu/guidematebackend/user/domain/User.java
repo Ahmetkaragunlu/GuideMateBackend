@@ -1,9 +1,18 @@
 package com.ahmetkaragunlu.guidematebackend.user.domain;
 
-
 import com.ahmetkaragunlu.guidematebackend.common.domain.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -59,7 +68,16 @@ public class User extends BaseEntity implements UserDetails {
         this.tokenVersion++;
     }
 
-    // ==================== UserDetails Implementation ====================
+    public boolean hasRole(RoleType expectedRole) {
+        return expectedRole != null
+                && role != null
+                && expectedRole.name().equals(role.getName());
+    }
+
+    public String displayName() {
+        return (firstName + " " + lastName).trim();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (role != null && role.getName() != null) {
@@ -100,8 +118,6 @@ public class User extends BaseEntity implements UserDetails {
         return accountStatus == AccountStatus.ACTIVE;
     }
 
-    // ==================== Equals & HashCode ====================
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -114,5 +130,4 @@ public class User extends BaseEntity implements UserDetails {
     public int hashCode() {
         return Objects.hash(email);
     }
-
 }

@@ -139,10 +139,10 @@ public class ChatConversationService {
         requireActiveRole(current);
         requireActiveRole(remote);
 
-        if (hasRole(current, RoleType.ROLE_GUIDE) && hasRole(remote, RoleType.ROLE_TOURIST)) {
+        if (current.hasRole(RoleType.ROLE_GUIDE) && remote.hasRole(RoleType.ROLE_TOURIST)) {
             return new ParticipantPair(current, remote);
         }
-        if (hasRole(current, RoleType.ROLE_TOURIST) && hasRole(remote, RoleType.ROLE_GUIDE)) {
+        if (current.hasRole(RoleType.ROLE_TOURIST) && remote.hasRole(RoleType.ROLE_GUIDE)) {
             return new ParticipantPair(remote, current);
         }
         throw new BusinessException(ErrorCode.CHAT_PARTICIPANT_INVALID);
@@ -152,10 +152,6 @@ public class ChatConversationService {
         if (user.getAccountStatus() != AccountStatus.ACTIVE || user.getRole() == null) {
             throw new BusinessException(ErrorCode.CHAT_PARTICIPANT_INVALID);
         }
-    }
-
-    private boolean hasRole(User user, RoleType role) {
-        return role.name().equals(user.getRole().getName());
     }
 
     private Map<UUID, ChatMessage> latestMessages(List<UUID> conversationIds) {

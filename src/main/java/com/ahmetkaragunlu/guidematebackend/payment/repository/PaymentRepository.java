@@ -7,6 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,6 +42,9 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Optional<Payment> findByProviderTokenFingerprint(String providerTokenFingerprint);
 
     Optional<Payment> findByFxQuote_Id(UUID quoteId);
+
+    @EntityGraph(attributePaths = "reservation")
+    List<Payment> findAllByIdIn(Collection<UUID> ids);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT payment FROM Payment payment "

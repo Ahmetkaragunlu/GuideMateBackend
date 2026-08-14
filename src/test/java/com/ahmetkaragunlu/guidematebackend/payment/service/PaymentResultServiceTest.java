@@ -78,60 +78,37 @@ class PaymentResultServiceTest {
     }
 
     @Test
-    void lateVerifiedTourPaymentRechecksCapacityBeforeRequestingRefund() {
-        UUID paymentId = UUID.randomUUID();
-        UUID reservationId = UUID.randomUUID();
-        UUID tourId = UUID.randomUUID();
-        Payment payment = org.mockito.Mockito.mock(Payment.class);
-        Reservation reservation = org.mockito.Mockito.mock(Reservation.class);
-        TourSession session = org.mockito.Mockito.mock(TourSession.class);
-        Tour tour = org.mockito.Mockito.mock(Tour.class);
-        User user = org.mockito.Mockito.mock(User.class);
-
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
-        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
-        when(paymentEventRepository.existsByProviderEventId("reconciliation:event")).thenReturn(false);
-        when(payment.getId()).thenReturn(paymentId);
-        when(payment.getReservation()).thenReturn(reservation);
-        when(payment.getStatus()).thenReturn(PaymentStatus.TIMEOUT);
-        when(payment.getPurpose()).thenReturn(PaymentPurpose.TOUR_BOOKING);
-        when(payment.getProviderTokenEncrypted()).thenReturn("encrypted-token");
-        when(payment.getProviderConversationId()).thenReturn("conversation-id");
-        when(payment.getAmountMinor()).thenReturn(10_000L);
-        when(payment.getCurrencyCode()).thenReturn("USD");
-        when(payment.getChargeAmountMinor()).thenReturn(10_000L);
-        when(payment.getChargeCurrencyCode()).thenReturn("USD");
-        when(payment.getUser()).thenReturn(user);
-        when(user.getId()).thenReturn(42L);
-        when(reservation.getId()).thenReturn(reservationId);
-        when(reservation.getSession()).thenReturn(session);
-        when(session.getTour()).thenReturn(tour);
-        when(tour.getId()).thenReturn(tourId);
-        when(dataCipher.decrypt("encrypted-token")).thenReturn("checkout-token");
-        when(reservationBookingService.finalizeAfterPaymentVerification(reservationId))
-                .thenReturn(new ReservationFinalizationResult(reservation, false));
+    void lateVerifiedTourPaymentFinalizesWhenCapacityRemains() {
+        LateTourPayment fixture = stubLateTourPayment(false);
 
         service.apply(
-                paymentId,
-                new VerifiedPaymentResult(
-                        true,
-                        "checkout-token",
-                        "conversation-id",
-                        "provider-payment-id",
-                        "provider-transaction-id",
-                        10_000L,
-                        "USD",
-                        "SUCCESS",
-                        null,
-                        null
-                ),
+                fixture.paymentId(),
+                successfulProviderResult(),
                 new ProviderVerifiedEvent("RECONCILIATION", "reconciliation:event", "payload-hash")
         );
 
-        verify(reservationBookingService).finalizeAfterPaymentVerification(reservationId);
-        verify(guideEarningService).createPending(reservation);
-        verify(reservationBookingService, never()).expire(reservationId);
+        verify(reservationBookingService).finalizeAfterPaymentVerification(fixture.reservationId());
+        verify(guideEarningService).createPending(fixture.reservation());
+        verify(reservationBookingService, never()).expire(fixture.reservationId());
         verify(refundService, never()).requestFullRefund(any(), any(), any());
+    }
+
+    @Test
+    void lateVerifiedTourPaymentRequestsOneRefundWhenCapacityIsGone() {
+        LateTourPayment fixture = stubLateTourPayment(true);
+
+        service.apply(
+                fixture.paymentId(),
+                successfulProviderResult(),
+                new ProviderVerifiedEvent("RECONCILIATION", "reconciliation:event", "payload-hash")
+        );
+
+        verify(refundService).requestFullRefund(
+                fixture.paymentId(),
+                fixture.user(),
+                "late-payment:" + fixture.paymentId()
+        );
+        verify(guideEarningService, never()).createPending(any());
     }
 
     @Test
@@ -166,5 +143,100 @@ class PaymentResultServiceTest {
                 assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.PAYMENT_VERIFICATION_FAILED));
 
         verify(payment, never()).succeed(any(), any(), any());
+    }
+
+    @Test
+    void ignoresAlreadyRecordedProviderEventWithoutApplyingMoneyMovementAgain() {
+        UUID paymentId = UUID.randomUUID();
+        Payment payment = org.mockito.Mockito.mock(Payment.class);
+
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
+        when(payment.getReservation()).thenReturn(null);
+        when(payment.getProviderTokenEncrypted()).thenReturn("encrypted-token");
+        when(payment.getProviderConversationId()).thenReturn("conversation-id");
+        when(payment.getChargeAmountMinor()).thenReturn(10_000L);
+        when(payment.getChargeCurrencyCode()).thenReturn("USD");
+        when(dataCipher.decrypt("encrypted-token")).thenReturn("checkout-token");
+        when(paymentEventRepository.existsByProviderEventId("webhook:event")).thenReturn(true);
+
+        Payment result = service.apply(
+                paymentId,
+                new VerifiedPaymentResult(
+                        true,
+                        "checkout-token",
+                        "conversation-id",
+                        "provider-payment-id",
+                        "provider-transaction-id",
+                        10_000L,
+                        "USD",
+                        "SUCCESS",
+                        null,
+                        null
+                ),
+                new ProviderVerifiedEvent("WEBHOOK", "webhook:event", "payload-hash")
+        );
+
+        assertThat(result).isSameAs(payment);
+        verify(payment, never()).succeed(any(), any(), any());
+        verify(paymentEventRepository, never()).save(any());
+        verify(walletAccountService, never()).credit(any(), any(Long.class), any(), any(), any(), any(), any());
+    }
+
+    private LateTourPayment stubLateTourPayment(boolean refundRequired) {
+        UUID paymentId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
+        Payment payment = org.mockito.Mockito.mock(Payment.class);
+        Reservation reservation = org.mockito.Mockito.mock(Reservation.class);
+        TourSession session = org.mockito.Mockito.mock(TourSession.class);
+        Tour tour = org.mockito.Mockito.mock(Tour.class);
+        User user = org.mockito.Mockito.mock(User.class);
+
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentEventRepository.existsByProviderEventId("reconciliation:event")).thenReturn(false);
+        when(payment.getId()).thenReturn(paymentId);
+        when(payment.getReservation()).thenReturn(reservation);
+        when(payment.getStatus()).thenReturn(PaymentStatus.TIMEOUT);
+        when(payment.getPurpose()).thenReturn(PaymentPurpose.TOUR_BOOKING);
+        when(payment.getProviderTokenEncrypted()).thenReturn("encrypted-token");
+        when(payment.getProviderConversationId()).thenReturn("conversation-id");
+        when(payment.getAmountMinor()).thenReturn(10_000L);
+        when(payment.getCurrencyCode()).thenReturn("USD");
+        when(payment.getChargeAmountMinor()).thenReturn(10_000L);
+        when(payment.getChargeCurrencyCode()).thenReturn("USD");
+        when(payment.getUser()).thenReturn(user);
+        when(user.getId()).thenReturn(42L);
+        when(reservation.getId()).thenReturn(reservationId);
+        when(reservation.getSession()).thenReturn(session);
+        when(session.getTour()).thenReturn(tour);
+        when(tour.getId()).thenReturn(UUID.randomUUID());
+        when(dataCipher.decrypt("encrypted-token")).thenReturn("checkout-token");
+        when(reservationBookingService.finalizeAfterPaymentVerification(reservationId))
+                .thenReturn(new ReservationFinalizationResult(reservation, refundRequired));
+        return new LateTourPayment(paymentId, reservationId, reservation, user);
+    }
+
+    private VerifiedPaymentResult successfulProviderResult() {
+        return new VerifiedPaymentResult(
+                true,
+                "checkout-token",
+                "conversation-id",
+                "provider-payment-id",
+                "provider-transaction-id",
+                10_000L,
+                "USD",
+                "SUCCESS",
+                null,
+                null
+        );
+    }
+
+    private record LateTourPayment(
+            UUID paymentId,
+            UUID reservationId,
+            Reservation reservation,
+            User user
+    ) {
     }
 }

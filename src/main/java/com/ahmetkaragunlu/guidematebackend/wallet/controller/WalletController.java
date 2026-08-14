@@ -5,9 +5,9 @@ import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.WalletResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.WalletTransactionResponse;
-import com.ahmetkaragunlu.guidematebackend.wallet.mapper.WalletMapper;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletAccountService;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletBalance;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletTransactionQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WalletController {
 
     private final WalletAccountService walletAccountService;
-    private final WalletMapper walletMapper;
+    private final WalletTransactionQueryService walletTransactionQueryService;
 
     @Operation(summary = "Get canonical wallet and withdrawable balances")
     @GetMapping
@@ -53,9 +53,10 @@ public class WalletController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size,
             @AuthenticationPrincipal User currentUser
     ) {
-        return ResponseEntity.ok(PageResponse.from(
-                walletAccountService.getTransactions(currentUser, page, size)
-                        .map(walletMapper::toTransaction)
+        return ResponseEntity.ok(walletTransactionQueryService.getTransactions(
+                currentUser,
+                page,
+                size
         ));
     }
 }

@@ -13,7 +13,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.request.TourSearchSort;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSearchSort;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourDetailResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourSearchItemResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.mapper.TourMapper;
@@ -187,8 +187,7 @@ public class TourDiscoveryService {
         GuideProfile profile = guideProfileRepository.findByUserId(tour.getGuide().getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
         boolean publicGuide = profile.getUser().getAccountStatus() == AccountStatus.ACTIVE
-                && profile.getUser().getRole() != null
-                && RoleType.ROLE_GUIDE.name().equals(profile.getUser().getRole().getName());
+                && profile.getUser().hasRole(RoleType.ROLE_GUIDE);
         if (!publicGuide) {
             throw new BusinessException(ErrorCode.TOUR_NOT_FOUND);
         }

@@ -10,6 +10,7 @@ public record NotificationResponse(
         UUID id,
         NotificationType type,
         Long actorId,
+        String actorDisplayName,
         Map<String, Object> payload,
         boolean read,
         Instant readAt,

@@ -62,8 +62,7 @@ public class AdminAccountSeeder implements ApplicationRunner {
 
         User existingUser = userRepository.findByEmailWithRole(normalizedEmail).orElse(null);
         if (existingUser != null) {
-            if (existingUser.getRole() == null
-                    || !RoleType.ROLE_ADMIN.name().equals(existingUser.getRole().getName())
+            if (!existingUser.hasRole(RoleType.ROLE_ADMIN)
                     || existingUser.getAccountStatus() != AccountStatus.ACTIVE) {
                 throw new IllegalStateException("Admin seed email is not an active admin account");
             }

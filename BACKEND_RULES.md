@@ -174,10 +174,12 @@ girer.
 - Local demo seed yalniz `local` profilde, `DEMO_SEED_ENABLED=true` ve Git disi
   password ile idempotent guide/tourist hesaplari ve guide profili olusturur.
   Varsayilan olarak kapalidir; production migration'i demo veri icermez.
-- Faz 7; tum Maven testleri, temiz H2 Flyway `V1-V12`, Spring context/OpenAPI ve
+- Faz 7 tamamlandiginda test profili, Flyway `V1-V12`, Spring context/OpenAPI ve
   local PostgreSQL `V12` migration + Hibernate validate + gercek uygulama
-  baslangiciyla dogrulanmistir. Iki cihazli gercek LAN UI akisi Android'in FID,
-  REST ve STOMP entegrasyonu tamamlandiginda yapilacak final E2E kontroludur.
+  baslangiciyla dogrulanmistir. Final backend dogrulamasinda test profilinin
+  canonical veritabani PostgreSQL 18 Testcontainers'a tasinmis ve H2
+  kaldirilmistir. Iki cihazli gercek LAN UI akisi Android'in FID, REST ve STOMP
+  entegrasyonu tamamlandiginda yapilacak final E2E kontroludur.
 - Iki cihazli LAN UI kontrolu tur satin alma ve odeme testini zorunlu olarak
   kapsamaz. Kart ve wallet ile tur satin alma; Android odeme entegrasyonu
   tamamlandiginda payment/reservation/refund sonucu, bakiye, kapasite ve ayni
@@ -186,6 +188,29 @@ girer.
   olur ve external provider belirsizligi tasimaz. Bu nedenle sahte withdrawal
   reconciliation job'u eklenmemistir; gercek payout modu eklenirse provider
   status/retrieve sozlesmesiyle birlikte uygulanmasi zorunludur.
+- Faz 8 teknik backend dogrulamasi tamamlanmistir: Colima/Docker ve PostgreSQL 18
+  Testcontainers kalici local runtime'i kurulmus, temiz `V1-V13` migration ve
+  Hibernate validate dogrulanmis, 36 test sinifindaki 72 kalici testin tamami
+  gecmistir. Repository, PostgreSQL `JSONB`/`TIMESTAMPTZ`/unique constraint,
+  pessimistic lock, concurrency, idempotency, atomik wallet purchase/iptal/iade,
+  gec odeme/tek iade, auth lifecycle, role/ownership, medya guvenligi ve orphan
+  cleanup, guide projection, chat/FCM ve OpenAPI sozlesmeleri korunur.
+- Final secret/log/test denetiminde tracked gercek secret, gecici konsol logu,
+  hassas deger logu veya production degeri olmayan gecici test bulunmamistir.
+  Spring Boot 3.5.x hattinin son OSS patch'i, PostgreSQL surucusu, Flyway 12,
+  springdoc 2.x, JJWT, Google API client, Lombok ve Testcontainers uyumlu patch
+  surumlerine alinmistir; uyumsuz major surumlere gecilmemistir.
+- Local profil PostgreSQL 18.3 uzerinde `V13`, Hibernate validate, Firebase ve
+  STOMP baslangiciyla acilmis; canli `/v3/api-docs` endpoint'i 70 path ve bearer
+  security sozlesmesiyle dogrulanip uygulama kontrollu kapatilmistir.
+- Altin Kural denetimi tamamlanmistir. Repository katmaninin DTO/service
+  paketlerine ters bagimlilik olusturan arama ve siralama politikalari domain'e
+  tasinmis; tekrar eden version, tur konumu, rol ve iade bildirim kurallari yalniz
+  gercek tekrar bulunan noktalarda merkezilestirilmistir. Iade bildirim payload'i
+  `tourId` dahil tek sozlesmeye alinmis, kullanilmayan hata kodlari ve gereksiz
+  entity setter'lari temizlenmis, field injection constructor injection'a
+  cevrilmistir. Uzun fakat tek sorumlulugu koruyan servisler sirf bolmek icin
+  parcalanmamis ve yeni spekulatif katman eklenmemistir.
 
 ## Ertelenen Maddeler
 
@@ -199,8 +224,9 @@ eklenecektir:
 | Domain'e ozel stabil `ErrorCode` ve mesaj anahtarlari | Faz 2 icin tamamlandi; sonraki feature yazilirken devam eder |
 | Endpoint'e ozel page/size/sort sinirlari | Faz 3 liste endpoint'leri icin tamamlandi; sonraki liste endpoint'lerinde devam eder |
 | `MEDIA_STORAGE_ROOT`, public media URL ve storage dogrulamalari | Tamamlandi: local secret/environment + kontrollu content endpoint'i |
-| Tur/oturum projection'larindaki rezervasyon, kapasite, puan, yorum ve rehber performans metrikleri | Tamamlandi: `ReservationCapacityService`, `ReviewQueryService` ve `GuidePerformanceService` gercek sorgulara baglandi |
-| Dashboard `currentMonthEarningsMinor` degeri | Tamamlandi: `guide_earnings` aylik projection'ina baglandi |
+| Tur/oturum projection'larindaki rezervasyon, kapasite, puan, yorum ve rehber performans metrikleri | Tamamlandi: `ReservationCapacityService`, `ReviewQueryService` ve `GuidePerformanceService` gercek sorgulara baglandi; rehber tur karti `capacity` alaninda toplam kapasiteyi, tur bazli `averageRating`/`reviewCount` ve session bazli nullable `netEarningsMinor` degerini N+1 olusturmayan toplu sorgularla dondurur. Kazanca `PENDING`/`AVAILABLE` dahil, `REVERSED` harictir; iptal edilen veya kazanc olusmayan session `null` dondurur |
+| Dashboard ve aylik rehber kazanc projection'lari | Tamamlandi: dashboard `currentMonthEarningsMinor` ve `GET /api/v1/guide/earnings/monthly?year=...` ayni `createdAt`/`REVERSED` haric hesap kuralini kullanir. Aylik response `year`, `month`, `netEarningsMinor`, `currencyCode` tasir ve yeniden eskiye siralanir; yeni tablo yoktur |
+| Bildirim aktor adi ve wallet hareketi referans basligi | Tamamlandi: kullanici kaynakli bildirim `actorDisplayName`, sistem bildirimi `null` dondurur. Turla baglantili `TOUR_PURCHASE`, `REFUND`, `GUIDE_EARNING`, `EARNING_REVERSAL` hareketleri rezervasyon satin alma snapshot'indan `referenceTitle` alir; `TOP_UP`/`WITHDRAWAL` `null` kalir ve liste sorgulari N+1 olusturmaz |
 | Booking API ve `ReservationBookingService` payment/wallet baglantisi | Tamamlandi: hosted verified payment ve atomik wallet debit ayni canonical response'u kullanir |
 | Turist/rehber/admin iptalinde gercek refund ve guide earning duzeltmesi | Tamamlandi: uygun iade ve earning reversal transaction/reconciliation akisina baglandi |
 | Rezervasyon ve yorum lifecycle bildirimleri | Tamamlandi: notification history ayni domain transaction'inda, FCM teslimati commit sonrasinda calisir |
@@ -208,6 +234,7 @@ eklenecektir:
 | Gec verified payment icin session/reservation lock, kapasite ve tek refund karari | Tamamlandi: session-first lock sirasi, kapasite yeniden kontrolu ve deterministik tek full refund uygulanir |
 | Google Places kaynakli konum verisinin sunucu tarafinda yeniden dogrulanmasi | Production hazirlik kontrolunde; Faz 3 MVP akisinda Android'den gelen canonical konum alanlari dogrulanip saklanir |
 | Iyzico callback/webhook public base URL konfigurasyonu | Quick Tunnel ve `PAYMENT_CALLBACK_BASE_URL` tamamlandi; callback/retrieve Sandbox'ta dogrulandi, degisen Quick Tunnel URL'si yeni test oturumunda backend ve iyzico panelinde yenilenecek |
+| Hosted checkout callback ve Android WebView siniri | Backend callback JSON + CF Retrieve akisi idempotent kalir; ayni provider event ikinci payment, reservation veya wallet hareketi olusturmaz. POST callback algilama, SSL fail-closed davranisi ve canonical payment/reservation/wallet refresh Android entegrasyonunda uygulanir; backend redirect veya JavaScript bridge eklenmez |
 | Iyzico `X-IYZ-SIGNATURE-V3` hesap aktivasyonu | Tamamlandi: destek ekibi hesapta ozelligi aktif etti; strict backend dogrulamasi ve gercek imzali webhook E2E basarili |
 | Iyzico Card Storage/hosted save destegi | Backend kapsami tamamlandi: destek onayi, `V8`, sifreli provider key/token saklama, maskeli listeleme, sonraki hosted checkout'ta kayitli kartla odeme, varsayilan kart, provider-backed silme ve duplicate callback idempotency E2E dogrulandi. Android mock kart verisi final Android entegrasyonunda bu API ile degistirilecek |
 | Coklu provider tahsilat para birimi ve backend FX quote'u | Backend tamamlandi: `V13`, Frankfurter ECB adapter'i, config-backed `USD/TRY/EUR/GBP`, currency-options + quote API'leri, quote-bound initialize, charge retrieve/refund snapshot'i ve hata sozlesmesi uygulanip temiz test/local PostgreSQL/OpenAPI ile dogrulandi. Android secim/quote UI'i ve her etkin para birimindeki iyzico Sandbox E2E final Android entegrasyonu/Faz 8 kontrolunde yapilacak |
@@ -218,10 +245,10 @@ eklenecektir:
 | WebSocket/STOMP bagimliliklari ve realtime guvenligi | Tamamlandi: CONNECT JWT, katilimci kontrolu ve yalniz private user queue teslimati uygulanmistir |
 | `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Tamamlandi: kalici retry sayaci/zamani, maksimum deneme, reminder deduplication ve tourist/guide reminder marker'lari uygulanir |
 | Android FID kaydi, FCM service/channel/permission ve REST/STOMP repository entegrasyonu | Backend tamamlandiktan sonraki Android entegrasyonunda; backend endpoint ve destination sozlesmeleri degistirilmeden tuketilir |
-| Docker ve PostgreSQL Testcontainers altyapisi | Faz 8 basinda |
-| Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Faz 8 sonunda |
-| Test profilindeki H2 2.2.224/Flyway destek araligi uyarisi | Build ve migration su anda basarili; Faz 8 bagimlilik denetiminde H2 gercek deger sagliyorsa uyumlu surume getirilir, aksi halde canonical PostgreSQL Testcontainers testleri lehine kaldirilir |
-| PostgreSQL 18 icin mevcut Flyway destek uyarisinin yeniden degerlendirilmesi | Production hazirlik kontrolunde |
+| Docker ve PostgreSQL Testcontainers altyapisi | Tamamlandi: Colima Homebrew servisi, kullaniciya ozel Testcontainers Docker host ayari ve test-scope PostgreSQL 18 container'i ile Maven testleri ek komut gerektirmeden calisir |
+| Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Tamamlandi: 36 sinif/72 test korundu; gecici, tekrarlayan veya yalniz implementation detayini test eden dosya bulunmadi. Guide card aggregate/kapasite, aylik kazanc, bildirim aktoru, wallet referans basligi ve OpenAPI sozlesmeleri ek testlerle korunur |
+| Test profilindeki H2 2.2.224/Flyway destek araligi uyarisi | Tamamlandi: PostgreSQL'e ozel sema, JSONB, lock ve concurrency icin ek deger saglamadigindan H2 kaldirildi; test profilinin canonical DB'si PostgreSQL 18 Testcontainers oldu |
+| PostgreSQL 18 icin mevcut Flyway destek uyarisinin yeniden degerlendirilmesi | Tamamlandi: Flyway 12.8.1 ile temiz PostgreSQL 18.6 ve local PostgreSQL 18.3 `V1-V13` migration/validate uyarisiz calisti |
 
 Bu liste her faz sonunda yeniden kontrol edilir. Tamamlanan satirlar silinmek
 yerine gercek uygulama dosyasina veya teste referans verilerek tamamlandi olarak
