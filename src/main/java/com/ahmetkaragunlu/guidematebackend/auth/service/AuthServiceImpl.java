@@ -21,7 +21,10 @@ import com.ahmetkaragunlu.guidematebackend.common.security.JwtService;
 import com.ahmetkaragunlu.guidematebackend.common.security.SecureTokenService;
 import com.ahmetkaragunlu.guidematebackend.common.util.EmailNormalizer;
 import com.ahmetkaragunlu.guidematebackend.common.validation.PasswordPolicy;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.DeviceRegistrationService;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -42,6 +45,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -70,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
     private final MessageSource messageSource;
     private final EmailService emailService;
     private final DeviceRegistrationService deviceRegistrationService;
+    private final NotificationPublisher notificationPublisher;
 
     @Override
     @Transactional(noRollbackFor = EmailDeliveryException.class)
@@ -270,6 +275,7 @@ public class AuthServiceImpl implements AuthService {
         user.incrementTokenVersion();
         token.markUsed();
         refreshSessionService.revokeAll(user);
+        publishPasswordSecurityNotification(user, "PASSWORD_RESET");
         return message("auth.password.reset");
     }
 
@@ -292,7 +298,17 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         user.incrementTokenVersion();
         refreshSessionService.revokeAll(user);
+        publishPasswordSecurityNotification(user, "PASSWORD_CHANGED");
         return message("auth.password.changed");
+    }
+
+    private void publishPasswordSecurityNotification(User user, String securityEvent) {
+        notificationPublisher.publish(new NotificationCommand(
+                user.getId(),
+                NotificationType.SECURITY_ALERT,
+                null,
+                Map.of("securityEvent", securityEvent)
+        ));
     }
 
     @Override

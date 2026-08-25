@@ -72,6 +72,7 @@ public class ReviewService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("reviewId", review.getId().toString());
         payload.put("reservationId", reservation.getId().toString());
+        payload.put("sessionId", reservation.getSession().getId().toString());
         payload.put("tourId", reservation.getSession().getTour().getId().toString());
         payload.put("tourTitle", reservation.getSession().getTour().getTitle());
         payload.put("rating", review.getRating());
