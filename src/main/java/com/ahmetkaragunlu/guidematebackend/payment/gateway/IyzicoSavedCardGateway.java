@@ -27,11 +27,11 @@ public class IyzicoSavedCardGateway implements SavedCardGateway {
         request.setConversationId("guidemate-card-list-" + UUID.randomUUID());
         request.setCardUserKey(customerKey);
 
-        try {
+        return IyzicoGatewaySupport.execute(() -> {
             CardList response = CardList.retrieve(request, options);
             if (!SUCCESS.equalsIgnoreCase(response.getStatus())
                     || !customerKey.equals(response.getCardUserKey())) {
-                throw new PaymentGatewayException(normalizeFailureCode(response.getErrorCode()));
+                throw new PaymentGatewayException(IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()));
             }
             if (response.getCardDetails() == null) {
                 return List.of();
@@ -39,11 +39,7 @@ public class IyzicoSavedCardGateway implements SavedCardGateway {
             return response.getCardDetails().stream()
                     .map(card -> toProviderCard(response.getCardUserKey(), card))
                     .toList();
-        } catch (PaymentGatewayException exception) {
-            throw exception;
-        } catch (RuntimeException exception) {
-            throw new PaymentGatewayException("PROVIDER_UNAVAILABLE");
-        }
+        });
     }
 
     @Override
@@ -54,16 +50,12 @@ public class IyzicoSavedCardGateway implements SavedCardGateway {
         request.setCardUserKey(customerKey);
         request.setCardToken(cardToken);
 
-        try {
+        IyzicoGatewaySupport.execute(() -> {
             Card response = Card.delete(request, options);
             if (!SUCCESS.equalsIgnoreCase(response.getStatus())) {
-                throw new PaymentGatewayException(normalizeFailureCode(response.getErrorCode()));
+                throw new PaymentGatewayException(IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()));
             }
-        } catch (PaymentGatewayException exception) {
-            throw exception;
-        } catch (RuntimeException exception) {
-            throw new PaymentGatewayException("PROVIDER_UNAVAILABLE");
-        }
+        });
     }
 
     private ProviderCardDetails toProviderCard(String customerKey, Card card) {
@@ -92,9 +84,5 @@ public class IyzicoSavedCardGateway implements SavedCardGateway {
         } catch (NumberFormatException exception) {
             throw new PaymentGatewayException("PROVIDER_RESPONSE_INVALID");
         }
-    }
-
-    private String normalizeFailureCode(String value) {
-        return value == null || value.isBlank() ? "PROVIDER_REJECTED" : value.trim();
     }
 }

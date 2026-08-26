@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class RefreshSessionService {
     private final UserRepository userRepository;
     private final SecureTokenService tokenService;
     private final AccountStatusPolicy accountStatusPolicy;
+    private final Clock clock;
     private final long refreshExpirationMillis;
 
     public RefreshSessionService(
@@ -30,12 +32,14 @@ public class RefreshSessionService {
             UserRepository userRepository,
             SecureTokenService tokenService,
             AccountStatusPolicy accountStatusPolicy,
+            Clock clock,
             @Value("${jwt.refresh-expiration}") long refreshExpirationMillis
     ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
         this.tokenService = tokenService;
         this.accountStatusPolicy = accountStatusPolicy;
+        this.clock = clock;
         this.refreshExpirationMillis = refreshExpirationMillis;
     }
 
@@ -43,7 +47,7 @@ public class RefreshSessionService {
     public String createSession(User user, String installationId) {
         User lockedUser = userRepository.findByIdForUpdate(user.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         refreshTokenRepository.revokeActiveForInstallation(lockedUser, installationId, now);
 
         String rawToken = tokenService.generate();
@@ -66,7 +70,7 @@ public class RefreshSessionService {
             return RefreshRotationResult.failure(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         if (!current.getInstallationId().equals(installationId)) {
             return RefreshRotationResult.failure(ErrorCode.INVALID_REFRESH_TOKEN);
         }
@@ -110,12 +114,12 @@ public class RefreshSessionService {
                 || !session.getInstallationId().equals(installationId)) {
             throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
-        session.revoke(Instant.now());
+        session.revoke(clock.instant());
     }
 
     @Transactional
     public void revokeAll(User user) {
-        refreshTokenRepository.revokeAllActiveByUser(user, Instant.now());
+        refreshTokenRepository.revokeAllActiveByUser(user, clock.instant());
     }
 
     private void initializeRole(User user) {

@@ -126,6 +126,37 @@ class GuideProjectionIntegrationTest {
         assertThat(dashboard.currencyCode()).isEqualTo("USD");
     }
 
+    @Test
+    void topGuidesUsesDatabaseRankingFiltersAndLimit() {
+        String suffix = UUID.randomUUID().toString();
+        User admin = createUser("RankingAdmin" + suffix, RoleType.ROLE_ADMIN, AccountStatus.ACTIVE);
+        User mostCompleted = createProfile(
+                "RankingFirst" + suffix,
+                RoleType.ROLE_GUIDE,
+                AccountStatus.ACTIVE
+        );
+        User second = createProfile(
+                "RankingSecond" + suffix,
+                RoleType.ROLE_GUIDE,
+                AccountStatus.ACTIVE
+        );
+        User disabled = createProfile(
+                "RankingDisabled" + suffix,
+                RoleType.ROLE_GUIDE,
+                AccountStatus.DISABLED
+        );
+        createCompletedSessions(mostCompleted, admin, suffix + "-first", 2);
+        createCompletedSessions(second, admin, suffix + "-second", 1);
+        createCompletedSessions(disabled, admin, suffix + "-disabled", 3);
+
+        List<GuideSearchItemResponse> topGuides = guideDiscoveryService.top(2);
+
+        assertThat(topGuides).extracting(GuideSearchItemResponse::guideId)
+                .containsExactly(mostCompleted.getId(), second.getId());
+        assertThat(topGuides).extracting(GuideSearchItemResponse::completedSessionCount)
+                .containsExactly(2L, 1L);
+    }
+
     private User createProfile(String specialty, RoleType roleType, AccountStatus status) {
         User user = createUser(specialty, roleType, status);
         guideProfileRepository.saveAndFlush(GuideProfile.create(
@@ -180,5 +211,31 @@ class GuideProjectionIntegrationTest {
                 cover,
                 now
         );
+    }
+
+    private void createCompletedSessions(
+            User guide,
+            User admin,
+            String suffix,
+            int sessionCount
+    ) {
+        Instant now = clock.instant();
+        MediaAsset cover = createCover(guide, suffix);
+        Tour tour = createTour(guide, cover, "Ranked tour " + suffix, now);
+        tour.approve(admin, now);
+        tour = tourRepository.saveAndFlush(tour);
+        for (int index = 0; index < sessionCount; index++) {
+            tourSessionRepository.save(TourSession.create(
+                    tour,
+                    "Ranking meeting point " + index,
+                    now.minus(index + 2L, ChronoUnit.DAYS),
+                    60,
+                    5_000,
+                    "USD",
+                    5,
+                    TourSessionStatus.COMPLETED
+            ));
+        }
+        tourSessionRepository.flush();
     }
 }

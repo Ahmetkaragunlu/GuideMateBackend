@@ -88,20 +88,6 @@ public interface GuideProfileRepository extends JpaRepository<GuideProfile, Long
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"user", "user.role", "avatar", "languageCodes"})
-    @Query("""
-            SELECT profile
-            FROM GuideProfile profile
-            JOIN profile.user user
-            JOIN user.role role
-            WHERE user.accountStatus = :accountStatus
-              AND role.name = :roleName
-            """)
-    List<GuideProfile> findAllPublicProfiles(
-            @Param("accountStatus") AccountStatus accountStatus,
-            @Param("roleName") String roleName
-    );
-
     boolean existsByAvatar_Id(UUID mediaAssetId);
 
     @Query("""

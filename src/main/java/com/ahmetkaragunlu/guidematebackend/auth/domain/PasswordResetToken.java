@@ -26,8 +26,8 @@ public class PasswordResetToken extends AbstractToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public PasswordResetToken(User user, String token) {
-        super(token, LocalDateTime.now().plusMinutes(15));
+    public PasswordResetToken(User user, String token, LocalDateTime createdAt) {
+        super(token, createdAt.plusMinutes(15));
         this.user = user;
     }
 }

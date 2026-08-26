@@ -36,9 +36,6 @@ public interface TourRepository extends JpaRepository<Tour, UUID> {
     @Query("SELECT tour FROM Tour tour WHERE tour.id = :tourId")
     Optional<Tour> findByIdForUpdate(@Param("tourId") UUID tourId);
 
-    @EntityGraph(attributePaths = {"guide", "coverMedia", "languageCodes"})
-    List<Tour> findAllByApprovalStatusOrderBySubmittedAtDesc(TourApprovalStatus approvalStatus);
-
     long countByGuide_IdAndApprovalStatus(Long guideId, TourApprovalStatus approvalStatus);
 
     boolean existsByCoverMedia_Id(UUID mediaAssetId);

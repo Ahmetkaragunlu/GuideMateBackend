@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,9 +21,6 @@ public interface TourChangeRequestRepository extends JpaRepository<TourChangeReq
     long countByTour_Guide_IdAndStatus(Long guideId, TourChangeRequestStatus status);
 
     boolean existsByProposedCoverMedia_IdAndStatus(UUID mediaAssetId, TourChangeRequestStatus status);
-
-    @EntityGraph(attributePaths = {"tour", "tour.guide", "tour.coverMedia", "tour.languageCodes", "proposedCoverMedia", "submittedBy"})
-    List<TourChangeRequest> findAllByStatusOrderBySubmittedAtDesc(TourChangeRequestStatus status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {"tour", "tour.guide", "tour.coverMedia", "tour.languageCodes", "proposedCoverMedia", "submittedBy"})

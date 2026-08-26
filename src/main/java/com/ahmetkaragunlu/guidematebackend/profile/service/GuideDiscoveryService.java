@@ -7,6 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideSearchItemResponse;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
+import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideRankingRepository;
 import com.ahmetkaragunlu.guidematebackend.review.domain.ReviewRankingPolicy;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
@@ -17,7 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,9 +30,9 @@ import java.util.stream.Collectors;
 public class GuideDiscoveryService {
 
     private final GuideProfileRepository guideProfileRepository;
+    private final GuideRankingRepository guideRankingRepository;
     private final GuidePerformanceService guidePerformanceService;
     private final MediaUrlFactory mediaUrlFactory;
-    private final ReviewRankingPolicy reviewRankingPolicy;
 
     @Transactional(readOnly = true)
     public PageResponse<GuideSearchItemResponse> search(String query, int page, int size) {
@@ -62,26 +63,35 @@ public class GuideDiscoveryService {
 
     @Transactional(readOnly = true)
     public List<GuideSearchItemResponse> top(int limit) {
-        List<GuideProfile> profiles = guideProfileRepository.findAllPublicProfiles(
-                AccountStatus.ACTIVE,
-                RoleType.ROLE_GUIDE.name()
+        List<Long> rankedGuideIds = guideRankingRepository.findTopGuideIds(
+                AccountStatus.ACTIVE.name(),
+                RoleType.ROLE_GUIDE.name(),
+                ReviewRankingPolicy.PRIOR_RATING,
+                ReviewRankingPolicy.PRIOR_WEIGHT,
+                limit
         );
+        Map<Long, GuideProfile> profiles = guideProfileRepository.findAllByUserIdIn(rankedGuideIds).stream()
+                .collect(Collectors.toMap(
+                        GuideProfile::getUserId,
+                        profile -> profile,
+                        (first, ignored) -> first,
+                        LinkedHashMap::new
+                ));
         Map<Long, GuidePerformanceSummary> performance = performance(profiles);
-        return profiles.stream()
+        return rankedGuideIds.stream()
+                .map(profiles::get)
+                .filter(java.util.Objects::nonNull)
                 .map(profile -> toResponse(profile, performance.get(profile.getUserId())))
-                .sorted(Comparator
-                        .comparingDouble(this::weightedScore).reversed()
-                        .thenComparing(GuideSearchItemResponse::reviewCount, Comparator.reverseOrder())
-                        .thenComparing(GuideSearchItemResponse::completedSessionCount, Comparator.reverseOrder())
-                        .thenComparing(GuideSearchItemResponse::displayName)
-                        .thenComparing(GuideSearchItemResponse::guideId))
-                .limit(limit)
                 .toList();
     }
 
     private Map<Long, GuidePerformanceSummary> performance(List<GuideProfile> profiles) {
         Set<Long> guideIds = profiles.stream().map(GuideProfile::getUserId).collect(Collectors.toSet());
         return guidePerformanceService.getAll(guideIds);
+    }
+
+    private Map<Long, GuidePerformanceSummary> performance(Map<Long, GuideProfile> profiles) {
+        return guidePerformanceService.getAll(profiles.keySet());
     }
 
     private GuideSearchItemResponse toResponse(
@@ -106,10 +116,6 @@ public class GuideDiscoveryService {
                 performance.reviewCount(),
                 performance.level()
         );
-    }
-
-    private double weightedScore(GuideSearchItemResponse guide) {
-        return reviewRankingPolicy.weightedScore(guide.averageRating(), guide.reviewCount());
     }
 
     private String trimToNull(String query) {

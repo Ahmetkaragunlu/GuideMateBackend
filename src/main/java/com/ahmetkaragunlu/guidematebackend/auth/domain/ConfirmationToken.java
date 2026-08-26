@@ -30,14 +30,14 @@ public class ConfirmationToken extends AbstractToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public ConfirmationToken(User user, String token) {
-        super(token, LocalDateTime.now().plusHours(24));
+    public ConfirmationToken(User user, String token, LocalDateTime createdAt) {
+        super(token, createdAt.plusHours(24));
         this.user = user;
     }
 
-    public void confirm() {
-        this.confirmedAt = LocalDateTime.now();
-        markUsed();
+    public void confirm(LocalDateTime confirmedAt) {
+        this.confirmedAt = confirmedAt;
+        markUsed(confirmedAt);
     }
 
     public boolean isConfirmed() {

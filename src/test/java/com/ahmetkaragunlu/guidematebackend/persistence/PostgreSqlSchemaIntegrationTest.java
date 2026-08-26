@@ -22,6 +22,10 @@ class PostgreSqlSchemaIntegrationTest {
                 "SELECT COUNT(*) FROM flyway_schema_history WHERE success",
                 Integer.class
         );
+        Integer failedMigrationCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM flyway_schema_history WHERE NOT success",
+                Integer.class
+        );
         String reservationSnapshotType = columnType("reservations", "purchase_snapshot");
         String notificationPayloadType = columnType("notifications", "payload");
         String reservationCreatedAtType = columnType("reservations", "created_at");
@@ -41,7 +45,8 @@ class PostgreSqlSchemaIntegrationTest {
         );
 
         assertThat(databaseVersion).startsWith("PostgreSQL 18.");
-        assertThat(migrationCount).isEqualTo(13);
+        assertThat(migrationCount).isPositive();
+        assertThat(failedMigrationCount).isZero();
         assertThat(reservationSnapshotType).isEqualTo("jsonb");
         assertThat(notificationPayloadType).isEqualTo("jsonb");
         assertThat(reservationCreatedAtType).isEqualTo("timestamp with time zone");

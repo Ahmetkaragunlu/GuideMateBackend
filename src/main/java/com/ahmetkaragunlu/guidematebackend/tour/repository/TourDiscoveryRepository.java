@@ -97,6 +97,9 @@ public class TourDiscoveryRepository {
                     builder.like(builder.lower(tour.get("cityName")), like)
             ));
         }
+        if (criteria.guideId() != null) {
+            predicates.add(builder.equal(tour.get("guide").get("id"), criteria.guideId()));
+        }
         if (criteria.countryCode() != null) {
             predicates.add(builder.equal(tour.get("countryCode"), criteria.countryCode()));
         }

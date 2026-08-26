@@ -14,6 +14,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSearchSort;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.request.TourSearchRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourDetailResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourSearchItemResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.mapper.TourMapper;
@@ -53,64 +54,63 @@ public class TourDiscoveryService {
     private final Clock clock;
 
     @Transactional(readOnly = true)
-    public PageResponse<TourSearchItemResponse> search(
-            String query,
-            String countryCode,
-            String cityPlaceId,
-            String categoryCode,
-            List<String> languageCodes,
-            Double minRating,
-            Long minPriceMinor,
-            Long maxPriceMinor,
-            int page,
-            int size,
-            TourSearchSort sort
-    ) {
-        validateSearchRange(minRating, minPriceMinor, maxPriceMinor);
-        Set<String> normalizedLanguages = languageCodePolicy.normalizeOptional(languageCodes);
+    public PageResponse<TourSearchItemResponse> search(TourSearchRequest request) {
+        validateSearchRange(request.minRating(), request.minPriceMinor(), request.maxPriceMinor());
+        Set<String> normalizedLanguages = languageCodePolicy.normalizeOptional(request.languageCodes());
         TourSearchCriteria criteria = new TourSearchCriteria(
-                trimToNull(query),
-                countryCode == null ? null : tourInputPolicy.normalizeCountryCode(countryCode),
-                trimToNull(cityPlaceId),
-                categoryCode == null ? null : tourInputPolicy.normalizeCategoryCode(categoryCode),
+                trimToNull(request.q()),
+                null,
+                request.countryCode() == null
+                        ? null
+                        : tourInputPolicy.normalizeCountryCode(request.countryCode()),
+                trimToNull(request.cityPlaceId()),
+                request.categoryCode() == null
+                        ? null
+                        : tourInputPolicy.normalizeCategoryCode(request.categoryCode()),
                 normalizedLanguages,
-                minRating,
-                minPriceMinor,
-                maxPriceMinor,
-                page,
-                size,
-                sort,
+                request.minRating(),
+                request.minPriceMinor(),
+                request.maxPriceMinor(),
+                request.page(),
+                request.size(),
+                request.sort(),
                 clock.instant()
         );
 
+        return search(criteria);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<TourSearchItemResponse> popular(Long guideId, int page, int size) {
+        TourSearchCriteria criteria = new TourSearchCriteria(
+                null,
+                guideId,
+                null,
+                null,
+                null,
+                Set.of(),
+                null,
+                null,
+                null,
+                page,
+                size,
+                TourSearchSort.RATING_DESC,
+                clock.instant()
+        );
+        return search(criteria);
+    }
+
+    private PageResponse<TourSearchItemResponse> search(TourSearchCriteria criteria) {
         Page<TourSession> sessions = tourDiscoveryRepository.search(criteria);
         Map<Long, GuideProfile> profiles = profilesByGuideId(sessions.getContent());
         Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(sessions.getContent()));
         Map<UUID, ReviewAggregate> reviews = reviewQueryService.tourAggregates(tourIds(sessions.getContent()));
-        Page<TourSearchItemResponse> responsePage = sessions.map(session -> tourMapper.toSearchItem(
+        return PageResponse.from(sessions.map(session -> tourMapper.toSearchItem(
                 session,
                 profiles.get(session.getTour().getGuide().getId()),
                 occupiedCounts.getOrDefault(session.getId(), 0),
                 reviews.getOrDefault(session.getTour().getId(), ReviewAggregate.EMPTY)
-        ));
-        return PageResponse.from(responsePage);
-    }
-
-    @Transactional(readOnly = true)
-    public PageResponse<TourSearchItemResponse> popular(int page, int size) {
-        return search(
-                null,
-                null,
-                null,
-                null,
-                List.of(),
-                null,
-                null,
-                null,
-                page,
-                size,
-                TourSearchSort.RATING_DESC
-        );
+        )));
     }
 
     @Transactional(readOnly = true)

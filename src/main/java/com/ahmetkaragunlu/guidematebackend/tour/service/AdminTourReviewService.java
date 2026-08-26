@@ -9,11 +9,6 @@ import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
-import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
-import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeRequest;
@@ -24,22 +19,22 @@ import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewDeci
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewDetailResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewSummaryResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewType;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourDetailResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourProposalResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.mapper.TourMapper;
+import com.ahmetkaragunlu.guidematebackend.tour.repository.AdminTourReviewRepository;
+import com.ahmetkaragunlu.guidematebackend.tour.repository.AdminTourReviewSummaryProjection;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourChangeRequestRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,47 +45,24 @@ import java.util.UUID;
 public class AdminTourReviewService {
 
     private final TourRepository tourRepository;
+    private final AdminTourReviewRepository adminTourReviewRepository;
     private final TourSessionRepository tourSessionRepository;
     private final TourChangeRequestRepository changeRequestRepository;
-    private final GuideProfileRepository guideProfileRepository;
     private final UserRepository userRepository;
     private final MediaService mediaService;
     private final TourContentFactory tourContentFactory;
     private final TourChangeSnapshotCodec snapshotCodec;
     private final TourLocationPolicy locationPolicy;
     private final TourMapper tourMapper;
-    private final ReservationCapacityService capacityService;
-    private final ReviewQueryService reviewQueryService;
+    private final TourDetailQueryService tourDetailQueryService;
     private final NotificationPublisher notificationPublisher;
     private final Clock clock;
 
     @Transactional(readOnly = true)
     public PageResponse<AdminTourReviewSummaryResponse> getPendingReviews(int page, int size) {
-        List<AdminTourReviewSummaryResponse> reviews = new ArrayList<>();
-        tourRepository.findAllByApprovalStatusOrderBySubmittedAtDesc(TourApprovalStatus.PENDING_REVIEW)
-                .stream()
-                .map(this::toNewTourSummary)
-                .forEach(reviews::add);
-        changeRequestRepository.findAllByStatusOrderBySubmittedAtDesc(TourChangeRequestStatus.PENDING)
-                .stream()
-                .map(this::toChangeSummary)
-                .forEach(reviews::add);
-        reviews.sort(Comparator
-                .comparing(AdminTourReviewSummaryResponse::submittedAt).reversed()
-                .thenComparing(AdminTourReviewSummaryResponse::reviewId));
-
-        int from = Math.min(page * size, reviews.size());
-        int to = Math.min(from + size, reviews.size());
-        int totalPages = reviews.isEmpty() ? 0 : (reviews.size() + size - 1) / size;
-        return new PageResponse<>(
-                reviews.subList(from, to),
-                page,
-                size,
-                reviews.size(),
-                totalPages,
-                page == 0,
-                page >= Math.max(totalPages - 1, 0)
-        );
+        return PageResponse.from(adminTourReviewRepository.findPendingReviews(
+                PageRequest.of(page, size)
+        ).map(this::toSummary));
     }
 
     @Transactional(readOnly = true)
@@ -206,29 +178,15 @@ public class AdminTourReviewService {
         );
     }
 
-    private AdminTourReviewSummaryResponse toNewTourSummary(Tour tour) {
+    private AdminTourReviewSummaryResponse toSummary(AdminTourReviewSummaryProjection review) {
         return new AdminTourReviewSummaryResponse(
-                tour.getId(),
-                AdminTourReviewType.NEW_TOUR,
-                tour.getId(),
-                tour.getGuide().getId(),
-                tour.getGuide().displayName(),
-                tour.getTitle(),
-                tour.getSubmittedAt()
-        );
-    }
-
-    private AdminTourReviewSummaryResponse toChangeSummary(TourChangeRequest request) {
-        TourChangeSnapshot snapshot = snapshotCodec.decode(request.getProposedSnapshot());
-        Tour tour = request.getTour();
-        return new AdminTourReviewSummaryResponse(
-                request.getId(),
-                AdminTourReviewType.TOUR_CHANGE,
-                tour.getId(),
-                tour.getGuide().getId(),
-                tour.getGuide().displayName(),
-                snapshot.title(),
-                request.getSubmittedAt()
+                review.getReviewId(),
+                AdminTourReviewType.valueOf(review.getReviewType()),
+                review.getTourId(),
+                review.getGuideId(),
+                review.getGuideDisplayName(),
+                review.getTitle(),
+                review.getSubmittedAt()
         );
     }
 
@@ -241,7 +199,7 @@ public class AdminTourReviewService {
                 tour.getGuide().displayName(),
                 tour.getSubmittedAt(),
                 tour.getApprovalStatus().name(),
-                tourDetail(tour),
+                tourDetailQueryService.getDetail(tour),
                 null
         );
     }
@@ -258,7 +216,7 @@ public class AdminTourReviewService {
                 tour.getGuide().displayName(),
                 request.getSubmittedAt(),
                 request.getStatus().name(),
-                tourDetail(tour),
+                tourDetailQueryService.getDetail(tour),
                 proposal
         );
     }
@@ -275,20 +233,8 @@ public class AdminTourReviewService {
                 type,
                 status,
                 reviewedAt,
-                tourDetail(tour)
+                tourDetailQueryService.getDetail(tour)
         );
-    }
-
-    private TourDetailResponse tourDetail(Tour tour) {
-        GuideProfile profile = guideProfileRepository.findByUserId(tour.getGuide().getId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.GUIDE_PROFILE_NOT_FOUND));
-        List<TourSession> sessions = tourSessionRepository.findAllByTour_IdOrderByStartsAtAsc(tour.getId());
-        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(
-                sessions.stream().map(TourSession::getId).toList()
-        );
-        ReviewAggregate reviews = reviewQueryService.tourAggregates(List.of(tour.getId()))
-                .getOrDefault(tour.getId(), ReviewAggregate.EMPTY);
-        return tourMapper.toDetail(tour, sessions, profile, occupiedCounts, reviews);
     }
 
     private void openEligibleSessions(UUID tourId, Instant now) {

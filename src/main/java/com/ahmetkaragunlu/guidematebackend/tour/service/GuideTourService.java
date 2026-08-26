@@ -77,6 +77,7 @@ public class GuideTourService {
     private final TourMapper tourMapper;
     private final ReservationCapacityService capacityService;
     private final ReviewQueryService reviewQueryService;
+    private final TourDetailQueryService tourDetailQueryService;
     private final GuideEarningService guideEarningService;
     private final TourProperties tourProperties;
     private final Clock clock;
@@ -178,7 +179,7 @@ public class GuideTourService {
     public TourDetailResponse getOwnedTour(User currentUser, UUID tourId) {
         Tour tour = tourRepository.findOwnedDetails(tourId, currentUser.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
-        return detail(tour);
+        return tourDetailQueryService.getDetail(tour);
     }
 
     @Transactional
@@ -210,7 +211,7 @@ public class GuideTourService {
                     tour.getId(),
                     AdminTourReviewType.NEW_TOUR,
                     tour.getApprovalStatus().name(),
-                    detail(tour)
+                    tourDetailQueryService.getDetail(tour)
             );
         }
 
@@ -235,7 +236,7 @@ public class GuideTourService {
                 changeRequest.getId(),
                 AdminTourReviewType.TOUR_CHANGE,
                 changeRequest.getStatus().name(),
-                detail(tour)
+                tourDetailQueryService.getDetail(tour)
         );
     }
 
@@ -254,16 +255,7 @@ public class GuideTourService {
         }
         tour.archive();
         closeManageableSessions(tourId);
-        return detail(tour);
-    }
-
-    private TourDetailResponse detail(Tour tour) {
-        List<TourSession> sessions = tourSessionRepository.findAllByTour_IdOrderByStartsAtAsc(tour.getId());
-        GuideProfile profile = requireGuideProfile(tour.getGuide().getId());
-        Map<UUID, Integer> occupiedCounts = capacityService.occupiedCounts(sessionIds(sessions));
-        ReviewAggregate reviews = reviewQueryService.tourAggregates(List.of(tour.getId()))
-                .getOrDefault(tour.getId(), ReviewAggregate.EMPTY);
-        return tourMapper.toDetail(tour, sessions, profile, occupiedCounts, reviews);
+        return tourDetailQueryService.getDetail(tour);
     }
 
     private List<UUID> sessionIds(List<TourSession> sessions) {

@@ -19,6 +19,7 @@
         <postgresql.version>42.7.13</postgresql.version>
         <jjwt.version>0.13.0</jjwt.version>
         <testcontainers.version>2.0.5</testcontainers.version>
+        <maven.compiler.proc>full</maven.compiler.proc>
         <argLine/>
     </properties>
     <dependencies>

@@ -7,6 +7,7 @@ import java.util.Set;
 
 public record TourSearchCriteria(
         String query,
+        Long guideId,
         String countryCode,
         String cityPlaceId,
         String categoryCode,

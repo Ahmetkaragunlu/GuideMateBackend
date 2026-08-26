@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
@@ -20,13 +22,16 @@ public class JwtService {
 
     private final SecretKey signingKey;
     private final long jwtExpiration;
+    private final Clock clock;
 
     public JwtService(
             @Value("${jwt.secret}") String secretKey,
-            @Value("${jwt.expiration}") long jwtExpiration
+            @Value("${jwt.expiration}") long jwtExpiration,
+            Clock clock
     ) {
         this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         this.jwtExpiration = jwtExpiration;
+        this.clock = clock;
     }
 
     public String extractUsername(String token) {
@@ -34,11 +39,12 @@ public class JwtService {
     }
 
     public String generateToken(User user) {
+        Instant issuedAt = clock.instant();
         return Jwts.builder()
                 .claims(Map.of(TOKEN_VERSION_CLAIM, user.getTokenVersion()))
                 .subject(user.getUsername())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(issuedAt.plusMillis(jwtExpiration)))
                 .signWith(signingKey)
                 .compact();
     }
@@ -50,7 +56,7 @@ public class JwtService {
                 && user.getUsername().equals(claims.getSubject())
                 && tokenVersion != null
                 && tokenVersion == user.getTokenVersion()
-                && claims.getExpiration().after(new Date());
+                && claims.getExpiration().after(Date.from(clock.instant()));
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

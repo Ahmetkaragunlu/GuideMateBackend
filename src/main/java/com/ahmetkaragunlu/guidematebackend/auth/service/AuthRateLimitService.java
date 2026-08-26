@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuthRateLimitService {
 
     private final SecureTokenService tokenService;
+    private final Clock clock;
     private final int loginMaxFailures;
     private final Duration loginBaseBlock;
     private final Duration loginMaxBlock;
@@ -26,6 +28,7 @@ public class AuthRateLimitService {
 
     public AuthRateLimitService(
             SecureTokenService tokenService,
+            Clock clock,
             @Value("${auth.rate-limit.login.max-failures}") int loginMaxFailures,
             @Value("${auth.rate-limit.login.base-block-seconds}") long loginBaseBlockSeconds,
             @Value("${auth.rate-limit.login.max-block-seconds}") long loginMaxBlockSeconds,
@@ -33,6 +36,7 @@ public class AuthRateLimitService {
             @Value("${auth.rate-limit.public.cooldown-seconds}") long publicCooldownSeconds
     ) {
         this.tokenService = tokenService;
+        this.clock = clock;
         this.loginMaxFailures = loginMaxFailures;
         this.loginBaseBlock = Duration.ofSeconds(loginBaseBlockSeconds);
         this.loginMaxBlock = Duration.ofSeconds(loginMaxBlockSeconds);
@@ -41,7 +45,7 @@ public class AuthRateLimitService {
     }
 
     public void checkLoginAllowed(String normalizedEmail, String clientIp) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         long retryAfter = Math.max(
                 retryAfter(loginKey("email", normalizedEmail), now),
                 retryAfter(loginKey("ip", clientIp), now)
@@ -52,7 +56,7 @@ public class AuthRateLimitService {
     }
 
     public void recordLoginFailure(String normalizedEmail, String clientIp) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         LoginAttempt emailAttempt = recordFailure(loginKey("email", normalizedEmail), now);
         LoginAttempt ipAttempt = recordFailure(loginKey("ip", clientIp), now);
         long retryAfter = Math.max(
@@ -70,7 +74,7 @@ public class AuthRateLimitService {
     }
 
     public synchronized void acquirePublicPermit(String operation, String normalizedEmail, String clientIp) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         String emailKey = publicKey(operation, "email", normalizedEmail);
         String ipKey = publicKey(operation, "ip", clientIp);
         long retryAfter = Math.max(
@@ -88,7 +92,7 @@ public class AuthRateLimitService {
 
     @Scheduled(fixedDelayString = "${auth.rate-limit.cleanup-ms:600000}")
     public void cleanupExpiredEntries() {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         loginAttempts.entrySet().removeIf(entry ->
                 entry.getValue().lastAttempt().plus(loginWindow).isBefore(now)
                         && remainingSeconds(entry.getValue().blockedUntil(), now) == 0

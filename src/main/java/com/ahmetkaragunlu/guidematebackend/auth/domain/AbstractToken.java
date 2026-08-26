@@ -31,12 +31,12 @@ public abstract class AbstractToken extends BaseEntity {
         this.expiresAt = expiresAt;
     }
 
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiresAt);
+    public boolean isExpired(LocalDateTime now) {
+        return now.isAfter(expiresAt);
     }
 
-    public void markUsed() {
+    public void markUsed(LocalDateTime usedAt) {
         this.used = true;
-        this.usedAt = LocalDateTime.now();
+        this.usedAt = usedAt;
     }
 }

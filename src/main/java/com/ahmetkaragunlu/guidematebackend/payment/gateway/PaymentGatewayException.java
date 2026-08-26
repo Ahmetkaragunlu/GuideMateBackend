@@ -9,6 +9,11 @@ public class PaymentGatewayException extends RuntimeException {
         this.providerFailureCode = providerFailureCode;
     }
 
+    public PaymentGatewayException(String providerFailureCode, Throwable cause) {
+        super("Payment provider operation failed", cause);
+        this.providerFailureCode = providerFailureCode;
+    }
+
     public String providerFailureCode() {
         return providerFailureCode;
     }

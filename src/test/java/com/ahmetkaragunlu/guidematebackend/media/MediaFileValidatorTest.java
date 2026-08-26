@@ -7,11 +7,15 @@ import com.ahmetkaragunlu.guidematebackend.media.service.MediaFileValidator;
 import com.ahmetkaragunlu.guidematebackend.media.service.ValidatedMedia;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.unit.DataSize;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,20 +37,25 @@ class MediaFileValidatorTest {
         ));
     }
 
-    @Test
-    void acceptsMatchingImageSignatureAndRemovesPathFromOriginalName() {
+    @ParameterizedTest
+    @MethodSource("supportedImages")
+    void acceptsMatchingImageSignatureAndRemovesPathFromOriginalName(
+            String contentType,
+            String expectedExtension,
+            byte[] signature
+    ) {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
-                "../../profile.png",
-                "image/png; charset=binary",
-                PNG
+                "../../profile." + expectedExtension,
+                contentType + "; charset=binary",
+                signature
         );
 
         ValidatedMedia result = validator.validate(file);
 
-        assertThat(result.contentType()).isEqualTo("image/png");
-        assertThat(result.fileExtension()).isEqualTo("png");
-        assertThat(result.originalFileName()).isEqualTo("profile.png");
+        assertThat(result.contentType()).isEqualTo(contentType);
+        assertThat(result.fileExtension()).isEqualTo(expectedExtension);
+        assertThat(result.originalFileName()).isEqualTo("profile." + expectedExtension);
     }
 
     @Test
@@ -77,5 +86,17 @@ class MediaFileValidatorTest {
         assertThatThrownBy(() -> validator.validate(file))
                 .isInstanceOfSatisfying(BusinessException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.MEDIA_TOO_LARGE));
+    }
+
+    private static Stream<Arguments> supportedImages() {
+        return Stream.of(
+                Arguments.of("image/png", "png", PNG),
+                Arguments.of("image/jpeg", "jpg", new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}),
+                Arguments.of(
+                        "image/webp",
+                        "webp",
+                        new byte[]{'R', 'I', 'F', 'F', 0, 0, 0, 0, 'W', 'E', 'B', 'P'}
+                )
+        );
     }
 }

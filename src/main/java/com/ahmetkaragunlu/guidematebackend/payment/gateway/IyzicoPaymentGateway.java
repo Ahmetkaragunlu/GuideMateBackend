@@ -53,13 +53,13 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
             request.setPaymentWithNewCardEnabled(true);
         }
 
-        try {
+        return IyzicoGatewaySupport.execute(() -> {
             CheckoutFormInitialize response = CheckoutFormInitialize.create(request, options);
             if (!SUCCESS.equalsIgnoreCase(response.getStatus())
                     || !response.verifySignature(options.getSecretKey())
                     || isBlank(response.getToken())
                     || isBlank(response.getPaymentPageUrl())) {
-                throw new PaymentGatewayException(normalizeFailureCode(response.getErrorCode()));
+                throw new PaymentGatewayException(IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()));
             }
             Duration expiresIn = response.getTokenExpireTime() == null
                     ? properties.checkoutExpiration()
@@ -68,11 +68,7 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
                 expiresIn = properties.checkoutExpiration();
             }
             return new HostedCheckoutSession(response.getToken(), response.getPaymentPageUrl(), expiresIn);
-        } catch (PaymentGatewayException exception) {
-            throw exception;
-        } catch (RuntimeException exception) {
-            throw new PaymentGatewayException("PROVIDER_UNAVAILABLE");
-        }
+        });
     }
 
     @Override
@@ -82,11 +78,11 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
         request.setConversationId(conversationId);
         request.setToken(token);
 
-        try {
+        return IyzicoGatewaySupport.execute(() -> {
             CheckoutForm response = CheckoutForm.retrieve(request, options);
             if (!SUCCESS.equalsIgnoreCase(response.getStatus())
                     || !response.verifySignature(options.getSecretKey())) {
-                throw new PaymentGatewayException(normalizeFailureCode(response.getErrorCode()));
+                throw new PaymentGatewayException(IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()));
             }
             boolean successful = PAYMENT_SUCCESS.equalsIgnoreCase(response.getPaymentStatus());
             PaymentItem item = response.getPaymentItems() == null || response.getPaymentItems().isEmpty()
@@ -101,14 +97,10 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
                     toMinor(response.getPaidPrice()),
                     response.getCurrency(),
                     response.getPaymentStatus(),
-                    successful ? null : normalizeFailureCode(response.getErrorCode()),
+                    successful ? null : IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()),
                     successful ? toProviderCard(response) : null
             );
-        } catch (PaymentGatewayException exception) {
-            throw exception;
-        } catch (RuntimeException exception) {
-            throw new PaymentGatewayException("PROVIDER_UNAVAILABLE");
-        }
+        });
     }
 
     @Override
@@ -123,11 +115,15 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
         request.setReason(RefundReason.BUYER_REQUEST);
         request.setDescription("GuideMate reservation refund");
 
-        try {
+        return IyzicoGatewaySupport.execute(() -> {
             Refund response = Refund.create(request, options);
             if (!SUCCESS.equalsIgnoreCase(response.getStatus())
                     || !response.verifySignature(options.getSecretKey())) {
-                return new ProviderRefundResult(false, null, normalizeFailureCode(response.getErrorCode()));
+                return new ProviderRefundResult(
+                        false,
+                        null,
+                        IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode())
+                );
             }
             String providerRefundId = firstNonBlank(
                     response.getRefundHostReference(),
@@ -135,11 +131,7 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
                     response.getConversationId()
             );
             return new ProviderRefundResult(true, providerRefundId, null);
-        } catch (PaymentGatewayException exception) {
-            throw exception;
-        } catch (RuntimeException exception) {
-            throw new PaymentGatewayException("PROVIDER_UNAVAILABLE");
-        }
+        });
     }
 
     private Buyer toBuyer(BuyerProfile profile) {
@@ -207,10 +199,6 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
             return 0;
         }
         return amount.movePointRight(2).longValueExact();
-    }
-
-    private String normalizeFailureCode(String value) {
-        return isBlank(value) ? "PROVIDER_REJECTED" : value.trim();
     }
 
     private String firstNonBlank(String... values) {
