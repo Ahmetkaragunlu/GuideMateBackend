@@ -8,6 +8,10 @@ import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideSearchItemResponse;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.profile.service.GuideDiscoveryService;
+import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
+import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
+import com.ahmetkaragunlu.guidematebackend.review.domain.Review;
+import com.ahmetkaragunlu.guidematebackend.review.repository.ReviewRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeSnapshot;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
@@ -57,6 +61,10 @@ class GuideProjectionIntegrationTest {
     private TourRepository tourRepository;
     @Autowired
     private TourSessionRepository tourSessionRepository;
+    @Autowired
+    private ReservationRepository reservationRepository;
+    @Autowired
+    private ReviewRepository reviewRepository;
     @Autowired
     private Clock clock;
 
@@ -157,6 +165,31 @@ class GuideProjectionIntegrationTest {
                 .containsExactly(2L, 1L);
     }
 
+    @Test
+    void topGuidesUsesBayesianRatingInsteadOfRawAverage() {
+        String suffix = UUID.randomUUID().toString();
+        User admin = createUser("BayesianAdmin" + suffix, RoleType.ROLE_ADMIN, AccountStatus.ACTIVE);
+        User oneFiveStarReview = createProfile(
+                "BayesianFive" + suffix,
+                RoleType.ROLE_GUIDE,
+                AccountStatus.ACTIVE
+        );
+        User tenFourStarReviews = createProfile(
+                "BayesianFour" + suffix,
+                RoleType.ROLE_GUIDE,
+                AccountStatus.ACTIVE
+        );
+        createReviewedCompletedSession(oneFiveStarReview, admin, suffix + "-five", 5, 1);
+        createReviewedCompletedSession(tenFourStarReviews, admin, suffix + "-four", 4, 10);
+
+        List<GuideSearchItemResponse> topGuides = guideDiscoveryService.top(2);
+
+        assertThat(topGuides).extracting(GuideSearchItemResponse::guideId)
+                .containsExactly(tenFourStarReviews.getId(), oneFiveStarReview.getId());
+        assertThat(topGuides).extracting(GuideSearchItemResponse::averageRating)
+                .containsExactly(4.0, 5.0);
+    }
+
     private User createProfile(String specialty, RoleType roleType, AccountStatus status) {
         User user = createUser(specialty, roleType, status);
         guideProfileRepository.saveAndFlush(GuideProfile.create(
@@ -237,5 +270,55 @@ class GuideProjectionIntegrationTest {
             ));
         }
         tourSessionRepository.flush();
+    }
+
+    private void createReviewedCompletedSession(
+            User guide,
+            User admin,
+            String suffix,
+            int rating,
+            int reviewCount
+    ) {
+        Instant now = clock.instant();
+        MediaAsset cover = createCover(guide, suffix);
+        Tour tour = createTour(guide, cover, "Reviewed tour " + suffix, now);
+        tour.approve(admin, now);
+        tour = tourRepository.saveAndFlush(tour);
+        TourSession session = tourSessionRepository.saveAndFlush(TourSession.create(
+                tour,
+                "Reviewed meeting point",
+                now.minus(2, ChronoUnit.DAYS),
+                60,
+                5_000,
+                "USD",
+                reviewCount,
+                TourSessionStatus.COMPLETED
+        ));
+        for (int index = 0; index < reviewCount; index++) {
+            User tourist = createUser(
+                    "BayesianTourist" + suffix + index,
+                    RoleType.ROLE_TOURIST,
+                    AccountStatus.ACTIVE
+            );
+            Reservation reservation = Reservation.hold(
+                    session,
+                    tourist,
+                    1,
+                    5_000,
+                    5_000,
+                    "USD",
+                    now.plus(10, ChronoUnit.MINUTES),
+                    "FULL_REFUND_48_HOURS",
+                    1,
+                    1,
+                    "{}",
+                    "ranking-" + suffix + "-" + index
+            );
+            reservation.confirm();
+            reservation.complete();
+            reservation = reservationRepository.saveAndFlush(reservation);
+            reviewRepository.save(Review.submit(reservation, rating, null));
+        }
+        reviewRepository.flush();
     }
 }

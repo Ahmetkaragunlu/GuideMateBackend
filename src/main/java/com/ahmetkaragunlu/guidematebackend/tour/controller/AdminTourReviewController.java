@@ -7,6 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewDeci
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewDetailResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewSummaryResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.service.AdminTourReviewService;
+import com.ahmetkaragunlu.guidematebackend.tour.service.AdminTourReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -39,6 +40,7 @@ import java.util.UUID;
 public class AdminTourReviewController {
 
     private final AdminTourReviewService adminTourReviewService;
+    private final AdminTourReviewQueryService adminTourReviewQueryService;
 
     @Operation(summary = "List pending new-tour and tour-change reviews")
     @GetMapping
@@ -46,13 +48,13 @@ public class AdminTourReviewController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size
     ) {
-        return ResponseEntity.ok(adminTourReviewService.getPendingReviews(page, size));
+        return ResponseEntity.ok(adminTourReviewQueryService.getPendingReviews(page, size));
     }
 
     @Operation(summary = "Get a tour review with current and proposed state")
     @GetMapping("/{reviewId}")
     public ResponseEntity<AdminTourReviewDetailResponse> getReview(@PathVariable UUID reviewId) {
-        return ResponseEntity.ok(adminTourReviewService.getReview(reviewId));
+        return ResponseEntity.ok(adminTourReviewQueryService.getReview(reviewId));
     }
 
     @Operation(summary = "Approve a pending tour review")

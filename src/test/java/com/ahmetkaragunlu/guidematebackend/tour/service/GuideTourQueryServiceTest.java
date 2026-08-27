@@ -1,13 +1,9 @@
 package com.ahmetkaragunlu.guidematebackend.tour.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
-import com.ahmetkaragunlu.guidematebackend.common.validation.VersionPolicy;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
-import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
-import com.ahmetkaragunlu.guidematebackend.tour.config.TourProperties;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
@@ -15,11 +11,9 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.GuideTourTab;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideTourCardResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.mapper.TourMapper;
-import com.ahmetkaragunlu.guidematebackend.tour.repository.TourChangeRequestRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,30 +37,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class GuideTourServiceTest {
+class GuideTourQueryServiceTest {
 
     @Mock
     private TourRepository tourRepository;
     @Mock
     private TourSessionRepository tourSessionRepository;
-    @Mock
-    private TourChangeRequestRepository changeRequestRepository;
-    @Mock
-    private GuideProfileRepository guideProfileRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private MediaService mediaService;
-    @Mock
-    private TourContentFactory tourContentFactory;
-    @Mock
-    private TourChangeSnapshotCodec snapshotCodec;
-    @Mock
-    private TourSchedulePolicy schedulePolicy;
-    @Mock
-    private TourLocationPolicy locationPolicy;
-    @Mock
-    private VersionPolicy versionPolicy;
     @Mock
     private TourMapper tourMapper;
     @Mock
@@ -74,14 +50,14 @@ class GuideTourServiceTest {
     @Mock
     private ReviewQueryService reviewQueryService;
     @Mock
-    private GuideEarningService guideEarningService;
+    private TourDetailQueryService tourDetailQueryService;
     @Mock
-    private TourProperties tourProperties;
+    private GuideEarningService guideEarningService;
     @Mock
     private Clock clock;
 
     @InjectMocks
-    private GuideTourService service;
+    private GuideTourQueryService service;
 
     @Test
     void enrichesGuideCardsWithBatchAggregatesAndHidesCancelledSessionEarnings() {

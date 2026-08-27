@@ -13,6 +13,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourDetailResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourReviewSubmissionResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.TourSessionResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.service.GuideTourService;
+import com.ahmetkaragunlu.guidematebackend.tour.service.GuideTourQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.service.TourSessionService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,6 +52,7 @@ import java.util.UUID;
 public class GuideTourController {
 
     private final GuideTourService guideTourService;
+    private final GuideTourQueryService guideTourQueryService;
     private final TourSessionService tourSessionService;
 
     @Operation(summary = "Submit a new tour and its first session for review")
@@ -71,7 +73,7 @@ public class GuideTourController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size,
             @AuthenticationPrincipal User currentUser
     ) {
-        return ResponseEntity.ok(guideTourService.getGuideTours(currentUser, tab, page, size));
+        return ResponseEntity.ok(guideTourQueryService.getGuideTours(currentUser, tab, page, size));
     }
 
     @Operation(summary = "Get an authenticated guide-owned tour")
@@ -80,7 +82,7 @@ public class GuideTourController {
             @PathVariable UUID tourId,
             @AuthenticationPrincipal User currentUser
     ) {
-        return ResponseEntity.ok(guideTourService.getOwnedTour(currentUser, tourId));
+        return ResponseEntity.ok(guideTourQueryService.getOwnedTour(currentUser, tourId));
     }
 
     @Operation(summary = "Resubmit a rejected tour or submit an approved-tour change request")

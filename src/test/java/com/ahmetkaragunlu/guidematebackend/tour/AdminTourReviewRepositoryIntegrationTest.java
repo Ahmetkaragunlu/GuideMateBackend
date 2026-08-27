@@ -11,7 +11,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewSumm
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewType;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourChangeRequestRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
-import com.ahmetkaragunlu.guidematebackend.tour.service.AdminTourReviewService;
+import com.ahmetkaragunlu.guidematebackend.tour.service.AdminTourReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AdminTourReviewRepositoryIntegrationTest {
 
     @Autowired
-    private AdminTourReviewService reviewService;
+    private AdminTourReviewQueryService reviewService;
     @Autowired
     private UserRepository userRepository;
     @Autowired

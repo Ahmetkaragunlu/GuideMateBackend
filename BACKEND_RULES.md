@@ -190,7 +190,7 @@ girer.
   status/retrieve sozlesmesiyle birlikte uygulanmasi zorunludur.
 - Faz 8 teknik backend dogrulamasi tamamlanmistir: Colima/Docker ve PostgreSQL 18
   Testcontainers kalici local runtime'i kurulmus, temiz `V1-V13` migration ve
-  Hibernate validate dogrulanmis, 36 test sinifindaki 72 kalici testin tamami
+  Hibernate validate dogrulanmis, 61 test sinifindaki 182 kalici testin tamami
   gecmistir. Repository, PostgreSQL `JSONB`/`TIMESTAMPTZ`/unique constraint,
   pessimistic lock, concurrency, idempotency, atomik wallet purchase/iptal/iade,
   gec odeme/tek iade, auth lifecycle, role/ownership, medya guvenligi ve orphan
@@ -246,7 +246,7 @@ eklenecektir:
 | `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Tamamlandi: kalici retry sayaci/zamani, maksimum deneme, reminder deduplication ve tourist/guide reminder marker'lari uygulanir |
 | Android FID kaydi, FCM service/channel/permission ve REST/STOMP repository entegrasyonu | Backend tamamlandiktan sonraki Android entegrasyonunda; backend endpoint ve destination sozlesmeleri degistirilmeden tuketilir |
 | Docker ve PostgreSQL Testcontainers altyapisi | Tamamlandi: Colima Homebrew servisi, kullaniciya ozel Testcontainers Docker host ayari ve test-scope PostgreSQL 18 container'i ile Maven testleri ek komut gerektirmeden calisir |
-| Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Tamamlandi: 36 sinif/72 test korundu; gecici, tekrarlayan veya yalniz implementation detayini test eden dosya bulunmadi. Guide card aggregate/kapasite, aylik kazanc, bildirim aktoru, wallet referans basligi ve OpenAPI sozlesmeleri ek testlerle korunur |
+| Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Tamamlandi: 61 sinif/182 test korundu; gecici, tekrarlayan veya yalniz implementation detayini test eden dosya bulunmadi. Guide card aggregate/kapasite, aylik kazanc, bildirim aktoru, wallet referans basligi, review, checkout/payment intent, reservation, lifecycle/profile, Bayesian siralama, kritik HTTP dogrulamalari ve OpenAPI sozlesmeleri ek testlerle korunur |
 | Test profilindeki H2 2.2.224/Flyway destek araligi uyarisi | Tamamlandi: PostgreSQL'e ozel sema, JSONB, lock ve concurrency icin ek deger saglamadigindan H2 kaldirildi; test profilinin canonical DB'si PostgreSQL 18 Testcontainers oldu |
 | PostgreSQL 18 icin mevcut Flyway destek uyarisinin yeniden degerlendirilmesi | Tamamlandi: Flyway 12.8.1 ile temiz PostgreSQL 18.6 ve local PostgreSQL 18.3 `V1-V13` migration/validate uyarisiz calisti |
 
