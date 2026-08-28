@@ -1,6 +1,5 @@
 package com.ahmetkaragunlu.guidematebackend.profile.domain;
 
-import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -9,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
@@ -30,10 +28,7 @@ import java.util.Set;
 
 @Getter
 @Entity
-@Table(
-        name = "guide_profiles",
-        indexes = @Index(name = "idx_guide_profile_avatar", columnList = "avatar_media_id")
-)
+@Table(name = "guide_profiles")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GuideProfile {
@@ -52,10 +47,6 @@ public class GuideProfile {
 
     @Column(name = "biography", nullable = false, length = 1000)
     private String biography;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "avatar_media_id", unique = true)
-    private MediaAsset avatar;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "guide_languages", joinColumns = @JoinColumn(name = "guide_id"))
@@ -101,7 +92,4 @@ public class GuideProfile {
         this.languageCodes.addAll(Objects.requireNonNull(languageCodes));
     }
 
-    public void updateAvatar(MediaAsset avatar) {
-        this.avatar = Objects.requireNonNull(avatar);
-    }
 }

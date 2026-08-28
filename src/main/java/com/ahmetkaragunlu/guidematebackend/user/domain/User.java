@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -60,12 +61,19 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "token_version", nullable = false)
     private int tokenVersion;
 
+    @Column(name = "avatar_media_id", unique = true)
+    private UUID avatarMediaId;
+
     public void activate() {
         this.accountStatus = AccountStatus.ACTIVE;
     }
 
     public void incrementTokenVersion() {
         this.tokenVersion++;
+    }
+
+    public void updateAvatar(UUID avatarMediaId) {
+        this.avatarMediaId = Objects.requireNonNull(avatarMediaId);
     }
 
     public boolean hasRole(RoleType expectedRole) {

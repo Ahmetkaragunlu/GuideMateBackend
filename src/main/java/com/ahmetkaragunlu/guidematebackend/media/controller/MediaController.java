@@ -6,6 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.media.dto.MediaDeletionResponse;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaUploadResponse;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaContent;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
+import com.ahmetkaragunlu.guidematebackend.media.service.MediaUploadPolicy;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -37,16 +38,18 @@ import java.util.UUID;
 public class MediaController {
 
     private final MediaService mediaService;
+    private final MediaUploadPolicy mediaUploadPolicy;
 
-    @Operation(summary = "Upload a guide-owned image")
+    @Operation(summary = "Upload an owned user avatar or guide tour cover")
     @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH_SCHEME)
-    @PreAuthorize("hasRole('GUIDE')")
+    @PreAuthorize("hasAnyRole('TOURIST', 'GUIDE')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MediaUploadResponse> upload(
             @RequestPart("file") MultipartFile file,
             @RequestParam("purpose") MediaPurpose purpose,
             @AuthenticationPrincipal User currentUser
     ) {
+        mediaUploadPolicy.requireAllowed(currentUser, purpose);
         MediaUploadResponse response = mediaService.upload(file, purpose, currentUser.getId());
         return ResponseEntity.created(URI.create(response.imageUrl())).body(response);
     }
@@ -72,7 +75,7 @@ public class MediaController {
 
     @Operation(summary = "Delete an unreferenced owned image")
     @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH_SCHEME)
-    @PreAuthorize("hasRole('GUIDE')")
+    @PreAuthorize("hasAnyRole('TOURIST', 'GUIDE')")
     @DeleteMapping("/{mediaId}")
     public ResponseEntity<MediaDeletionResponse> delete(
             @PathVariable UUID mediaId,

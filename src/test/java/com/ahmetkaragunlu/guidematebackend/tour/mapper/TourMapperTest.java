@@ -2,6 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.tour.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
@@ -20,7 +21,9 @@ import static org.mockito.Mockito.when;
 
 class TourMapperTest {
 
-    private final TourMapper mapper = new TourMapper(new MediaUrlFactory("http://localhost:8080"));
+    private final TourMapper mapper = new TourMapper(
+            new MediaReferenceMapper(new MediaUrlFactory("http://localhost:8080"))
+    );
 
     @Test
     void guideCardKeepsTotalCapacityAndMapsAggregates() {

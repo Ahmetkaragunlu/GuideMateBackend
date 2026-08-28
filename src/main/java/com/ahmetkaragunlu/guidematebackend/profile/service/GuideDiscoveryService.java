@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.profile.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideSearchItemResponse;
@@ -32,7 +32,7 @@ public class GuideDiscoveryService {
     private final GuideProfileRepository guideProfileRepository;
     private final GuideRankingRepository guideRankingRepository;
     private final GuidePerformanceService guidePerformanceService;
-    private final MediaUrlFactory mediaUrlFactory;
+    private final MediaReferenceMapper mediaReferenceMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<GuideSearchItemResponse> search(String query, int page, int size) {
@@ -98,12 +98,7 @@ public class GuideDiscoveryService {
             GuideProfile profile,
             GuidePerformanceSummary performance
     ) {
-        MediaReferenceResponse avatar = profile.getAvatar() == null
-                ? null
-                : new MediaReferenceResponse(
-                        profile.getAvatar().getId(),
-                        mediaUrlFactory.contentUrl(profile.getAvatar().getId())
-                );
+        MediaReferenceResponse avatar = mediaReferenceMapper.fromId(profile.getUser().getAvatarMediaId());
         return new GuideSearchItemResponse(
                 profile.getUserId(),
                 profile.getUser().displayName(),

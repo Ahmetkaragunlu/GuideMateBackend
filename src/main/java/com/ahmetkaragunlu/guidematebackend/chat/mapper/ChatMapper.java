@@ -6,8 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatMessageDeliveryStatus
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatConversationResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessageResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatParticipantResponse;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
-import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,21 +17,20 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class ChatMapper {
 
-    private final MediaUrlFactory mediaUrlFactory;
+    private final MediaReferenceMapper mediaReferenceMapper;
 
     public ChatConversationResponse toConversation(
             ChatConversation conversation,
             ChatMessage lastMessage,
-            long unreadCount,
-            GuideProfile guideProfile
+            long unreadCount
     ) {
         Instant lastActivityAt = lastMessage == null
                 ? conversation.getCreatedAt()
                 : lastMessage.getSentAt();
         return new ChatConversationResponse(
                 conversation.getId(),
-                participant(conversation.getGuide(), guideProfile),
-                participant(conversation.getTourist(), null),
+                participant(conversation.getGuide()),
+                participant(conversation.getTourist()),
                 lastMessage == null ? null : toMessage(lastMessage),
                 unreadCount,
                 conversation.getCreatedAt(),
@@ -52,14 +50,12 @@ public class ChatMapper {
         );
     }
 
-    private ChatParticipantResponse participant(User user, GuideProfile guideProfile) {
-        String avatarUrl = guideProfile == null || guideProfile.getAvatar() == null
-                ? null
-                : mediaUrlFactory.contentUrl(guideProfile.getAvatar().getId());
+    private ChatParticipantResponse participant(User user) {
+        var avatar = mediaReferenceMapper.fromId(user.getAvatarMediaId());
         return new ChatParticipantResponse(
                 user.getId(),
                 user.displayName(),
-                avatarUrl
+                avatar == null ? null : avatar.imageUrl()
         );
     }
 }

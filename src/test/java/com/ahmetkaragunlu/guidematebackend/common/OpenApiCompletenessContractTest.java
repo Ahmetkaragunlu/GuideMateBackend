@@ -31,6 +31,7 @@ class OpenApiCompletenessContractTest {
                 .andExpect(jsonPath("$.paths['/api/v1/auth/register']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/auth/me']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/media']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/users/me/avatar']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guides/{guideId}/public-profile']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/tours']").exists())
                 .andExpect(jsonPath("$.components.schemas.GuideTourCardResponse.properties.averageRating")

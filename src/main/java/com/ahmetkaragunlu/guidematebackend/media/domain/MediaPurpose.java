@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.media.domain;
 
 public enum MediaPurpose {
-    GUIDE_AVATAR,
+    USER_AVATAR,
     TOUR_COVER
 }

@@ -1,8 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.profile.mapper;
 
-import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideProfileResponse;
@@ -16,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GuideProfileMapper {
 
-    private final MediaUrlFactory mediaUrlFactory;
+    private final MediaReferenceMapper mediaReferenceMapper;
 
     public GuideProfileResponse toResponse(
             User user,
@@ -28,7 +27,7 @@ public class GuideProfileMapper {
         List<String> languageCodes = profile == null
                 ? List.of()
                 : profile.getLanguageCodes().stream().sorted().toList();
-        MediaReferenceResponse avatar = profile == null ? null : toMediaReference(profile.getAvatar());
+        MediaReferenceResponse avatar = mediaReferenceMapper.fromId(user.getAvatarMediaId());
 
         return new GuideProfileResponse(
                 user.getId(),
@@ -42,12 +41,4 @@ public class GuideProfileMapper {
                 performance
         );
     }
-
-    private MediaReferenceResponse toMediaReference(MediaAsset media) {
-        if (media == null) {
-            return null;
-        }
-        return new MediaReferenceResponse(media.getId(), mediaUrlFactory.contentUrl(media.getId()));
-    }
-
 }

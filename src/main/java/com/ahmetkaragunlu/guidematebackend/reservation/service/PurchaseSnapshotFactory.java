@@ -23,7 +23,7 @@ public class PurchaseSnapshotFactory {
         Tour tour = session.getTour();
         GuideProfile guideProfile = guideProfileRepository.findByUserId(tour.getGuide().getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.GUIDE_PROFILE_NOT_FOUND));
-        var avatar = guideProfile.getAvatar();
+        var avatarMediaId = tour.getGuide().getAvatarMediaId();
         return new PurchaseSnapshot(
                 CURRENT_SNAPSHOT_VERSION,
                 tour.getId(),
@@ -32,7 +32,7 @@ public class PurchaseSnapshotFactory {
                 tour.getCoverMedia().getId(),
                 tour.getGuide().getId(),
                 tour.getGuide().displayName(),
-                avatar == null ? null : avatar.getId(),
+                avatarMediaId,
                 tour.getCountryCode(),
                 tour.getCityPlaceId(),
                 tour.getCityName(),

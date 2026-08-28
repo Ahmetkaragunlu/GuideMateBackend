@@ -105,7 +105,8 @@ girer.
   baslar.
 - Mevcut auth API'si bu fazlardan bagimsiz olarak korunur.
 - Faz 2 backend kapsami tamamlanmistir: `V3` semasi, local `MediaStorage`, medya
-  lifecycle/cleanup, owner-public erisim, rehber profili/dilleri/avatari,
+  lifecycle/cleanup, owner-public erisim, rehber profili/dilleri ve V14 ile
+  turist/rehber icin ortak kullanici avatari,
   role-ownership kontrolleri ve OpenAPI sozlesmesi birlikte dogrulanmistir.
 - Faz 3 backend kapsami tamamlanmistir: `V4` semasi, tur ve oturum lifecycle'i,
   yeni tur ve kritik degisiklik inceleme akisi, rehber yonetimi, admin onayi,
@@ -189,8 +190,8 @@ girer.
   reconciliation job'u eklenmemistir; gercek payout modu eklenirse provider
   status/retrieve sozlesmesiyle birlikte uygulanmasi zorunludur.
 - Faz 8 teknik backend dogrulamasi tamamlanmistir: Colima/Docker ve PostgreSQL 18
-  Testcontainers kalici local runtime'i kurulmus, temiz `V1-V13` migration ve
-  Hibernate validate dogrulanmis, 61 test sinifindaki 182 kalici testin tamami
+  Testcontainers kalici local runtime'i kurulmus, temiz `V1-V14` migration ve
+  Hibernate validate dogrulanmis, 65 test sinifindaki 187 kalici testin tamami
   gecmistir. Repository, PostgreSQL `JSONB`/`TIMESTAMPTZ`/unique constraint,
   pessimistic lock, concurrency, idempotency, atomik wallet purchase/iptal/iade,
   gec odeme/tek iade, auth lifecycle, role/ownership, medya guvenligi ve orphan
@@ -246,9 +247,9 @@ eklenecektir:
 | `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Tamamlandi: kalici retry sayaci/zamani, maksimum deneme, reminder deduplication ve tourist/guide reminder marker'lari uygulanir |
 | Android FID kaydi, FCM service/channel/permission ve REST/STOMP repository entegrasyonu | Backend tamamlandiktan sonraki Android entegrasyonunda; backend endpoint ve destination sozlesmeleri degistirilmeden tuketilir |
 | Docker ve PostgreSQL Testcontainers altyapisi | Tamamlandi: Colima Homebrew servisi, kullaniciya ozel Testcontainers Docker host ayari ve test-scope PostgreSQL 18 container'i ile Maven testleri ek komut gerektirmeden calisir |
-| Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Tamamlandi: 61 sinif/182 test korundu; gecici, tekrarlayan veya yalniz implementation detayini test eden dosya bulunmadi. Guide card aggregate/kapasite, aylik kazanc, bildirim aktoru, wallet referans basligi, review, checkout/payment intent, reservation, lifecycle/profile, Bayesian siralama, kritik HTTP dogrulamalari ve OpenAPI sozlesmeleri ek testlerle korunur |
+| Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Tamamlandi: 65 sinif/187 test korundu; gecici, tekrarlayan veya yalniz implementation detayini test eden dosya bulunmadi. Guide card aggregate/kapasite, aylik kazanc, bildirim aktoru, wallet referans basligi, review, checkout/payment intent, reservation, lifecycle/profile/avatar, Bayesian siralama, kritik HTTP dogrulamalari ve OpenAPI sozlesmeleri ek testlerle korunur |
 | Test profilindeki H2 2.2.224/Flyway destek araligi uyarisi | Tamamlandi: PostgreSQL'e ozel sema, JSONB, lock ve concurrency icin ek deger saglamadigindan H2 kaldirildi; test profilinin canonical DB'si PostgreSQL 18 Testcontainers oldu |
-| PostgreSQL 18 icin mevcut Flyway destek uyarisinin yeniden degerlendirilmesi | Tamamlandi: Flyway 12.8.1 ile temiz PostgreSQL 18.6 ve local PostgreSQL 18.3 `V1-V13` migration/validate uyarisiz calisti |
+| PostgreSQL 18 icin mevcut Flyway destek uyarisinin yeniden degerlendirilmesi | Tamamlandi: Flyway 12.8.1 ile temiz PostgreSQL 18.6 uzerinde `V1-V14`, local PostgreSQL 18.3 uzerinde onceki `V1-V13` migration/validate uyarisiz calisti |
 
 Bu liste her faz sonunda yeniden kontrol edilir. Tamamlanan satirlar silinmek
 yerine gercek uygulama dosyasina veya teste referans verilerek tamamlandi olarak

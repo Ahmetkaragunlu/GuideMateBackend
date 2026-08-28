@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
-import java.util.UUID;
 
 public record UpdateGuideProfileRequest(
         @NotBlank(message = "{validation.guide.specialty.notBlank}")
@@ -21,9 +20,7 @@ public record UpdateGuideProfileRequest(
         List<@NotBlank @Pattern(
                 regexp = "^[A-Za-z]{2,3}$",
                 message = "{validation.guide.language.invalid}"
-        ) String> languageCodes,
-
-        UUID avatarMediaId
+        ) String> languageCodes
 ) {
 
     public UpdateGuideProfileRequest {

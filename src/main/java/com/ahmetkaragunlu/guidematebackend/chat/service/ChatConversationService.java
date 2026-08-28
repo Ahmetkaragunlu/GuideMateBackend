@@ -12,8 +12,6 @@ import com.ahmetkaragunlu.guidematebackend.chat.repository.ConversationUnreadCou
 import com.ahmetkaragunlu.guidematebackend.common.dto.UnreadCountResponse;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
-import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -29,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,7 +36,6 @@ public class ChatConversationService {
     private final ChatConversationRepository conversationRepository;
     private final ChatMessageRepository messageRepository;
     private final ChatReadStateRepository readStateRepository;
-    private final GuideProfileRepository guideProfileRepository;
     private final UserRepository userRepository;
     private final ChatMapper chatMapper;
     private final Clock clock;
@@ -50,13 +46,12 @@ public class ChatConversationService {
         ChatConversation conversation = conversationRepository
                 .findByGuide_IdAndTourist_Id(participants.guide().getId(), participants.tourist().getId())
                 .orElseGet(() -> createConversation(participants));
-        GuideProfile profile = guideProfileRepository.findByUserId(participants.guide().getId()).orElse(null);
         ChatMessage lastMessage = messageRepository
                 .findFirstByConversation_IdOrderBySentAtDescIdDesc(conversation.getId())
                 .orElse(null);
         long unreadCount = unreadCounts(List.of(conversation.getId()), currentUser.getId())
                 .getOrDefault(conversation.getId(), 0L);
-        return chatMapper.toConversation(conversation, lastMessage, unreadCount, profile);
+        return chatMapper.toConversation(conversation, lastMessage, unreadCount);
     }
 
     @Transactional(readOnly = true)
@@ -68,17 +63,11 @@ public class ChatConversationService {
         List<UUID> conversationIds = conversations.stream().map(ChatConversation::getId).toList();
         Map<UUID, ChatMessage> latestMessages = latestMessages(conversationIds);
         Map<UUID, Long> unreadCounts = unreadCounts(conversationIds, currentUser.getId());
-        Map<Long, GuideProfile> guideProfiles = guideProfileRepository.findAllByUserIdIn(
-                        conversations.stream().map(conversation -> conversation.getGuide().getId()).toList()
-                ).stream()
-                .collect(Collectors.toMap(GuideProfile::getUserId, Function.identity()));
-
         return conversations.stream()
                 .map(conversation -> chatMapper.toConversation(
                         conversation,
                         latestMessages.get(conversation.getId()),
-                        unreadCounts.getOrDefault(conversation.getId(), 0L),
-                        guideProfiles.get(conversation.getGuide().getId())
+                        unreadCounts.getOrDefault(conversation.getId(), 0L)
                 ))
                 .sorted(Comparator
                         .comparing(ChatConversationResponse::lastActivityAt)

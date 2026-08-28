@@ -13,19 +13,18 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Repository
 public interface GuideProfileRepository extends JpaRepository<GuideProfile, Long> {
 
-    @EntityGraph(attributePaths = {"user", "user.role", "avatar", "languageCodes"})
+    @EntityGraph(attributePaths = {"user", "user.role", "languageCodes"})
     Optional<GuideProfile> findByUserId(Long userId);
 
-    @EntityGraph(attributePaths = {"user", "user.role", "avatar", "languageCodes"})
+    @EntityGraph(attributePaths = {"user", "user.role", "languageCodes"})
     @Query("SELECT profile FROM GuideProfile profile WHERE profile.userId IN :userIds")
     List<GuideProfile> findAllByUserIdIn(@Param("userIds") Collection<Long> userIds);
 
-    @EntityGraph(attributePaths = {"user", "user.role", "avatar"})
+    @EntityGraph(attributePaths = {"user", "user.role"})
     @Query(
             value = """
                     SELECT profile
@@ -63,7 +62,7 @@ public interface GuideProfileRepository extends JpaRepository<GuideProfile, Long
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"user", "user.role", "avatar"})
+    @EntityGraph(attributePaths = {"user", "user.role"})
     @Query(
             value = """
                     SELECT profile
@@ -88,20 +87,4 @@ public interface GuideProfileRepository extends JpaRepository<GuideProfile, Long
             Pageable pageable
     );
 
-    boolean existsByAvatar_Id(UUID mediaAssetId);
-
-    @Query("""
-            SELECT CASE WHEN COUNT(profile) > 0 THEN true ELSE false END
-            FROM GuideProfile profile
-            JOIN profile.user user
-            JOIN user.role role
-            WHERE profile.avatar.id = :mediaAssetId
-              AND user.accountStatus = :accountStatus
-              AND role.name = :roleName
-            """)
-    boolean existsPublicAvatarReference(
-            @Param("mediaAssetId") UUID mediaAssetId,
-            @Param("accountStatus") AccountStatus accountStatus,
-            @Param("roleName") String roleName
-    );
 }

@@ -3,9 +3,6 @@ package com.ahmetkaragunlu.guidematebackend.profile.service;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.validation.LanguageCodePolicy;
-import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
-import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideProfileResponse;
@@ -25,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,8 +36,6 @@ class GuideProfileServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private MediaService mediaService;
-    @Mock
     private GuideProfileMapper guideProfileMapper;
     @Mock
     private GuidePerformanceService guidePerformanceService;
@@ -53,7 +47,6 @@ class GuideProfileServiceTest {
         service = new GuideProfileService(
                 guideProfileRepository,
                 userRepository,
-                mediaService,
                 guideProfileMapper,
                 new LanguageCodePolicy(),
                 guidePerformanceService
@@ -61,18 +54,14 @@ class GuideProfileServiceTest {
     }
 
     @Test
-    void createsProfileWithNormalizedLanguagesAndOwnedAvatar() {
+    void createsProfileWithNormalizedLanguages() {
         User currentUser = org.mockito.Mockito.mock(User.class);
         User reference = org.mockito.Mockito.mock(User.class);
-        MediaAsset avatar = org.mockito.Mockito.mock(MediaAsset.class);
         GuidePerformanceSummary performance = org.mockito.Mockito.mock(GuidePerformanceSummary.class);
         GuideProfileResponse expected = org.mockito.Mockito.mock(GuideProfileResponse.class);
-        UUID avatarId = UUID.randomUUID();
         when(currentUser.getId()).thenReturn(42L);
         when(guideProfileRepository.findByUserId(42L)).thenReturn(Optional.empty());
         when(userRepository.getReferenceById(42L)).thenReturn(reference);
-        when(mediaService.requireAssignableAsset(avatarId, 42L, MediaPurpose.GUIDE_AVATAR))
-                .thenReturn(avatar);
         when(guideProfileRepository.save(org.mockito.ArgumentMatchers.any(GuideProfile.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(guidePerformanceService.get(42L)).thenReturn(performance);
@@ -87,8 +76,7 @@ class GuideProfileServiceTest {
                 new UpdateGuideProfileRequest(
                         "  History Guide  ",
                         "  A sufficiently detailed professional guide biography.  ",
-                        List.of("EN", " tr ", "en"),
-                        avatarId
+                        List.of("EN", " tr ", "en")
                 )
         );
 
@@ -99,7 +87,6 @@ class GuideProfileServiceTest {
         assertThat(profileCaptor.getValue().getBiography())
                 .isEqualTo("A sufficiently detailed professional guide biography.");
         assertThat(profileCaptor.getValue().getLanguageCodes()).containsExactly("en", "tr");
-        assertThat(profileCaptor.getValue().getAvatar()).isSameAs(avatar);
     }
 
     @Test

@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.tour.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TourMapper {
 
-    private final MediaUrlFactory mediaUrlFactory;
+    private final MediaReferenceMapper mediaReferenceMapper;
 
     public TourDetailResponse toDetail(
             Tour tour,
@@ -165,13 +165,11 @@ public class TourMapper {
     }
 
     public MediaReferenceResponse toMediaReference(MediaAsset media) {
-        return new MediaReferenceResponse(media.getId(), mediaUrlFactory.contentUrl(media.getId()));
+        return mediaReferenceMapper.from(media);
     }
 
     private PublicGuideSummaryResponse toGuideSummary(User guide, GuideProfile profile) {
-        MediaReferenceResponse avatar = profile == null || profile.getAvatar() == null
-                ? null
-                : toMediaReference(profile.getAvatar());
+        MediaReferenceResponse avatar = mediaReferenceMapper.fromId(guide.getAvatarMediaId());
         return new PublicGuideSummaryResponse(
                 guide.getId(),
                 guide.displayName(),

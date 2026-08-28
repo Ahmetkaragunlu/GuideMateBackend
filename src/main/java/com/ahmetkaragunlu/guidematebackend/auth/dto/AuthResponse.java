@@ -1,5 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.auth.dto;
 
+import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
 
 public record AuthResponse(
         String accessToken,
@@ -10,6 +11,7 @@ public record AuthResponse(
         String firstName,
         String lastName,
         boolean roleSelected,
-        String role
+        String role,
+        MediaReferenceResponse avatar
 ) {
 }

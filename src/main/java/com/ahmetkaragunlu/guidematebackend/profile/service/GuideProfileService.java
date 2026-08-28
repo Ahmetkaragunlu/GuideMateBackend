@@ -3,9 +3,6 @@ package com.ahmetkaragunlu.guidematebackend.profile.service;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.validation.LanguageCodePolicy;
-import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
-import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideProfileResponse;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.UpdateGuideProfileRequest;
@@ -27,7 +24,6 @@ public class GuideProfileService {
 
     private final GuideProfileRepository guideProfileRepository;
     private final UserRepository userRepository;
-    private final MediaService mediaService;
     private final GuideProfileMapper guideProfileMapper;
     private final LanguageCodePolicy languageCodePolicy;
     private final GuidePerformanceService guidePerformanceService;
@@ -60,15 +56,6 @@ public class GuideProfileService {
         } else {
             profile.updateDetails(request.specialtyTitle(), request.biography(), languageCodes);
         }
-        if (request.avatarMediaId() != null) {
-            MediaAsset avatar = mediaService.requireAssignableAsset(
-                    request.avatarMediaId(),
-                    currentUser.getId(),
-                    MediaPurpose.GUIDE_AVATAR
-            );
-            profile.updateAvatar(avatar);
-        }
-
         GuideProfile savedProfile = guideProfileRepository.save(profile);
         return toResponse(currentUser, savedProfile);
     }

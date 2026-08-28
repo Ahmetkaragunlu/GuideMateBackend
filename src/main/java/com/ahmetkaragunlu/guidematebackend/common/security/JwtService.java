@@ -2,6 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.common.security;
 
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -50,13 +51,17 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, User user) {
-        Claims claims = extractAllClaims(token);
-        Integer tokenVersion = claims.get(TOKEN_VERSION_CLAIM, Integer.class);
-        return user.isEnabled()
-                && user.getUsername().equals(claims.getSubject())
-                && tokenVersion != null
-                && tokenVersion == user.getTokenVersion()
-                && claims.getExpiration().after(Date.from(clock.instant()));
+        try {
+            Claims claims = extractAllClaims(token);
+            Integer tokenVersion = claims.get(TOKEN_VERSION_CLAIM, Integer.class);
+            return user.isEnabled()
+                    && user.getUsername().equals(claims.getSubject())
+                    && tokenVersion != null
+                    && tokenVersion == user.getTokenVersion()
+                    && claims.getExpiration().after(Date.from(clock.instant()));
+        } catch (JwtException | IllegalArgumentException exception) {
+            return false;
+        }
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -65,6 +70,7 @@ public class JwtService {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
+                .clock(() -> Date.from(clock.instant()))
                 .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)

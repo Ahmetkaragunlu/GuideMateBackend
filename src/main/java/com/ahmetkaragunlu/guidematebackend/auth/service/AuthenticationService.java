@@ -9,6 +9,7 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.common.security.JwtService;
 import com.ahmetkaragunlu.guidematebackend.common.util.EmailNormalizer;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.notification.service.DeviceRegistrationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -44,6 +45,7 @@ public class AuthenticationService {
     private final AccountStatusPolicy accountStatusPolicy;
     private final MessageSource messageSource;
     private final DeviceRegistrationService deviceRegistrationService;
+    private final MediaReferenceMapper mediaReferenceMapper;
 
     @Transactional
     public AuthResponse login(LoginRequest request, String installationId, String clientIp) {
@@ -139,7 +141,8 @@ public class AuthenticationService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.isRoleSelected(),
-                roleName(user)
+                roleName(user),
+                mediaReferenceMapper.fromId(user.getAvatarMediaId())
         );
     }
 
@@ -174,7 +177,8 @@ public class AuthenticationService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.isRoleSelected(),
-                roleName(user)
+                roleName(user),
+                mediaReferenceMapper.fromId(user.getAvatarMediaId())
         );
     }
 
