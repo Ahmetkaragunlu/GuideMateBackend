@@ -24,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailNormalizer emailNormalizer;
     private final InstallationIdValidator installationIdValidator;
@@ -60,6 +62,10 @@ public class AuthenticationService {
         } catch (DisabledException exception) {
             User inactiveUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
+            if (!passwordEncoder.matches(request.password(), inactiveUser.getPassword())) {
+                rateLimitService.recordLoginFailure(email, clientIp);
+                throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+            }
             ErrorCode errorCode = accountStatusPolicy.accessError(inactiveUser)
                     .orElse(ErrorCode.INVALID_CREDENTIALS);
             throw new BusinessException(errorCode);

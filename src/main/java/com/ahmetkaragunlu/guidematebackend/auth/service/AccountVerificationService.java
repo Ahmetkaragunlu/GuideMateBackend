@@ -46,8 +46,12 @@ public class AccountVerificationService {
     public String register(RegisterRequest request) {
         String email = emailNormalizer.normalize(request.email());
         passwordPolicy.validate(request.password());
-        if (userRepository.existsByEmail(email)) {
-            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        User existingUser = userRepository.findByEmail(email).orElse(null);
+        if (existingUser != null) {
+            ErrorCode errorCode = existingUser.getAccountStatus() == AccountStatus.PENDING_VERIFICATION
+                    ? ErrorCode.ACCOUNT_PENDING_VERIFICATION
+                    : ErrorCode.EMAIL_ALREADY_EXISTS;
+            throw new BusinessException(errorCode);
         }
 
         User user = new User();
@@ -94,7 +98,7 @@ public class AccountVerificationService {
         user.activate();
     }
 
-    @Transactional(noRollbackFor = EmailDeliveryException.class)
+    @Transactional
     public String resendVerification(ResendVerificationRequest request, String clientIp) {
         String email = emailNormalizer.normalize(request.email());
         rateLimitService.acquirePublicPermit(RESEND_RATE_LIMIT_OPERATION, email, clientIp);

@@ -35,4 +35,8 @@ build/
 
 # Local secrets
 config/application-local-secrets.properties
+config/application-demo-secrets.properties
 config/firebase-service-account.json
+
+# Local demo safety snapshots and database backups
+.demo-safety/
