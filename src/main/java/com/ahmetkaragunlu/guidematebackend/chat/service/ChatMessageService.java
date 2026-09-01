@@ -15,7 +15,6 @@ import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationComm
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
-import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -38,7 +37,6 @@ public class ChatMessageService {
 
     private final ChatConversationRepository conversationRepository;
     private final ChatMessageRepository messageRepository;
-    private final UserRepository userRepository;
     private final NotificationPublisher notificationPublisher;
     private final ApplicationEventPublisher eventPublisher;
     private final ChatMapper chatMapper;
@@ -86,19 +84,18 @@ public class ChatMessageService {
             UUID conversationId,
             SendChatMessageRequest request
     ) {
-        User sender = userRepository.findByIdForUpdate(currentUser.getId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        ChatConversation conversation = conversationRepository.findParticipantConversationForUpdate(
+                        conversationId,
+                        currentUser.getId()
+                )
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_NOT_FOUND));
+        User sender = conversation.participant(currentUser.getId());
         if (!sender.isEnabled()
                 || sender.getTokenVersion() != currentUser.getTokenVersion()
                 || (!sender.hasRole(RoleType.ROLE_GUIDE)
                 && !sender.hasRole(RoleType.ROLE_TOURIST))) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
-        ChatConversation conversation = conversationRepository.findParticipantConversationForUpdate(
-                        conversationId,
-                        sender.getId()
-                )
-                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_NOT_FOUND));
         String body = normalizeBody(request.body());
 
         ChatMessage duplicate = messageRepository.findBySender_IdAndClientMessageId(

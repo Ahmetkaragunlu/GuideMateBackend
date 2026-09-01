@@ -51,6 +51,16 @@ public class ChatConversation extends UuidAuditedEntity {
         return guide.getId().equals(userId) || tourist.getId().equals(userId);
     }
 
+    public User participant(Long userId) {
+        if (guide.getId().equals(userId)) {
+            return guide;
+        }
+        if (tourist.getId().equals(userId)) {
+            return tourist;
+        }
+        throw new IllegalArgumentException("User is not a chat participant");
+    }
+
     public User otherParticipant(Long userId) {
         if (guide.getId().equals(userId)) {
             return tourist;

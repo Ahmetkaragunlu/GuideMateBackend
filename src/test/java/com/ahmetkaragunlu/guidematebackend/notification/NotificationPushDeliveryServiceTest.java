@@ -60,7 +60,7 @@ class NotificationPushDeliveryServiceTest {
     private PushNotificationSender pushNotificationSender;
 
     @Test
-    void sendsOutsideDatabaseTransactionWithSemanticIdsOnly() {
+    void sendsOutsideDatabaseTransactionWithWhitelistedSemanticPayloadOnly() {
         String firebaseInstallationId = "test-fid-" + UUID.randomUUID();
         UUID tourId = UUID.randomUUID();
         Fixture fixture = new TransactionTemplate(transactionManager).execute(status -> {
@@ -73,9 +73,12 @@ class NotificationPushDeliveryServiceTest {
             ));
             Notification notification = notificationRepository.save(new Notification(
                     user,
-                    NotificationType.TOUR_APPROVED,
+                    NotificationType.SECURITY_ALERT,
                     null,
-                    "{\"tourId\":\"" + tourId + "\",\"tourTitle\":\"Hidden from push\"}",
+                    "{\"tourId\":\"" + tourId + "\","
+                            + "\"securityEvent\":\"PASSWORD_CHANGED\","
+                            + "\"tourTitle\":\"Hidden from push\","
+                            + "\"accountSecret\":\"must-not-leak\"}",
                     NotificationPushStatus.PENDING
             ));
             return new Fixture(notification.getId(), registration.getId());
@@ -86,9 +89,15 @@ class NotificationPushDeliveryServiceTest {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
             Map<String, String> data = invocation.getArgument(1);
             assertThat(data).containsEntry("notificationId", fixture.notificationId().toString());
-            assertThat(data).containsEntry("type", NotificationType.TOUR_APPROVED.name());
+            assertThat(data).containsEntry("type", NotificationType.SECURITY_ALERT.name());
             assertThat(data).containsEntry("tourId", tourId.toString());
-            assertThat(data).doesNotContainKeys("tourTitle", "route", "body");
+            assertThat(data).containsEntry("securityEvent", "PASSWORD_CHANGED");
+            assertThat(data).doesNotContainKeys(
+                    "tourTitle",
+                    "accountSecret",
+                    "route",
+                    "body"
+            );
             return PushSendResult.sent();
         });
 

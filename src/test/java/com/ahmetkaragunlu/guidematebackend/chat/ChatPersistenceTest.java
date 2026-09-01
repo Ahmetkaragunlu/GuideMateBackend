@@ -8,6 +8,7 @@ import com.ahmetkaragunlu.guidematebackend.chat.dto.SendChatMessageRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatConversationRepository;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatMessageRepository;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatReadStateRepository;
+import com.ahmetkaragunlu.guidematebackend.chat.service.ChatConversationService;
 import com.ahmetkaragunlu.guidematebackend.chat.service.ChatMessageService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
@@ -22,11 +23,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -53,6 +63,12 @@ class ChatPersistenceTest {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private ChatConversationService chatConversationService;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Test
     void persistsReadStateAndQueriesUnreadAndCursorHistory() {
@@ -141,6 +157,75 @@ class ChatPersistenceTest {
                 assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.CHAT_NOT_FOUND));
     }
 
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void sendsFirstMessageWhileConversationIsMarkedRead() throws Exception {
+        ChatRaceFixture fixture = new TransactionTemplate(transactionManager).execute(status -> {
+            String suffix = UUID.randomUUID().toString();
+            User guide = createUser("guide-race-" + suffix + "@example.com", RoleType.ROLE_GUIDE);
+            User tourist = createUser("tourist-race-" + suffix + "@example.com", RoleType.ROLE_TOURIST);
+            ChatConversation conversation = conversationRepository.saveAndFlush(
+                    new ChatConversation(guide, tourist)
+            );
+            Instant now = Instant.parse("2026-09-01T12:00:00Z");
+            readStateRepository.saveAllAndFlush(List.of(
+                    new ChatReadState(conversation, guide, now),
+                    new ChatReadState(conversation, tourist, now)
+            ));
+            return new ChatRaceFixture(conversation.getId(), guide.getId(), tourist.getId());
+        });
+        User guide = userRepository.findById(fixture.guideId()).orElseThrow();
+        SendChatMessageRequest request = new SendChatMessageRequest(
+                UUID.randomUUID(),
+                "First race-safe message"
+        );
+
+        runConcurrently(
+                () -> {
+                    chatMessageService.send(guide, fixture.conversationId(), request);
+                    return null;
+                },
+                () -> {
+                    chatConversationService.markRead(guide, fixture.conversationId());
+                    return null;
+                }
+        );
+
+        assertThat(messageRepository.findFirstPage(
+                fixture.conversationId(),
+                PageRequest.of(0, 10)
+        )).hasSize(1);
+        assertThat(messageRepository.countUnread(fixture.guideId())).isZero();
+        assertThat(messageRepository.countUnread(fixture.touristId())).isEqualTo(1);
+    }
+
+    private <T> void runConcurrently(Callable<T> first, Callable<T> second) throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        try {
+            Future<T> firstFuture = executor.submit(gated(first, ready, start));
+            Future<T> secondFuture = executor.submit(gated(second, ready, start));
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+            firstFuture.get(10, TimeUnit.SECONDS);
+            secondFuture.get(10, TimeUnit.SECONDS);
+        } finally {
+            start.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    private <T> Callable<T> gated(Callable<T> task, CountDownLatch ready, CountDownLatch start) {
+        return () -> {
+            ready.countDown();
+            if (!start.await(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Concurrent test start timed out");
+            }
+            return task.call();
+        };
+    }
+
     private User createUser(String email, RoleType roleType) {
         Role role = roleRepository.findByName(roleType.name()).orElseThrow();
         User user = new User();
@@ -152,5 +237,8 @@ class ChatPersistenceTest {
         user.setRoleSelected(true);
         user.setAccountStatus(AccountStatus.ACTIVE);
         return userRepository.saveAndFlush(user);
+    }
+
+    private record ChatRaceFixture(UUID conversationId, Long guideId, Long touristId) {
     }
 }

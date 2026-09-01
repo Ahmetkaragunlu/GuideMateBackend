@@ -23,6 +23,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotificationPushDeliveryStateService {
 
+    private static final Set<String> PUSH_PAYLOAD_KEYS = Set.of("securityEvent");
+
     private final NotificationRepository notificationRepository;
     private final DeviceRegistrationRepository registrationRepository;
     private final NotificationPayloadCodec payloadCodec;
@@ -85,7 +87,7 @@ public class NotificationPushDeliveryStateService {
         data.put("type", notification.getType().name());
         payloadCodec.decode(notification.getPayloadJson())
                 .forEach((key, value) -> {
-                    if (value != null && key.endsWith("Id")) {
+                    if (value != null && (key.endsWith("Id") || PUSH_PAYLOAD_KEYS.contains(key))) {
                         data.put(key, String.valueOf(value));
                     }
                 });
