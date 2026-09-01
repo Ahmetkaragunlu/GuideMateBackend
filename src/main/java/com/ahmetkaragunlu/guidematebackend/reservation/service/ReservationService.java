@@ -22,6 +22,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.dto.ReservationResponse;
 import com.ahmetkaragunlu.guidematebackend.reservation.mapper.ReservationMapper;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.review.dto.ReviewResponse;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
@@ -50,6 +51,7 @@ public class ReservationService {
     );
 
     private final ReservationRepository reservationRepository;
+    private final ReservationCapacityService reservationCapacityService;
     private final ReviewQueryService reviewQueryService;
     private final ReservationMapper reservationMapper;
     private final CancellationPolicy cancellationPolicy;
@@ -83,9 +85,13 @@ public class ReservationService {
             );
         };
         Map<UUID, ReviewResponse> reviews = reviewsByReservationId(reservations.getContent());
+        Map<UUID, ReviewAggregate> reviewAggregates = reviewAggregatesByTourId(reservations.getContent());
+        Map<UUID, Integer> bookedCounts = bookedCountsBySessionId(reservations.getContent());
         return PageResponse.from(reservations.map(reservation -> reservationMapper.toResponse(
                 reservation,
-                reviews.get(reservation.getId())
+                reviews.get(reservation.getId()),
+                reviewAggregates.getOrDefault(tourId(reservation), ReviewAggregate.EMPTY),
+                bookedCounts.getOrDefault(reservation.getSession().getId(), 0)
         )));
     }
 
@@ -96,10 +102,7 @@ public class ReservationService {
                         currentUser.getId()
                 )
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
-        return reservationMapper.toResponse(
-                reservation,
-                reviewQueryService.reviewByReservationId(reservationId)
-        );
+        return toResponse(reservation);
     }
 
     @Transactional
@@ -178,10 +181,7 @@ public class ReservationService {
 
     private ReservationCancellationResponse cancellationResponse(Reservation reservation, Refund refund) {
         return new ReservationCancellationResponse(
-                reservationMapper.toResponse(
-                        reservation,
-                        reviewQueryService.reviewByReservationId(reservation.getId())
-                ),
+                toResponse(reservation),
                 reservation.getCancellationRefundEligibility(),
                 refund == null ? null : refund.getId(),
                 refund == null ? null : refund.getStatus()
@@ -193,6 +193,42 @@ public class ReservationService {
                 .map(Reservation::getId)
                 .collect(Collectors.toSet());
         return reviewQueryService.reviewsByReservationIds(reservationIds);
+    }
+
+    private Map<UUID, ReviewAggregate> reviewAggregatesByTourId(List<Reservation> reservations) {
+        Set<UUID> tourIds = reservations.stream()
+                .map(this::tourId)
+                .collect(Collectors.toSet());
+        if (tourIds.isEmpty()) {
+            return Map.of();
+        }
+        return reviewQueryService.tourAggregates(tourIds);
+    }
+
+    private Map<UUID, Integer> bookedCountsBySessionId(List<Reservation> reservations) {
+        Set<UUID> sessionIds = reservations.stream()
+                .map(reservation -> reservation.getSession().getId())
+                .collect(Collectors.toSet());
+        if (sessionIds.isEmpty()) {
+            return Map.of();
+        }
+        return reservationCapacityService.occupiedCounts(sessionIds);
+    }
+
+    private ReservationResponse toResponse(Reservation reservation) {
+        ReviewAggregate reviewAggregate = reviewQueryService
+                .tourAggregates(Set.of(tourId(reservation)))
+                .getOrDefault(tourId(reservation), ReviewAggregate.EMPTY);
+        return reservationMapper.toResponse(
+                reservation,
+                reviewQueryService.reviewByReservationId(reservation.getId()),
+                reviewAggregate,
+                reservationCapacityService.occupiedCount(reservation.getSession().getId())
+        );
+    }
+
+    private UUID tourId(Reservation reservation) {
+        return reservation.getSession().getTour().getId();
     }
 
     private String trimToNull(String value) {

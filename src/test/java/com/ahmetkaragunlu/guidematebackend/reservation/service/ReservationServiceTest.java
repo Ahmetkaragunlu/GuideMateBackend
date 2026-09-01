@@ -15,8 +15,11 @@ import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationCancell
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.dto.CancelReservationRequest;
 import com.ahmetkaragunlu.guidematebackend.reservation.dto.ReservationCancellationResponse;
+import com.ahmetkaragunlu.guidematebackend.reservation.dto.ReservationResponse;
 import com.ahmetkaragunlu.guidematebackend.reservation.mapper.ReservationMapper;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
+import com.ahmetkaragunlu.guidematebackend.review.dto.ReviewResponse;
+import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
@@ -28,11 +31,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +57,8 @@ class ReservationServiceTest {
 
     @Mock
     private ReservationRepository reservationRepository;
+    @Mock
+    private ReservationCapacityService reservationCapacityService;
     @Mock
     private ReviewQueryService reviewQueryService;
     @Mock
@@ -72,6 +82,7 @@ class ReservationServiceTest {
     void setUp() {
         service = new ReservationService(
                 reservationRepository,
+                reservationCapacityService,
                 reviewQueryService,
                 reservationMapper,
                 cancellationPolicy,
@@ -84,6 +95,51 @@ class ReservationServiceTest {
                 paymentIntentService,
                 notificationPublisher
         );
+    }
+
+    @Test
+    void returnsTripPageWithBatchedReviewAndCapacityProjections() {
+        User tourist = tourist();
+        UUID reservationId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID tourId = UUID.randomUUID();
+        Reservation reservation = org.mockito.Mockito.mock(Reservation.class);
+        TourSession session = org.mockito.Mockito.mock(TourSession.class);
+        Tour tour = org.mockito.Mockito.mock(Tour.class);
+        ReviewResponse review = org.mockito.Mockito.mock(ReviewResponse.class);
+        ReviewAggregate aggregate = new ReviewAggregate(4.6, 12);
+        ReservationResponse expected = org.mockito.Mockito.mock(ReservationResponse.class);
+        PageRequest pageRequest = PageRequest.of(0, 20);
+
+        when(reservation.getId()).thenReturn(reservationId);
+        when(reservation.getSession()).thenReturn(session);
+        when(session.getId()).thenReturn(sessionId);
+        when(session.getTour()).thenReturn(tour);
+        when(tour.getId()).thenReturn(tourId);
+        when(reservationRepository.findUpcomingTrips(
+                tourist.getId(),
+                ReservationStatus.CONFIRMED,
+                pageRequest
+        )).thenReturn(new PageImpl<>(List.of(reservation), pageRequest, 1));
+        when(reviewQueryService.reviewsByReservationIds(Set.of(reservationId)))
+                .thenReturn(Map.of(reservationId, review));
+        when(reviewQueryService.tourAggregates(Set.of(tourId)))
+                .thenReturn(Map.of(tourId, aggregate));
+        when(reservationCapacityService.occupiedCounts(Set.of(sessionId)))
+                .thenReturn(Map.of(sessionId, 7));
+        when(reservationMapper.toResponse(reservation, review, aggregate, 7)).thenReturn(expected);
+
+        var result = service.getMyTrips(
+                tourist,
+                com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationTripStatus.UPCOMING,
+                0,
+                20
+        );
+
+        assertThat(result.content()).containsExactly(expected);
+        verify(reviewQueryService).tourAggregates(Set.of(tourId));
+        verify(reservationCapacityService).occupiedCounts(Set.of(sessionId));
+        verify(reservationMapper).toResponse(reservation, review, aggregate, 7);
     }
 
     @Test

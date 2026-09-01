@@ -24,6 +24,10 @@ public record ReservationResponse(
         RefundEligibility cancellationRefundEligibility,
         String cancellationPolicyCode,
         int cancellationPolicyVersion,
+        double averageRating,
+        long reviewCount,
+        int bookedCount,
+        int capacity,
         ReservationSnapshotResponse snapshot,
         ReviewResponse review
 ) {

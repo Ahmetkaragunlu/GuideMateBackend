@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
@@ -165,7 +166,7 @@ class DemoApiContractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.balanceMinor").value(12_500))
                 .andExpect(jsonPath("$.currencyCode").value("USD"));
-        mockMvc.perform(get("/api/v1/reservations/me")
+        JsonNode reservations = json(mockMvc.perform(get("/api/v1/reservations/me")
                         .header("Authorization", bearer(touristToken))
                         .param("status", "PAST")
                         .param("page", "0")
@@ -173,7 +174,13 @@ class DemoApiContractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(5))
                 .andExpect(jsonPath("$.totalElements").value(21))
-                .andExpect(jsonPath("$.totalPages").value(5));
+                .andExpect(jsonPath("$.totalPages").value(5))
+                .andReturn());
+        JsonNode firstReservation = reservations.path("content").get(0);
+        assertThat(firstReservation.path("averageRating").isNumber()).isTrue();
+        assertThat(firstReservation.path("reviewCount").isIntegralNumber()).isTrue();
+        assertThat(firstReservation.path("bookedCount").isIntegralNumber()).isTrue();
+        assertThat(firstReservation.path("capacity").asInt()).isPositive();
         mockMvc.perform(get("/api/v1/notifications")
                         .header("Authorization", bearer(touristToken))
                         .param("page", "0")
@@ -209,6 +216,37 @@ class DemoApiContractIntegrationTest {
         assertMonthlyEarning(monthly.get(2), 2026, 6, 5_295_600L);
         assertMonthlyEarning(monthly.get(3), 2026, 5, 2_455_200L);
         assertMonthlyEarning(monthly.get(4), 2026, 4, 1_324_350L);
+    }
+
+    @Test
+    @Transactional
+    void allowsTouristToCancelSupportedDemoReservation() throws Exception {
+        Map<String, Object> reservation = jdbcTemplate.queryForMap("""
+                select reservation.id, reservation.version, tourist.email
+                from reservations reservation
+                join users tourist on tourist.id = reservation.tourist_id
+                join tour_sessions session on session.id = reservation.session_id
+                where reservation.status = 'CONFIRMED'
+                  and session.starts_at > ?
+                order by session.starts_at, reservation.id
+                limit 1
+                """, Timestamp.from(DemoTestFixtures.REFERENCE_INSTANT.plusSeconds(49L * 60L * 60L)));
+        String token = login(reservation.get("email").toString());
+
+        mockMvc.perform(post(
+                        "/api/v1/reservations/{reservationId}/cancel",
+                        reservation.get("id")
+                )
+                        .header("Authorization", bearer(token))
+                        .header("Idempotency-Key", UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "version", ((Number) reservation.get("version")).longValue(),
+                                "reason", "Demo cancellation contract"
+                        ))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reservation.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.refundEligibility").value("FULL_REFUND"));
     }
 
     @Test

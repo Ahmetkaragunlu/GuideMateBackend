@@ -176,6 +176,16 @@ class DemoDatasetVerifier {
                 where reservation.total_price_minor
                     <> reservation.unit_price_minor * reservation.participant_count
                 """);
+        assertCount("unsupported reservation cancellation policies", 0, """
+                select count(*)
+                from reservations reservation
+                where reservation.cancellation_policy_code is distinct from 'FULL_REFUND_48_HOURS'
+                   or reservation.cancellation_policy_version is distinct from 1
+                   or reservation.purchase_snapshot ->> 'cancellationPolicyCode'
+                       is distinct from reservation.cancellation_policy_code
+                   or (reservation.purchase_snapshot ->> 'cancellationPolicyVersion')::integer
+                       is distinct from reservation.cancellation_policy_version
+                """);
     }
 
     private void verifyFinance() {

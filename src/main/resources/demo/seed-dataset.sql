@@ -612,7 +612,7 @@ select
     plan.cancellation_reason,
     plan.cancelled_at,
     plan.refund_eligibility,
-    'STANDARD_48_HOUR',
+    'FULL_REFUND_48_HOURS',
     1,
     1,
     jsonb_build_object(
@@ -639,7 +639,7 @@ select
         'totalPriceMinor', session.price_minor * plan.participant_count,
         'currencyCode', 'USD',
         'participantCount', plan.participant_count,
-        'cancellationPolicyCode', 'STANDARD_48_HOUR',
+        'cancellationPolicyCode', 'FULL_REFUND_48_HOURS',
         'cancellationPolicyVersion', 1
     ),
     'demo-booking-' || plan.reservation_index,
