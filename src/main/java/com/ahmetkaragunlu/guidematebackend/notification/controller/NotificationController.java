@@ -5,6 +5,7 @@ import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.common.dto.UnreadCountResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationPreferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.UpdateNotificationPreferenceRequest;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPreferenceService;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationService;
@@ -12,6 +13,7 @@ import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,15 @@ public class NotificationController {
     @PostMapping("/read-all")
     public ResponseEntity<UnreadCountResponse> markAllRead(@AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(notificationService.markAllRead(currentUser));
+    }
+
+    @Operation(summary = "Mark owned notifications for one domain target as read")
+    @PostMapping("/read-related")
+    public ResponseEntity<UnreadCountResponse> markRelatedRead(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody MarkRelatedNotificationsReadRequest request
+    ) {
+        return ResponseEntity.ok(notificationService.markRelatedRead(currentUser, request));
     }
 
     @Operation(summary = "Get the current user's push notification preferences")

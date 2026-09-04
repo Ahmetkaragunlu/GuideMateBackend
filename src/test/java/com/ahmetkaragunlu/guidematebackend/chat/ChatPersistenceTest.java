@@ -4,6 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatConversation;
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatMessage;
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatReadState;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessageResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.ClearChatRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.SendChatMessageRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatConversationRepository;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatMessageRepository;
@@ -12,6 +13,7 @@ import com.ahmetkaragunlu.guidematebackend.chat.service.ChatConversationService;
 import com.ahmetkaragunlu.guidematebackend.chat.service.ChatMessageService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
@@ -66,6 +68,9 @@ class ChatPersistenceTest {
 
     @Autowired
     private ChatConversationService chatConversationService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private PlatformTransactionManager transactionManager;
@@ -197,6 +202,66 @@ class ChatPersistenceTest {
         )).hasSize(1);
         assertThat(messageRepository.countUnread(fixture.guideId())).isZero();
         assertThat(messageRepository.countUnread(fixture.touristId())).isEqualTo(1);
+    }
+
+    @Test
+    void clearsHistoryOnlyForCurrentUserAndKeepsNewMessagesVisibleOnRetry() {
+        User guide = createUser("guide-clear@example.com", RoleType.ROLE_GUIDE);
+        User tourist = createUser("tourist-clear@example.com", RoleType.ROLE_TOURIST);
+        User outsider = createUser("outsider-clear@example.com", RoleType.ROLE_TOURIST);
+        ChatConversation conversation = conversationRepository.saveAndFlush(
+                new ChatConversation(guide, tourist)
+        );
+        Instant now = Instant.parse("2026-09-04T08:00:00Z");
+        readStateRepository.saveAllAndFlush(List.of(
+                new ChatReadState(conversation, guide, now),
+                new ChatReadState(conversation, tourist, now)
+        ));
+        chatMessageService.send(
+                guide,
+                conversation.getId(),
+                new SendChatMessageRequest(UUID.randomUUID(), "Message before clear")
+        );
+        UUID clearRequestId = UUID.randomUUID();
+
+        chatConversationService.clearConversation(
+                tourist,
+                conversation.getId(),
+                new ClearChatRequest(clearRequestId)
+        );
+
+        assertThat(chatMessageService.getMessages(tourist, conversation.getId(), null, 20).content())
+                .isEmpty();
+        assertThat(chatConversationService.getConversations(tourist)).isEmpty();
+        assertThat(chatMessageService.getMessages(guide, conversation.getId(), null, 20).content())
+                .extracting(ChatMessageResponse::body)
+                .containsExactly("Message before clear");
+        assertThat(messageRepository.count()).isEqualTo(1);
+        assertThat(notificationService.unreadCount(tourist).unreadCount()).isZero();
+        assertThatThrownBy(() -> chatConversationService.clearConversation(
+                outsider,
+                conversation.getId(),
+                new ClearChatRequest(UUID.randomUUID())
+        )).isInstanceOfSatisfying(BusinessException.class, exception ->
+                assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.CHAT_NOT_FOUND));
+
+        chatMessageService.send(
+                guide,
+                conversation.getId(),
+                new SendChatMessageRequest(UUID.randomUUID(), "Message after clear")
+        );
+        chatConversationService.clearConversation(
+                tourist,
+                conversation.getId(),
+                new ClearChatRequest(clearRequestId)
+        );
+
+        assertThat(chatMessageService.getMessages(tourist, conversation.getId(), null, 20).content())
+                .extracting(ChatMessageResponse::body)
+                .containsExactly("Message after clear");
+        assertThat(chatConversationService.getConversations(tourist))
+                .singleElement()
+                .satisfies(item -> assertThat(item.lastMessage().body()).isEqualTo("Message after clear"));
     }
 
     private <T> void runConcurrently(Callable<T> first, Callable<T> second) throws Exception {

@@ -48,4 +48,21 @@ public interface ChatConversationRepository extends JpaRepository<ChatConversati
             WHERE conversation.guide.id = :userId OR conversation.tourist.id = :userId
             """)
     List<ChatConversation> findAllForParticipant(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"guide", "guide.role", "tourist", "tourist.role"})
+    @Query("""
+            SELECT conversation FROM ChatConversation conversation, ChatReadState readState
+            WHERE readState.conversation.id = conversation.id
+              AND readState.user.id = :userId
+              AND (conversation.guide.id = :userId OR conversation.tourist.id = :userId)
+              AND (
+                  readState.clearedAt IS NULL
+                  OR EXISTS (
+                      SELECT message.id FROM ChatMessage message
+                      WHERE message.conversation.id = conversation.id
+                        AND message.sentAt > readState.clearedAt
+                  )
+              )
+            """)
+    List<ChatConversation> findVisibleForParticipant(@Param("userId") Long userId);
 }

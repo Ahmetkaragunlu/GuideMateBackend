@@ -15,6 +15,8 @@ public class NotificationCreatedEventListener {
     @Async("notificationTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onNotificationCreated(NotificationCreatedEvent event) {
-        deliveryService.deliver(event.notificationId());
+        if (event.pushRequested()) {
+            deliveryService.deliver(event.notificationId());
+        }
     }
 }

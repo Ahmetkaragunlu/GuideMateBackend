@@ -33,6 +33,18 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
     @Query("""
             SELECT message FROM ChatMessage message
             WHERE message.conversation.id = :conversationId
+              AND message.sentAt > :visibleAfter
+            ORDER BY message.sentAt DESC, message.id DESC
+            """)
+    List<ChatMessage> findFirstPageAfter(
+            @Param("conversationId") UUID conversationId,
+            @Param("visibleAfter") Instant visibleAfter,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT message FROM ChatMessage message
+            WHERE message.conversation.id = :conversationId
               AND (
                   message.sentAt < :cursorSentAt
                   OR (message.sentAt = :cursorSentAt AND message.id < :cursorId)
@@ -48,15 +60,38 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
 
     @Query("""
             SELECT message FROM ChatMessage message
+            WHERE message.conversation.id = :conversationId
+              AND message.sentAt > :visibleAfter
+              AND (
+                  message.sentAt < :cursorSentAt
+                  OR (message.sentAt = :cursorSentAt AND message.id < :cursorId)
+              )
+            ORDER BY message.sentAt DESC, message.id DESC
+            """)
+    List<ChatMessage> findPageBeforeAfter(
+            @Param("conversationId") UUID conversationId,
+            @Param("visibleAfter") Instant visibleAfter,
+            @Param("cursorSentAt") Instant cursorSentAt,
+            @Param("cursorId") UUID cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT message FROM ChatMessage message, ChatReadState readState
             WHERE message.conversation.id IN :conversationIds
+              AND readState.conversation.id = message.conversation.id
+              AND readState.user.id = :userId
+              AND (readState.clearedAt IS NULL OR message.sentAt > readState.clearedAt)
               AND message.sentAt = (
                   SELECT MAX(candidate.sentAt) FROM ChatMessage candidate
                   WHERE candidate.conversation.id = message.conversation.id
+                    AND (readState.clearedAt IS NULL OR candidate.sentAt > readState.clearedAt)
               )
             ORDER BY message.sentAt DESC, message.id DESC
             """)
     List<ChatMessage> findLatestForConversations(
-            @Param("conversationIds") Collection<UUID> conversationIds
+            @Param("conversationIds") Collection<UUID> conversationIds,
+            @Param("userId") Long userId
     );
 
     @Query("""
@@ -67,6 +102,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
               AND readState.conversation.id = message.conversation.id
               AND readState.user.id = :userId
               AND message.sender.id <> :userId
+              AND (readState.clearedAt IS NULL OR message.sentAt > readState.clearedAt)
               AND (
                   lastReadMessage IS NULL
                   OR message.sentAt > lastReadMessage.sentAt
@@ -86,6 +122,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
             WHERE readState.conversation.id = message.conversation.id
               AND readState.user.id = :userId
               AND message.sender.id <> :userId
+              AND (readState.clearedAt IS NULL OR message.sentAt > readState.clearedAt)
               AND (
                   lastReadMessage IS NULL
                   OR message.sentAt > lastReadMessage.sentAt

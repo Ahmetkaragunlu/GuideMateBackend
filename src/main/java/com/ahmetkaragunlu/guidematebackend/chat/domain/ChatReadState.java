@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -42,6 +43,12 @@ public class ChatReadState {
     @Column(name = "read_at", nullable = false)
     private Instant readAt;
 
+    @Column(name = "cleared_at")
+    private Instant clearedAt;
+
+    @Column(name = "last_clear_request_id")
+    private UUID lastClearRequestId;
+
     public ChatReadState(ChatConversation conversation, User user, Instant readAt) {
         this.conversation = Objects.requireNonNull(conversation);
         this.user = Objects.requireNonNull(user);
@@ -51,5 +58,16 @@ public class ChatReadState {
     public void markRead(ChatMessage message, Instant readAt) {
         this.lastReadMessage = message;
         this.readAt = Objects.requireNonNull(readAt);
+    }
+
+    public boolean hasProcessedClearRequest(UUID requestId) {
+        return Objects.equals(lastClearRequestId, requestId);
+    }
+
+    public void clearHistory(ChatMessage lastMessage, Instant clearedAt, UUID requestId) {
+        this.lastReadMessage = lastMessage;
+        this.readAt = Objects.requireNonNull(clearedAt);
+        this.clearedAt = clearedAt;
+        this.lastClearRequestId = Objects.requireNonNull(requestId);
     }
 }

@@ -13,6 +13,8 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -44,22 +46,32 @@ class StompJwtChannelInterceptorTest {
     }
 
     @Test
-    void allowsOnlyPrivateUserQueueSubscriptions() {
+    void allowsConfiguredPrivateUserQueueSubscriptions() {
         User user = activeUser("tourist@example.com");
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 user,
                 null,
                 user.getAuthorities()
         );
-        StompHeaderAccessor allowed = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
-        allowed.setUser(authentication);
-        allowed.setDestination("/user/queue/chat-messages");
         StompHeaderAccessor forbidden = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         forbidden.setUser(authentication);
         forbidden.setDestination("/topic/chats/any-id");
 
-        assertThat(interceptor.preSend(message(allowed), mock(org.springframework.messaging.MessageChannel.class)))
-                .isNotNull();
+        for (String destination : List.of(
+                "/user/queue/chat-messages",
+                "/user/queue/chat-participant-updates",
+                "/user/queue/chat-errors",
+                "/user/queue/notifications"
+        )) {
+            StompHeaderAccessor allowed = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+            allowed.setUser(authentication);
+            allowed.setDestination(destination);
+
+            assertThat(interceptor.preSend(
+                    message(allowed),
+                    mock(org.springframework.messaging.MessageChannel.class)
+            )).isNotNull();
+        }
         assertThatThrownBy(() -> interceptor.preSend(
                 message(forbidden),
                 mock(org.springframework.messaging.MessageChannel.class)

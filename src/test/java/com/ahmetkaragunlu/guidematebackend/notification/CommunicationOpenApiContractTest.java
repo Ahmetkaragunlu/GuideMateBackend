@@ -27,6 +27,7 @@ class CommunicationOpenApiContractTest {
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/unread-count']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/{notificationId}/read']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/read-all']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/notifications/read-related']").exists())
                 .andExpect(jsonPath("$.components.schemas.NotificationResponse.properties.actorDisplayName")
                         .exists())
                 .andExpect(jsonPath("$.paths['/api/v1/notifications/preferences']").exists())
@@ -38,6 +39,7 @@ class CommunicationOpenApiContractTest {
                 .andExpect(jsonPath("$.paths['/api/v1/chats']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/chats/{chatId}/messages']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/chats/{chatId}/read']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/chats/{chatId}/clear']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/chats/unread-count']").exists())
                 .andExpect(jsonPath(
                         "$.components.schemas.UpdateNotificationPreferenceRequest.properties.securityAlertsEnabled"

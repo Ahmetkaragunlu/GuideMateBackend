@@ -7,6 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
@@ -50,17 +51,20 @@ public class NotificationService implements NotificationPublisher {
                 command.recipientId(),
                 command.type()
         ) ? NotificationPushStatus.PENDING : NotificationPushStatus.NOT_REQUESTED;
+        User recipient = userRepository.getReferenceById(command.recipientId());
         Notification notification = notificationRepository.save(new Notification(
-                userRepository.getReferenceById(command.recipientId()),
+                recipient,
                 command.type(),
                 command.actorId() == null ? null : userRepository.getReferenceById(command.actorId()),
                 payloadCodec.encode(command.payload()),
                 pushStatus,
                 command.deduplicationKey()
         ));
-        if (pushStatus == NotificationPushStatus.PENDING) {
-            eventPublisher.publishEvent(new NotificationCreatedEvent(notification.getId()));
-        }
+        eventPublisher.publishEvent(new NotificationCreatedEvent(
+                notification.getId(),
+                recipient.getUsername(),
+                pushStatus == NotificationPushStatus.PENDING
+        ));
         return notification.getId();
     }
 
@@ -97,6 +101,20 @@ public class NotificationService implements NotificationPublisher {
     public UnreadCountResponse markAllRead(User currentUser) {
         notificationRepository.markAllRead(currentUser.getId(), clock.instant());
         return new UnreadCountResponse(0);
+    }
+
+    @Transactional
+    public UnreadCountResponse markRelatedRead(
+            User currentUser,
+            MarkRelatedNotificationsReadRequest request
+    ) {
+        notificationRepository.markRelatedRead(
+                currentUser.getId(),
+                request.targetType().payloadKey(),
+                request.targetId().toString(),
+                clock.instant()
+        );
+        return unreadCount(currentUser);
     }
 
     private NotificationResponse toResponse(Notification notification) {

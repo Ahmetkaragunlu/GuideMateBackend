@@ -2,6 +2,9 @@ package com.ahmetkaragunlu.guidematebackend.notification;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationTargetType;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPayloadCodec;
@@ -104,6 +107,52 @@ class NotificationPersistenceTest {
                     assertThat(notification.actorId()).isNull();
                     assertThat(notification.actorDisplayName()).isNull();
                 });
+    }
+
+    @Test
+    void marksOnlyOwnedNotificationsForTargetAndRepeatedRequestIsIdempotent() {
+        User recipient = createUser();
+        User anotherRecipient = createUser();
+        UUID chatId = UUID.randomUUID();
+        UUID unrelatedChatId = UUID.randomUUID();
+        notificationPublisher.publish(new NotificationCommand(
+                recipient.getId(),
+                NotificationType.CHAT_MESSAGE,
+                anotherRecipient.getId(),
+                Map.of("chatId", chatId.toString())
+        ));
+        notificationPublisher.publish(new NotificationCommand(
+                recipient.getId(),
+                NotificationType.CHAT_MESSAGE,
+                anotherRecipient.getId(),
+                Map.of("chatId", chatId.toString())
+        ));
+        notificationPublisher.publish(new NotificationCommand(
+                recipient.getId(),
+                NotificationType.CHAT_MESSAGE,
+                anotherRecipient.getId(),
+                Map.of("chatId", unrelatedChatId.toString())
+        ));
+        notificationPublisher.publish(new NotificationCommand(
+                anotherRecipient.getId(),
+                NotificationType.CHAT_MESSAGE,
+                recipient.getId(),
+                Map.of("chatId", chatId.toString())
+        ));
+        var request = new MarkRelatedNotificationsReadRequest(NotificationTargetType.CHAT, chatId);
+
+        var firstResult = notificationService.markRelatedRead(recipient, request);
+        var repeatedResult = notificationService.markRelatedRead(recipient, request);
+
+        assertThat(firstResult.unreadCount()).isEqualTo(1);
+        assertThat(repeatedResult.unreadCount()).isEqualTo(1);
+        assertThat(notificationService.unreadCount(anotherRecipient).unreadCount()).isEqualTo(1);
+        assertThat(notificationService.getNotifications(recipient, 0, 20).content())
+                .filteredOn(notification -> chatId.toString().equals(notification.payload().get("chatId")))
+                .allMatch(NotificationResponse::read);
+        assertThat(notificationService.getNotifications(recipient, 0, 20).content())
+                .filteredOn(notification -> unrelatedChatId.toString().equals(notification.payload().get("chatId")))
+                .noneMatch(NotificationResponse::read);
     }
 
     private User createUser() {

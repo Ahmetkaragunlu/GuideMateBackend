@@ -1,6 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.chat.controller;
 
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatConversationResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.ClearChatRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessagePageResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessageResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.SendChatMessageRequest;
@@ -86,6 +87,16 @@ public class ChatController {
             @PathVariable UUID chatId
     ) {
         return ResponseEntity.ok(conversationService.markRead(currentUser, chatId));
+    }
+
+    @Operation(summary = "Clear the conversation history for the current user")
+    @PostMapping("/{chatId}/clear")
+    public ResponseEntity<UnreadCountResponse> clearConversation(
+            @AuthenticationPrincipal User currentUser,
+            @PathVariable UUID chatId,
+            @Valid @RequestBody ClearChatRequest request
+    ) {
+        return ResponseEntity.ok(conversationService.clearConversation(currentUser, chatId, request));
     }
 
     @Operation(summary = "Get the current user's total chat unread count")

@@ -26,7 +26,9 @@ public class StompJwtChannelInterceptor implements ChannelInterceptor {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final Set<String> ALLOWED_SUBSCRIPTIONS = Set.of(
             "/user/queue/chat-messages",
-            "/user/queue/chat-errors"
+            "/user/queue/chat-participant-updates",
+            "/user/queue/chat-errors",
+            "/user/queue/notifications"
     );
     private static final Pattern ALLOWED_SEND_DESTINATION = Pattern.compile(
             "^/app/chats/[0-9a-fA-F-]{36}/messages$"

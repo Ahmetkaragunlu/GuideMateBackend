@@ -72,4 +72,19 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
             WHERE notification.recipient.id = :recipientId AND notification.readAt IS NULL
             """)
     int markAllRead(@Param("recipientId") Long recipientId, @Param("readAt") Instant readAt);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            UPDATE notifications
+            SET read_at = :readAt
+            WHERE recipient_id = :recipientId
+              AND read_at IS NULL
+              AND jsonb_extract_path_text(payload, :payloadKey) = :targetId
+            """, nativeQuery = true)
+    int markRelatedRead(
+            @Param("recipientId") Long recipientId,
+            @Param("payloadKey") String payloadKey,
+            @Param("targetId") String targetId,
+            @Param("readAt") Instant readAt
+    );
 }

@@ -2,12 +2,14 @@ package com.ahmetkaragunlu.guidematebackend.chat.service;
 
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatConversation;
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatMessage;
+import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatReadState;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessagePageResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessageResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.dto.SendChatMessageRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.mapper.ChatMapper;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatConversationRepository;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatMessageRepository;
+import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatReadStateRepository;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +40,7 @@ public class ChatMessageService {
 
     private final ChatConversationRepository conversationRepository;
     private final ChatMessageRepository messageRepository;
+    private final ChatReadStateRepository readStateRepository;
     private final NotificationPublisher notificationPublisher;
     private final ApplicationEventPublisher eventPublisher;
     private final ChatMapper chatMapper;
@@ -52,19 +56,38 @@ public class ChatMessageService {
         conversationRepository.findParticipantConversation(conversationId, currentUser.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_NOT_FOUND));
 
+        Instant visibleAfter = readStateRepository
+                .findByIdConversationIdAndIdUserId(conversationId, currentUser.getId())
+                .map(ChatReadState::getClearedAt)
+                .orElse(null);
         List<ChatMessage> messages;
         if (beforeMessageId == null) {
-            messages = messageRepository.findFirstPage(conversationId, PageRequest.of(0, size + 1));
+            messages = visibleAfter == null
+                    ? messageRepository.findFirstPage(conversationId, PageRequest.of(0, size + 1))
+                    : messageRepository.findFirstPageAfter(
+                            conversationId,
+                            visibleAfter,
+                            PageRequest.of(0, size + 1)
+                    );
         } else {
             ChatMessage cursor = messageRepository.findById(beforeMessageId)
                     .filter(message -> message.getConversation().getId().equals(conversationId))
+                    .filter(message -> visibleAfter == null || message.getSentAt().isAfter(visibleAfter))
                     .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_MESSAGE_NOT_FOUND));
-            messages = messageRepository.findPageBefore(
-                    conversationId,
-                    cursor.getSentAt(),
-                    cursor.getId(),
-                    PageRequest.of(0, size + 1)
-            );
+            messages = visibleAfter == null
+                    ? messageRepository.findPageBefore(
+                            conversationId,
+                            cursor.getSentAt(),
+                            cursor.getId(),
+                            PageRequest.of(0, size + 1)
+                    )
+                    : messageRepository.findPageBeforeAfter(
+                            conversationId,
+                            visibleAfter,
+                            cursor.getSentAt(),
+                            cursor.getId(),
+                            PageRequest.of(0, size + 1)
+                    );
         }
 
         boolean hasNext = messages.size() > size;

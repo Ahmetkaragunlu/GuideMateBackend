@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
@@ -31,12 +32,19 @@ class UserAvatarServiceTest {
     private MediaReferenceMapper mediaReferenceMapper;
     @Mock
     private MediaAsset mediaAsset;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private UserAvatarService service;
 
     @BeforeEach
     void setUp() {
-        service = new UserAvatarService(userRepository, mediaService, mediaReferenceMapper);
+        service = new UserAvatarService(
+                userRepository,
+                mediaService,
+                mediaReferenceMapper,
+                eventPublisher
+        );
     }
 
     @Test
@@ -55,5 +63,6 @@ class UserAvatarServiceTest {
         assertThat(result).isEqualTo(expected);
         assertThat(user.getAvatarMediaId()).isEqualTo(mediaAssetId);
         verify(mediaService).requireAssignableAsset(mediaAssetId, 42L, MediaPurpose.USER_AVATAR);
+        verify(eventPublisher).publishEvent(new UserAvatarUpdatedEvent(42L, expected.imageUrl()));
     }
 }
