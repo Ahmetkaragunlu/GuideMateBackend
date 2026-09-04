@@ -77,12 +77,12 @@ public class ReservationLifecycleService {
     }
 
     @Transactional
-    public void completeForSession(UUID sessionId) {
-        reservationRepository.findBySessionIdAndStatusInForUpdate(
+    public int completeForSession(UUID sessionId) {
+        List<Reservation> reservations = reservationRepository.findBySessionIdAndStatusInForUpdate(
                         sessionId,
                         List.of(ReservationStatus.CONFIRMED)
-                )
-                .forEach(reservation -> {
+                );
+        reservations.forEach(reservation -> {
                     reservation.complete();
                     guideEarningService.makeAvailable(reservation.getId());
                     notificationPublisher.publish(new NotificationCommand(
@@ -97,5 +97,6 @@ public class ReservationLifecycleService {
                             )
                     ));
                 });
+        return reservations.size();
     }
 }

@@ -45,7 +45,8 @@ public class GuideTourQueryService {
     );
     private static final List<TourSessionStatus> TERMINAL_SESSION_STATUSES = List.of(
             TourSessionStatus.COMPLETED,
-            TourSessionStatus.CANCELLED
+            TourSessionStatus.CANCELLED,
+            TourSessionStatus.EXPIRED
     );
 
     private final TourRepository tourRepository;
@@ -95,7 +96,9 @@ public class GuideTourQueryService {
                 session,
                 occupiedCounts.getOrDefault(session.getId(), 0),
                 reviews.getOrDefault(session.getTour().getId(), ReviewAggregate.EMPTY),
-                session.getStatus() == TourSessionStatus.CANCELLED ? null : earnings.get(session.getId())
+                session.getStatus() == TourSessionStatus.COMPLETED
+                        ? earnings.get(session.getId())
+                        : null
         )));
     }
 

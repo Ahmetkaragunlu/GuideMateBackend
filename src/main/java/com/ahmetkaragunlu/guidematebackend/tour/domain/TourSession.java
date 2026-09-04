@@ -169,6 +169,10 @@ public class TourSession extends UuidAuditedEntity {
         this.status = TourSessionStatus.COMPLETED;
     }
 
+    public void expire() {
+        this.status = TourSessionStatus.EXPIRED;
+    }
+
     public void markUpcomingReminderSent(Instant sentAt) {
         if (upcomingReminderSentAt == null) {
             upcomingReminderSentAt = Objects.requireNonNull(sentAt);

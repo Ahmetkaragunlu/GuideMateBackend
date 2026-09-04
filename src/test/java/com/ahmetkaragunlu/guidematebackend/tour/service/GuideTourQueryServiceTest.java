@@ -60,18 +60,21 @@ class GuideTourQueryServiceTest {
     private GuideTourQueryService service;
 
     @Test
-    void enrichesGuideCardsWithBatchAggregatesAndHidesCancelledSessionEarnings() {
+    void enrichesGuideCardsWithBatchAggregatesAndOnlyShowsCompletedSessionEarnings() {
         Instant now = Instant.parse("2026-08-14T12:00:00Z");
         UUID tourId = UUID.randomUUID();
         UUID completedSessionId = UUID.randomUUID();
         UUID cancelledSessionId = UUID.randomUUID();
+        UUID expiredSessionId = UUID.randomUUID();
         User guide = org.mockito.Mockito.mock(User.class);
         Tour tour = org.mockito.Mockito.mock(Tour.class);
         TourSession completed = session(tour, completedSessionId, TourSessionStatus.COMPLETED);
         TourSession cancelled = session(tour, cancelledSessionId, TourSessionStatus.CANCELLED);
+        TourSession expired = session(tour, expiredSessionId, TourSessionStatus.EXPIRED);
         ReviewAggregate reviews = new ReviewAggregate(4.75, 8);
         GuideTourCardResponse completedCard = card(tourId, completedSessionId, TourSessionStatus.COMPLETED, 9_000L);
         GuideTourCardResponse cancelledCard = card(tourId, cancelledSessionId, TourSessionStatus.CANCELLED, null);
+        GuideTourCardResponse expiredCard = card(tourId, expiredSessionId, TourSessionStatus.EXPIRED, null);
 
         when(guide.getId()).thenReturn(42L);
         when(tour.getId()).thenReturn(tourId);
@@ -80,14 +83,25 @@ class GuideTourQueryServiceTest {
                 eq(42L),
                 anyCollection(),
                 any(PageRequest.class)
-        )).thenReturn(new PageImpl<>(List.of(completed, cancelled), PageRequest.of(0, 20), 2));
-        when(capacityService.occupiedCounts(List.of(completedSessionId, cancelledSessionId)))
-                .thenReturn(Map.of(completedSessionId, 3, cancelledSessionId, 1));
+        )).thenReturn(new PageImpl<>(List.of(completed, cancelled, expired), PageRequest.of(0, 20), 3));
+        when(capacityService.occupiedCounts(List.of(
+                completedSessionId,
+                cancelledSessionId,
+                expiredSessionId
+        ))).thenReturn(Map.of(completedSessionId, 3, cancelledSessionId, 1, expiredSessionId, 0));
         when(reviewQueryService.tourAggregates(List.of(tourId))).thenReturn(Map.of(tourId, reviews));
-        when(guideEarningService.sessionNetEarnings(List.of(completedSessionId, cancelledSessionId)))
-                .thenReturn(Map.of(completedSessionId, 9_000L, cancelledSessionId, 5_000L));
+        when(guideEarningService.sessionNetEarnings(List.of(
+                completedSessionId,
+                cancelledSessionId,
+                expiredSessionId
+        ))).thenReturn(Map.of(
+                completedSessionId, 9_000L,
+                cancelledSessionId, 5_000L,
+                expiredSessionId, 4_000L
+        ));
         when(tourMapper.toGuideCard(completed, 3, reviews, 9_000L)).thenReturn(completedCard);
         when(tourMapper.toGuideCard(cancelled, 1, reviews, null)).thenReturn(cancelledCard);
+        when(tourMapper.toGuideCard(expired, 0, reviews, null)).thenReturn(expiredCard);
 
         PageResponse<GuideTourCardResponse> response = service.getGuideTours(
                 guide,
@@ -96,10 +110,18 @@ class GuideTourQueryServiceTest {
                 20
         );
 
-        assertThat(response.content()).containsExactly(completedCard, cancelledCard);
-        verify(capacityService).occupiedCounts(List.of(completedSessionId, cancelledSessionId));
+        assertThat(response.content()).containsExactly(completedCard, cancelledCard, expiredCard);
+        verify(capacityService).occupiedCounts(List.of(
+                completedSessionId,
+                cancelledSessionId,
+                expiredSessionId
+        ));
         verify(reviewQueryService).tourAggregates(List.of(tourId));
-        verify(guideEarningService).sessionNetEarnings(List.of(completedSessionId, cancelledSessionId));
+        verify(guideEarningService).sessionNetEarnings(List.of(
+                completedSessionId,
+                cancelledSessionId,
+                expiredSessionId
+        ));
     }
 
     private TourSession session(Tour tour, UUID sessionId, TourSessionStatus status) {

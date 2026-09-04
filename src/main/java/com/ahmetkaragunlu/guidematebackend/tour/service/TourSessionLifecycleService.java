@@ -46,8 +46,13 @@ public class TourSessionLifecycleService {
                 .stream()
                 .filter(session -> !session.endsAt().isAfter(now))
                 .forEach(session -> {
+                    int completedReservations =
+                            reservationLifecycleService.completeForSession(session.getId());
+                    if (completedReservations == 0) {
+                        session.expire();
+                        return;
+                    }
                     session.complete();
-                    reservationLifecycleService.completeForSession(session.getId());
                     notificationPublisher.publish(new NotificationCommand(
                             session.getTour().getGuide().getId(),
                             NotificationType.TOUR_COMPLETED,

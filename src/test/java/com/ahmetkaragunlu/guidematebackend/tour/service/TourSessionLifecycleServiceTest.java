@@ -75,6 +75,7 @@ class TourSessionLifecycleServiceTest {
         when(tour.getGuide()).thenReturn(guide);
         when(guide.getId()).thenReturn(7L);
         when(stillRunning.endsAt()).thenReturn(NOW.plusSeconds(1));
+        when(reservationLifecycleService.completeForSession(sessionId)).thenReturn(1);
 
         service.completeFinishedSessions();
 
@@ -89,5 +90,27 @@ class TourSessionLifecycleServiceTest {
                 .containsEntry("sessionId", sessionId.toString())
                 .containsEntry("tourId", tourId.toString())
                 .containsEntry("tourTitle", "Completed tour");
+    }
+
+    @Test
+    void expiresEndedSessionWithoutConfirmedReservationAndDoesNotPublishCompletion() {
+        UUID sessionId = UUID.randomUUID();
+        TourSession ended = org.mockito.Mockito.mock(TourSession.class);
+        when(tourSessionRepository.findByStatusInAndStartsAtBeforeOrderByStartsAtAsc(
+                anyCollection(),
+                org.mockito.ArgumentMatchers.eq(NOW),
+                org.mockito.ArgumentMatchers.eq(PageRequest.of(0, 25))
+        )).thenReturn(List.of(ended));
+        when(ended.endsAt()).thenReturn(NOW);
+        when(ended.getId()).thenReturn(sessionId);
+        when(reservationLifecycleService.completeForSession(sessionId)).thenReturn(0);
+
+        service.completeFinishedSessions();
+
+        verify(ended).expire();
+        verify(ended, never()).complete();
+        verify(notificationPublisher, never()).publish(
+                org.mockito.ArgumentMatchers.any(NotificationCommand.class)
+        );
     }
 }
