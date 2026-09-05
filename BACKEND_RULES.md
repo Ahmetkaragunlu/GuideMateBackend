@@ -169,6 +169,16 @@ girer.
   cleanup scheduler'lari uygulanmistir. Session ve medya scheduler'lari da ayni
   batch sinirina alinmistir. Provider ve FCM cagrilari acik DB transaction'i
   tasimaz; refund commit-sonrasi teslimati bounded async executor kullanir.
+- Notification preference yalniz push teslimatini etkiler; kalici history ve
+  unread kaydi her durumda korunur. Her `PENDING/FAILED` FCM retry denemesi
+  guncel kategori tercihini tekrar kontrol eder; kategori kapanmissa kayit
+  `NOT_REQUESTED` olur ve daha sonra topluca gonderilmez. Security push'i her
+  zaman aciktir ve tum `NotificationType` degerleri acik kategori eslemesine
+  sahiptir.
+- Backend process locale'i kullanici veya makine dilinden bagimsiz
+  `Locale.ROOT` olarak baslatilir. Boylece Firebase Admin gibi altyapilarin enum
+  ve protokol degerleri Turkce locale nedeniyle bozulmaz; kullaniciya gorunen
+  yerellestirme Android XML kaynaklarinda kalir.
 - Gec `TIMEOUT` tour payment'i artik otomatik iade edilmez; session/reservation
   lock altinda kapasite yeniden kontrol edilir, yer varsa rezervasyon kesinlesir,
   yoksa mevcut idempotent tek tam iade akisi calisir.
@@ -244,7 +254,7 @@ eklenecektir:
 | `PENDING` guide earning kayitlarini zamani gelince `AVAILABLE` yapma | Tamamlandi: bounded earning scheduler mevcut idempotent wallet credit akisini kullanir |
 | FCM service account, FID kaydi ve push adapter'i | Tamamlandi: credential Git disinda, FID API'si ve semantic payload siniri uygulanmistir |
 | WebSocket/STOMP bagimliliklari ve realtime guvenligi | Tamamlandi: CONNECT JWT, katilimci kontrolu ve yalniz private user queue teslimati uygulanmistir |
-| `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Tamamlandi: kalici retry sayaci/zamani, maksimum deneme, reminder deduplication ve tourist/guide reminder marker'lari uygulanir |
+| `PENDING/FAILED` FCM teslimatlarini bounded yeniden deneme ve yaklasan tur hatirlatmalari | Tamamlandi: kalici retry sayaci/zamani, maksimum deneme, her denemede guncel push tercihi, reminder deduplication ve tourist/guide reminder marker'lari uygulanir |
 | Android FID kaydi, FCM service/channel/permission ve REST/STOMP repository entegrasyonu | Backend tamamlandiktan sonraki Android entegrasyonunda; backend endpoint ve destination sozlesmeleri degistirilmeden tuketilir |
 | Docker ve PostgreSQL Testcontainers altyapisi | Tamamlandi: Colima Homebrew servisi, kullaniciya ozel Testcontainers Docker host ayari ve test-scope PostgreSQL 18 container'i ile Maven testleri ek komut gerektirmeden calisir |
 | Tum kalici testlerin gereklilik, tekrar ve production degeri denetimi | Tamamlandi: 65 sinif/187 test korundu; gecici, tekrarlayan veya yalniz implementation detayini test eden dosya bulunmadi. Guide card aggregate/kapasite, aylik kazanc, bildirim aktoru, wallet referans basligi, review, checkout/payment intent, reservation, lifecycle/profile/avatar, Bayesian siralama, kritik HTTP dogrulamalari ve OpenAPI sozlesmeleri ek testlerle korunur |

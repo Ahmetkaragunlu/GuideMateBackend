@@ -43,7 +43,7 @@ public class NotificationPreferenceService {
     @Transactional(readOnly = true)
     public boolean isPushEnabled(Long userId, NotificationType type) {
         NotificationPreference preference = preferenceRepository.findById(userId).orElse(null);
-        if (preference == null || type == NotificationType.SECURITY_ALERT) {
+        if (preference == null) {
             return true;
         }
         return switch (type) {
@@ -54,7 +54,11 @@ public class NotificationPreferenceService {
                     REFUND_FAILED, REFUND_MANUAL_REVIEW, EARNING_AVAILABLE,
                     WITHDRAWAL_COMPLETED -> preference.isPaymentsAndEarningsEnabled();
             case RATING_RECEIVED, COMMENT_RECEIVED -> preference.isNewReviewsEnabled();
-            default -> preference.isReservationUpdatesEnabled();
+            case TOUR_APPROVED, TOUR_REJECTED, TOUR_CHANGE_APPROVED,
+                    TOUR_CHANGE_REJECTED, TOUR_PURCHASED, RESERVATION_CONFIRMED,
+                    RESERVATION_CANCELLED, TOUR_CANCELLED, TOUR_COMPLETED ->
+                    preference.isReservationUpdatesEnabled();
+            case SECURITY_ALERT -> true;
         };
     }
 

@@ -27,6 +27,7 @@ public class NotificationPushDeliveryStateService {
 
     private final NotificationRepository notificationRepository;
     private final DeviceRegistrationRepository registrationRepository;
+    private final NotificationPreferenceService preferenceService;
     private final NotificationPayloadCodec payloadCodec;
     private final SchedulerProperties schedulerProperties;
     private final Clock clock;
@@ -39,6 +40,13 @@ public class NotificationPushDeliveryStateService {
                 || notification.getPushStatus() == NotificationPushStatus.SENT
                 || notification.getPushStatus() == NotificationPushStatus.NOT_REQUESTED
                 || !notification.canAttemptPush(now, schedulerProperties.notificationMaxAttempts())) {
+            return null;
+        }
+        if (!preferenceService.isPushEnabled(
+                notification.getRecipient().getId(),
+                notification.getType()
+        )) {
+            notification.markPushNotRequested();
             return null;
         }
         notification.markPushAttempt(now, now.plus(schedulerProperties.notificationRetryDelay()));

@@ -2,11 +2,13 @@ package com.ahmetkaragunlu.guidematebackend.notification;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.DeviceRegistration;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPreference;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.gateway.PushNotificationSender;
 import com.ahmetkaragunlu.guidematebackend.notification.gateway.PushSendResult;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.DeviceRegistrationRepository;
+import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationPreferenceRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPushDeliveryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
@@ -30,7 +32,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +50,9 @@ class NotificationPushDeliveryServiceTest {
 
     @Autowired
     private DeviceRegistrationRepository registrationRepository;
+
+    @Autowired
+    private NotificationPreferenceRepository preferenceRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -108,6 +115,38 @@ class NotificationPushDeliveryServiceTest {
         assertThat(registrationRepository.findById(fixture.registrationId()).orElseThrow().isActive())
                 .isTrue();
         verify(pushNotificationSender).send(eq(firebaseInstallationId), anyMap());
+    }
+
+    @Test
+    void skipsPendingDeliveryWhenUserDisablesItsCategoryBeforeRetry() {
+        UUID notificationId = new TransactionTemplate(transactionManager).execute(status -> {
+            User user = createUser("disabled-push-delivery@example.com");
+            registrationRepository.save(new DeviceRegistration(
+                    user,
+                    UUID.randomUUID(),
+                    "disabled-category-fid-" + UUID.randomUUID(),
+                    Instant.parse("2026-08-11T00:00:00Z")
+            ));
+            NotificationPreference preference = new NotificationPreference(user);
+            preference.update(null, false, null, null, null, null);
+            preferenceRepository.save(preference);
+            return notificationRepository.save(new Notification(
+                    user,
+                    NotificationType.CHAT_MESSAGE,
+                    null,
+                    "{}",
+                    NotificationPushStatus.PENDING
+            )).getId();
+        });
+
+        when(pushNotificationSender.isAvailable()).thenReturn(true);
+
+        deliveryService.deliver(notificationId);
+
+        Notification notification = notificationRepository.findById(notificationId).orElseThrow();
+        assertThat(notification.getPushStatus()).isEqualTo(NotificationPushStatus.NOT_REQUESTED);
+        assertThat(notification.getPushAttemptCount()).isZero();
+        verify(pushNotificationSender, never()).send(anyString(), anyMap());
     }
 
     private User createUser(String email) {

@@ -6,9 +6,11 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MessagingErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
+@Slf4j
 @RequiredArgsConstructor
 public class FirebasePushNotificationSender implements PushNotificationSender {
 
@@ -35,6 +37,11 @@ public class FirebasePushNotificationSender implements PushNotificationSender {
             if (exception.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
                 return PushSendResult.invalidRegistration();
             }
+            log.warn(
+                    "FCM push delivery failed; firebaseErrorCode={}, messagingErrorCode={}",
+                    exception.getErrorCode(),
+                    exception.getMessagingErrorCode()
+            );
             return PushSendResult.failed();
         }
     }
