@@ -183,6 +183,43 @@ class PaymentResultServiceTest {
         verify(walletAccountService, never()).credit(any(), any(Long.class), any(), any(), any(), any(), any());
     }
 
+    @Test
+    void verifiedDeclineFailsPaymentWithoutCreditingWallet() {
+        UUID paymentId = UUID.randomUUID();
+        Payment payment = org.mockito.Mockito.mock(Payment.class);
+
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
+        when(payment.getReservation()).thenReturn(null);
+        when(payment.getStatus()).thenReturn(PaymentStatus.VERIFYING);
+        when(payment.getProviderTokenEncrypted()).thenReturn("encrypted-token");
+        when(payment.getProviderConversationId()).thenReturn("conversation-id");
+        when(dataCipher.decrypt("encrypted-token")).thenReturn("checkout-token");
+        when(failureCodeMapper.toStableCode("10051"))
+                .thenReturn(ErrorCode.CARD_INSUFFICIENT_FUNDS.name());
+
+        service.apply(
+                paymentId,
+                new VerifiedPaymentResult(
+                        false,
+                        "checkout-token",
+                        "conversation-id",
+                        null,
+                        null,
+                        0,
+                        null,
+                        "FAILURE",
+                        "10051",
+                        null
+                ),
+                new ProviderVerifiedEvent("CALLBACK", "callback:declined", "payload-hash")
+        );
+
+        verify(payment).fail(ErrorCode.CARD_INSUFFICIENT_FUNDS.name());
+        verify(walletAccountService, never()).credit(any(), any(Long.class), any(), any(), any(), any(), any());
+        verify(paymentEventRepository).save(any());
+    }
+
     private LateTourPayment stubLateTourPayment(boolean refundRequired) {
         UUID paymentId = UUID.randomUUID();
         UUID reservationId = UUID.randomUUID();

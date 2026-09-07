@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,7 +60,6 @@ public class SavedPaymentMethodStateService {
 
         List<SavedPaymentMethod> methods = methodRepository.findByUserIdForUpdate(userId);
         upsert(user, methods, providerCard);
-        normalizeDefault(methods);
         methodRepository.flush();
     }
 
@@ -88,9 +86,8 @@ public class SavedPaymentMethodStateService {
                 .filter(method -> !providerFingerprints.contains(method.getProviderCardTokenFingerprint()))
                 .forEach(SavedPaymentMethod::markDeleted);
 
-        normalizeDefault(methods);
         methodRepository.flush();
-        return methodRepository.findByUser_IdAndStatusOrderByDefaultMethodDescCreatedAtAsc(
+        return methodRepository.findByUser_IdAndStatusOrderByCreatedAtAsc(
                 userId,
                 SavedPaymentMethodStatus.ACTIVE
         );
@@ -124,23 +121,6 @@ public class SavedPaymentMethodStateService {
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.SAVED_CARD_NOT_FOUND));
         method.markDeleted();
-        normalizeDefault(methods);
-    }
-
-    @Transactional
-    public SavedPaymentMethod makeDefault(Long userId, UUID methodId) {
-        lockUser(userId);
-        List<SavedPaymentMethod> methods = methodRepository.findByUserIdForUpdate(userId);
-        SavedPaymentMethod selected = methods.stream()
-                .filter(method -> method.getId().equals(methodId))
-                .filter(method -> method.getStatus() == SavedPaymentMethodStatus.ACTIVE)
-                .findFirst()
-                .orElseThrow(() -> new BusinessException(ErrorCode.SAVED_CARD_NOT_FOUND));
-        methods.forEach(method -> method.setDefault(false));
-        methodRepository.flush();
-        selected.setDefault(true);
-        methodRepository.flush();
-        return selected;
     }
 
     private PaymentProviderCustomer requireOrCreateCustomer(User user, String customerKey) {
@@ -189,8 +169,7 @@ public class SavedPaymentMethodStateService {
                 user,
                 dataCipher.encrypt(cardToken),
                 fingerprint,
-                metadata,
-                methods.stream().noneMatch(this::isActiveDefault)
+                metadata
         );
         methodRepository.save(created);
         methods.add(created);
@@ -214,27 +193,6 @@ public class SavedPaymentMethodStateService {
         } catch (IllegalArgumentException exception) {
             throw syncFailed();
         }
-    }
-
-    private void normalizeDefault(List<SavedPaymentMethod> methods) {
-        List<SavedPaymentMethod> activeMethods = methods.stream()
-                .filter(method -> method.getStatus() == SavedPaymentMethodStatus.ACTIVE)
-                .sorted(Comparator.comparing(SavedPaymentMethod::getCreatedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
-        SavedPaymentMethod selected = activeMethods.stream()
-                .filter(SavedPaymentMethod::isDefaultMethod)
-                .findFirst()
-                .orElse(activeMethods.isEmpty() ? null : activeMethods.get(0));
-        methods.forEach(method -> method.setDefault(false));
-        methodRepository.flush();
-        if (selected != null) {
-            selected.setDefault(true);
-        }
-    }
-
-    private boolean isActiveDefault(SavedPaymentMethod method) {
-        return method.getStatus() == SavedPaymentMethodStatus.ACTIVE && method.isDefaultMethod();
     }
 
     private User lockUser(Long userId) {

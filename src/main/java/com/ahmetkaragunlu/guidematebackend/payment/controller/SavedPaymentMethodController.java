@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,14 +46,5 @@ public class SavedPaymentMethodController {
     ) {
         savedPaymentMethodService.deleteCard(currentUser, savedPaymentMethodId);
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Set the default saved card")
-    @PutMapping("/{savedPaymentMethodId}/default")
-    public ResponseEntity<SavedPaymentMethodResponse> makeDefault(
-            @PathVariable UUID savedPaymentMethodId,
-            @AuthenticationPrincipal User currentUser
-    ) {
-        return ResponseEntity.ok(savedPaymentMethodService.makeDefault(currentUser, savedPaymentMethodId));
     }
 }

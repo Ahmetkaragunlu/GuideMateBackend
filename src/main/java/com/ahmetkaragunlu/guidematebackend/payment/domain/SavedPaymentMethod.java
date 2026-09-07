@@ -27,16 +27,10 @@ import java.util.Objects;
                 name = "idx_saved_payment_method_user_status",
                 columnList = "user_id, status"
         ),
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uq_saved_payment_method_token",
-                        columnNames = {"provider", "provider_card_token_fingerprint"}
-                ),
-                @UniqueConstraint(
-                        name = "uq_saved_payment_method_default",
-                        columnNames = {"user_id", "default_guard"}
-                )
-        }
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_saved_payment_method_token",
+                columnNames = {"provider", "provider_card_token_fingerprint"}
+        )
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SavedPaymentMethod extends UuidAuditedEntity {
@@ -85,12 +79,6 @@ public class SavedPaymentMethod extends UuidAuditedEntity {
     @Column(name = "expiry_year")
     private Short expiryYear;
 
-    @Column(name = "is_default", nullable = false)
-    private boolean defaultMethod;
-
-    @Column(name = "default_guard")
-    private Boolean defaultGuard;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 16)
     private SavedPaymentMethodStatus status;
@@ -103,8 +91,7 @@ public class SavedPaymentMethod extends UuidAuditedEntity {
             User user,
             String providerCardTokenEncrypted,
             String providerCardTokenFingerprint,
-            SavedCardMetadata metadata,
-            boolean defaultMethod
+            SavedCardMetadata metadata
     ) {
         this.user = Objects.requireNonNull(user);
         this.provider = PaymentProvider.IYZICO;
@@ -112,7 +99,6 @@ public class SavedPaymentMethod extends UuidAuditedEntity {
         this.providerCardTokenFingerprint = Objects.requireNonNull(providerCardTokenFingerprint);
         this.status = SavedPaymentMethodStatus.ACTIVE;
         refreshMetadata(metadata);
-        setDefault(defaultMethod);
     }
 
     public void refreshMetadata(SavedCardMetadata metadata) {
@@ -130,17 +116,8 @@ public class SavedPaymentMethod extends UuidAuditedEntity {
         this.status = SavedPaymentMethodStatus.ACTIVE;
     }
 
-    public void setDefault(boolean value) {
-        if (status != SavedPaymentMethodStatus.ACTIVE && value) {
-            throw new IllegalStateException("Inactive saved payment method cannot be default");
-        }
-        this.defaultMethod = value;
-        this.defaultGuard = value ? Boolean.TRUE : null;
-    }
-
     public void markDeleted() {
         this.status = SavedPaymentMethodStatus.DELETED;
-        setDefault(false);
     }
 
     private String requireLastFourDigits(String value) {

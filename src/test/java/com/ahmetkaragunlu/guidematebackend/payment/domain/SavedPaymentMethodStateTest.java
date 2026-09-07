@@ -4,7 +4,6 @@ import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 class SavedPaymentMethodStateTest {
 
@@ -25,8 +24,7 @@ class SavedPaymentMethodStateTest {
                         "Test User",
                         (short) 12,
                         (short) 2033
-                ),
-                true
+                )
         );
 
         method.refreshMetadata(new SavedCardMetadata(
@@ -46,11 +44,10 @@ class SavedPaymentMethodStateTest {
         assertThat(method.getBankName()).isEqualTo("Updated Bank");
         assertThat(method.getExpiryMonth()).isEqualTo((short) 12);
         assertThat(method.getExpiryYear()).isEqualTo((short) 2033);
-        assertThat(method.isDefaultMethod()).isTrue();
     }
 
     @Test
-    void deletedCardCannotRemainDefault() {
+    void marksSavedCardDeletedWithoutChangingProviderMetadata() {
         SavedPaymentMethod method = new SavedPaymentMethod(
                 new User(),
                 "encrypted-token",
@@ -66,15 +63,12 @@ class SavedPaymentMethodStateTest {
                         null,
                         null,
                         null
-                ),
-                true
+                )
         );
 
         method.markDeleted();
 
         assertThat(method.getStatus()).isEqualTo(SavedPaymentMethodStatus.DELETED);
-        assertThat(method.isDefaultMethod()).isFalse();
-        assertThat(method.getDefaultGuard()).isNull();
-        assertThatIllegalStateException().isThrownBy(() -> method.setDefault(true));
+        assertThat(method.getLastFourDigits()).isEqualTo("1234");
     }
 }

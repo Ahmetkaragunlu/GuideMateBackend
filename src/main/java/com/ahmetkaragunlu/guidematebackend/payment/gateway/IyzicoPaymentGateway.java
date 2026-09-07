@@ -28,6 +28,7 @@ import java.util.List;
 public class IyzicoPaymentGateway implements HostedPaymentGateway {
 
     private static final String SUCCESS = "success";
+    private static final String FAILURE = "failure";
     private static final String PAYMENT_SUCCESS = "SUCCESS";
     private static final String CALLBACK_PATH = "/api/v1/payments/iyzico/callback";
 
@@ -80,27 +81,45 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
 
         return IyzicoGatewaySupport.execute(() -> {
             CheckoutForm response = CheckoutForm.retrieve(request, options);
-            if (!SUCCESS.equalsIgnoreCase(response.getStatus())
-                    || !response.verifySignature(options.getSecretKey())) {
-                throw new PaymentGatewayException(IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()));
-            }
-            boolean successful = PAYMENT_SUCCESS.equalsIgnoreCase(response.getPaymentStatus());
-            PaymentItem item = response.getPaymentItems() == null || response.getPaymentItems().isEmpty()
-                    ? null
-                    : response.getPaymentItems().get(0);
-            return new VerifiedPaymentResult(
-                    successful,
-                    response.getToken(),
-                    response.getConversationId(),
-                    response.getPaymentId(),
-                    item == null ? null : item.getPaymentTransactionId(),
-                    toMinor(response.getPaidPrice()),
-                    response.getCurrency(),
-                    response.getPaymentStatus(),
-                    successful ? null : IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()),
-                    successful ? toProviderCard(response) : null
-            );
+            validateRetrieveResponseIntegrity(response);
+            return toVerifiedPaymentResult(response);
         });
+    }
+
+    void validateRetrieveResponseIntegrity(CheckoutForm response) {
+        boolean providerDeclaredSuccess = SUCCESS.equalsIgnoreCase(response.getStatus())
+                && PAYMENT_SUCCESS.equalsIgnoreCase(response.getPaymentStatus());
+        boolean providerDeclaredFailure = FAILURE.equalsIgnoreCase(response.getStatus())
+                || FAILURE.equalsIgnoreCase(response.getPaymentStatus());
+        if (!providerDeclaredSuccess && !providerDeclaredFailure) {
+            throw verificationException(response);
+        }
+
+        boolean signaturePresent = !isBlank(response.getSignature());
+        if ((providerDeclaredSuccess || signaturePresent)
+                && !response.verifySignature(options.getSecretKey())) {
+            throw verificationException(response);
+        }
+    }
+
+    VerifiedPaymentResult toVerifiedPaymentResult(CheckoutForm response) {
+        boolean successful = SUCCESS.equalsIgnoreCase(response.getStatus())
+                && PAYMENT_SUCCESS.equalsIgnoreCase(response.getPaymentStatus());
+        PaymentItem item = response.getPaymentItems() == null || response.getPaymentItems().isEmpty()
+                ? null
+                : response.getPaymentItems().get(0);
+        return new VerifiedPaymentResult(
+                successful,
+                response.getToken(),
+                response.getConversationId(),
+                response.getPaymentId(),
+                item == null ? null : item.getPaymentTransactionId(),
+                toMinor(response.getPaidPrice()),
+                response.getCurrency(),
+                firstNonBlank(response.getPaymentStatus(), response.getStatus()),
+                successful ? null : IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode()),
+                successful ? toProviderCard(response) : null
+        );
     }
 
     @Override
@@ -212,5 +231,11 @@ public class IyzicoPaymentGateway implements HostedPaymentGateway {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private PaymentGatewayException verificationException(CheckoutForm response) {
+        return new PaymentGatewayException(
+                IyzicoGatewaySupport.normalizeFailureCode(response.getErrorCode())
+        );
     }
 }

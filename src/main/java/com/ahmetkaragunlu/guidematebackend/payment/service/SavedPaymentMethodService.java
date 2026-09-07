@@ -50,10 +50,6 @@ public class SavedPaymentMethodService {
         stateService.markDeleted(user.getId(), methodId);
     }
 
-    public SavedPaymentMethodResponse makeDefault(User user, UUID methodId) {
-        return toResponse(stateService.makeDefault(user.getId(), methodId));
-    }
-
     private SavedPaymentMethodResponse toResponse(SavedPaymentMethod method) {
         return new SavedPaymentMethodResponse(
                 method.getId(),
@@ -66,8 +62,7 @@ public class SavedPaymentMethodService {
                 method.getLastFourDigits(),
                 method.getCardHolderName(),
                 method.getExpiryMonth() == null ? null : method.getExpiryMonth().intValue(),
-                method.getExpiryYear() == null ? null : method.getExpiryYear().intValue(),
-                method.isDefaultMethod()
+                method.getExpiryYear() == null ? null : method.getExpiryYear().intValue()
         );
     }
 }

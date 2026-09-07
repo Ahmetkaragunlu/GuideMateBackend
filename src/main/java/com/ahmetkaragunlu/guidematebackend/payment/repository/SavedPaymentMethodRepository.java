@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public interface SavedPaymentMethodRepository extends JpaRepository<SavedPaymentMethod, UUID> {
 
-    List<SavedPaymentMethod> findByUser_IdAndStatusOrderByDefaultMethodDescCreatedAtAsc(
+    List<SavedPaymentMethod> findByUser_IdAndStatusOrderByCreatedAtAsc(
             Long userId,
             SavedPaymentMethodStatus status
     );

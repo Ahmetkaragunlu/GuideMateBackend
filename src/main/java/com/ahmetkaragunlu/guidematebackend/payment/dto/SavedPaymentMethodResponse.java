@@ -13,7 +13,6 @@ public record SavedPaymentMethodResponse(
         String lastFourDigits,
         String cardHolderName,
         Integer expiryMonth,
-        Integer expiryYear,
-        boolean defaultMethod
+        Integer expiryYear
 ) {
 }
