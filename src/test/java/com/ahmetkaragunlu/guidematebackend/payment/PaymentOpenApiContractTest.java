@@ -61,6 +61,9 @@ class PaymentOpenApiContractTest {
                 .andExpect(jsonPath(
                         "$.components.schemas.MonthlyGuideEarningResponse.properties.currencyCode"
                 ).exists())
+                .andExpect(jsonPath(
+                        "$.components.schemas.MonthlyGuideEarningResponse.properties.pendingEarningsMinor"
+                ).exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/bank-accounts']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/bank-accounts/{bankAccountId}/default']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/guide/withdrawals']").exists());

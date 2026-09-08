@@ -3,9 +3,13 @@ package com.ahmetkaragunlu.guidematebackend.wallet.service;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarning;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarningStatus;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.GuideEarningRepository;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.SessionEarningSummary;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,10 +32,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GuideEarningServiceTest {
+
+    private static final Instant NOW = Instant.parse("2026-08-14T00:00:00Z");
 
     @Mock
     private GuideEarningRepository earningRepository;
@@ -51,7 +58,7 @@ class GuideEarningServiceTest {
                 walletAccountService,
                 paymentProperties,
                 notificationPublisher,
-                Clock.fixed(Instant.parse("2026-08-14T00:00:00Z"), ZoneOffset.UTC)
+                Clock.fixed(NOW, ZoneOffset.UTC)
         );
     }
 
@@ -108,6 +115,51 @@ class GuideEarningServiceTest {
 
         assertThat(service.createPending(reservation)).isSameAs(existing);
         verify(earningRepository, never()).save(any());
+    }
+
+    @Test
+    void makesDuePendingEarningAvailableAndCreditsWalletOnlyOnce() {
+        UUID earningId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
+        UUID tourId = UUID.randomUUID();
+        GuideEarning earning = mock(GuideEarning.class);
+        Reservation reservation = mock(Reservation.class);
+        TourSession session = mock(TourSession.class);
+        Tour tour = mock(Tour.class);
+        User guide = mock(User.class);
+        Wallet wallet = mock(Wallet.class);
+        when(earningRepository.findByIdForUpdate(earningId))
+                .thenReturn(Optional.of(earning));
+        when(earning.getStatus())
+                .thenReturn(GuideEarningStatus.PENDING, GuideEarningStatus.AVAILABLE);
+        when(earning.getAvailableAt()).thenReturn(NOW);
+        when(earning.getReservation()).thenReturn(reservation);
+        when(earning.getId()).thenReturn(earningId);
+        when(earning.getNetMinor()).thenReturn(8_500L);
+        when(earning.getCurrencyCode()).thenReturn("USD");
+        when(reservation.getId()).thenReturn(reservationId);
+        when(reservation.getSession()).thenReturn(session);
+        when(session.getTour()).thenReturn(tour);
+        when(tour.getId()).thenReturn(tourId);
+        when(tour.getGuide()).thenReturn(guide);
+        when(guide.getId()).thenReturn(7L);
+        when(walletAccountService.getOrCreateForUpdate(guide)).thenReturn(wallet);
+
+        service.makeAvailableById(earningId);
+        service.makeAvailableById(earningId);
+
+        verify(earning).makeAvailable();
+        verify(walletAccountService).credit(
+                wallet,
+                8_500L,
+                LedgerEntryType.GUIDE_EARNING,
+                "GUIDE_EARNING",
+                earningId,
+                "earning-credit:" + earningId,
+                NOW
+        );
+        verify(notificationPublisher).publish(any());
+        verify(earningRepository, times(2)).findByIdForUpdate(earningId);
     }
 
 }

@@ -85,7 +85,9 @@ public interface GuideEarningRepository extends JpaRepository<GuideEarning, UUID
             SELECT YEAR(earning.createdAt) AS year,
                    MONTH(earning.createdAt) AS month,
                    SUM(earning.netMinor) AS netEarningsMinor,
-                   earning.currencyCode AS currencyCode
+                   earning.currencyCode AS currencyCode,
+                   SUM(CASE WHEN earning.status = :pending THEN earning.netMinor ELSE 0 END)
+                       AS pendingEarningsMinor
             FROM GuideEarning earning
             WHERE earning.reservation.session.tour.guide.id = :guideId
               AND earning.createdAt >= :from AND earning.createdAt < :until
@@ -97,7 +99,8 @@ public interface GuideEarningRepository extends JpaRepository<GuideEarning, UUID
             @Param("guideId") Long guideId,
             @Param("from") Instant from,
             @Param("until") Instant until,
-            @Param("reversed") GuideEarningStatus reversed
+            @Param("reversed") GuideEarningStatus reversed,
+            @Param("pending") GuideEarningStatus pending
     );
 
     @EntityGraph(attributePaths = "reservation")

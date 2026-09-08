@@ -9,4 +9,6 @@ public interface MonthlyEarningSummary {
     Long getNetEarningsMinor();
 
     String getCurrencyCode();
+
+    Long getPendingEarningsMinor();
 }

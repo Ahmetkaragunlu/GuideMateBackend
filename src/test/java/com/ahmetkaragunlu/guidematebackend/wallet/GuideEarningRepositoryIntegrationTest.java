@@ -73,15 +73,21 @@ class GuideEarningRepositoryIntegrationTest {
         TourSession session = createSession(guide, admin);
         GuideEarning january = createEarning(session, 9_000, false, "JanuaryTourist");
         GuideEarning february = createEarning(session, 12_000, false, "FebruaryTourist");
+        GuideEarning februaryAvailable = createEarning(session, 3_000, false, "AvailableFebruaryTourist");
         GuideEarning reversed = createEarning(session, 50_000, true, "ReversedTourist");
+        january.makeAvailable();
+        earningRepository.saveAndFlush(january);
+        februaryAvailable.makeAvailable();
+        earningRepository.saveAndFlush(februaryAvailable);
         setCreatedAt(january, Instant.parse("2026-01-15T12:00:00Z"));
         setCreatedAt(february, Instant.parse("2026-02-10T12:00:00Z"));
+        setCreatedAt(februaryAvailable, Instant.parse("2026-02-15T12:00:00Z"));
         setCreatedAt(reversed, Instant.parse("2026-02-20T12:00:00Z"));
         entityManager.clear();
 
         assertThat(earningService.getMonthlyEarnings(guide.getId(), 2026)).containsExactly(
-                new MonthlyGuideEarningResponse(2026, 2, 12_000, "USD"),
-                new MonthlyGuideEarningResponse(2026, 1, 9_000, "USD")
+                new MonthlyGuideEarningResponse(2026, 2, 15_000, "USD", 12_000),
+                new MonthlyGuideEarningResponse(2026, 1, 9_000, "USD", 0)
         );
     }
 

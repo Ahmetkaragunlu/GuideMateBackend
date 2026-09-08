@@ -168,7 +168,8 @@ public class GuideEarningService {
                         guideId,
                         from,
                         until,
-                        GuideEarningStatus.REVERSED
+                        GuideEarningStatus.REVERSED,
+                        GuideEarningStatus.PENDING
                 ).stream()
                 .map(this::toMonthlyResponse)
                 .toList();
@@ -195,7 +196,8 @@ public class GuideEarningService {
                 summary.getYear(),
                 summary.getMonth(),
                 summary.getNetEarningsMinor(),
-                summary.getCurrencyCode()
+                summary.getCurrencyCode(),
+                summary.getPendingEarningsMinor()
         );
     }
 }

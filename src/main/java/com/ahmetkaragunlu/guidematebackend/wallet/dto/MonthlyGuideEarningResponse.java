@@ -4,6 +4,7 @@ public record MonthlyGuideEarningResponse(
         int year,
         int month,
         long netEarningsMinor,
-        String currencyCode
+        String currencyCode,
+        long pendingEarningsMinor
 ) {
 }
