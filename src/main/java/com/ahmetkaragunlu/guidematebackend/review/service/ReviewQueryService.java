@@ -14,6 +14,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
+import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -59,10 +60,23 @@ public class ReviewQueryService {
                 .filter(candidate -> candidate.getGuide().getAccountStatus() == AccountStatus.ACTIVE)
                 .filter(candidate -> candidate.getGuide().hasRole(RoleType.ROLE_GUIDE))
                 .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
-        Page<Review> reviews = reviewRepository.findPublicByTourId(
-                tour.getId(),
-                PageRequest.of(page, size)
-        );
+        return getReviews(tour.getId(), page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<TourReviewResponse> getOwnedTourReviews(
+            User currentUser,
+            UUID tourId,
+            int page,
+            int size
+    ) {
+        var tour = tourRepository.findOwnedDetails(tourId, currentUser.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.TOUR_NOT_FOUND));
+        return getReviews(tour.getId(), page, size);
+    }
+
+    private PageResponse<TourReviewResponse> getReviews(UUID tourId, int page, int size) {
+        Page<Review> reviews = reviewRepository.findByTourId(tourId, PageRequest.of(page, size));
         return PageResponse.from(reviews.map(reviewMapper::toPublicResponse));
     }
 

@@ -36,7 +36,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
                     WHERE review.reservation.session.tour.id = :tourId
                     """
     )
-    Page<Review> findPublicByTourId(@Param("tourId") UUID tourId, Pageable pageable);
+    Page<Review> findByTourId(@Param("tourId") UUID tourId, Pageable pageable);
 
     @Query("""
             SELECT review.reservation.session.tour.id AS tourId,

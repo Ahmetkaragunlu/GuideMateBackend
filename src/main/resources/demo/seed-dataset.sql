@@ -227,44 +227,39 @@ from (
 ) demo_users;
 
 with destinations(
-    destination_index, country_code, city_place_id, city_name, time_zone_id, landmark_name
+    destination_index, country_code, city_place_id, city_name, time_zone_id,
+    landmark_name, tour_title, category_code, category_title
 ) as (
     values
-        (1, 'TR', 'demo-istanbul-sultanahmet', 'İstanbul', 'Europe/Istanbul', 'Sultanahmet'),
-        (2, 'TR', 'demo-istanbul-ayasofya', 'İstanbul', 'Europe/Istanbul', 'Ayasofya'),
-        (3, 'TR', 'demo-istanbul-galata', 'İstanbul', 'Europe/Istanbul', 'Galata ve Karaköy'),
-        (4, 'TR', 'demo-nevsehir-kapadokya', 'Nevşehir', 'Europe/Istanbul', 'Kapadokya'),
-        (5, 'TR', 'demo-izmir-efes', 'İzmir', 'Europe/Istanbul', 'Efes Antik Kenti'),
-        (6, 'TR', 'demo-denizli-pamukkale', 'Denizli', 'Europe/Istanbul', 'Pamukkale'),
-        (7, 'TR', 'demo-antalya-kaleici', 'Antalya', 'Europe/Istanbul', 'Kaleiçi'),
-        (8, 'TR', 'demo-mugla-bodrum', 'Muğla', 'Europe/Istanbul', 'Bodrum Kalesi'),
-        (9, 'TR', 'demo-mugla-oludeniz', 'Muğla', 'Europe/Istanbul', 'Ölüdeniz'),
-        (10, 'TR', 'demo-canakkale-troya', 'Çanakkale', 'Europe/Istanbul', 'Troya Antik Kenti'),
-        (11, 'TR', 'demo-bursa-cumalikizik', 'Bursa', 'Europe/Istanbul', 'Cumalıkızık'),
-        (12, 'TR', 'demo-karabuk-safranbolu', 'Karabük', 'Europe/Istanbul', 'Safranbolu'),
-        (13, 'TR', 'demo-edirne-selimiye', 'Edirne', 'Europe/Istanbul', 'Selimiye Camii'),
-        (14, 'TR', 'demo-konya-mevlana', 'Konya', 'Europe/Istanbul', 'Mevlana Müzesi'),
-        (15, 'TR', 'demo-ankara-anitkabir', 'Ankara', 'Europe/Istanbul', 'Anıtkabir'),
-        (16, 'TR', 'demo-mardin-eski-kent', 'Mardin', 'Europe/Istanbul', 'Eski Mardin'),
-        (17, 'TR', 'demo-sanliurfa-gobeklitepe', 'Şanlıurfa', 'Europe/Istanbul', 'Göbeklitepe'),
-        (18, 'TR', 'demo-gaziantep-zeugma', 'Gaziantep', 'Europe/Istanbul', 'Zeugma'),
-        (19, 'TR', 'demo-adiyaman-nemrut', 'Adıyaman', 'Europe/Istanbul', 'Nemrut Dağı'),
-        (20, 'TR', 'demo-trabzon-sumela', 'Trabzon', 'Europe/Istanbul', 'Sümela Manastırı'),
-        (21, 'TR', 'demo-rize-ayder', 'Rize', 'Europe/Istanbul', 'Ayder Yaylası'),
-        (22, 'TR', 'demo-kars-ani', 'Kars', 'Europe/Istanbul', 'Ani Harabeleri'),
-        (23, 'TR', 'demo-van-akdamar', 'Van', 'Europe/Istanbul', 'Akdamar Adası'),
-        (24, 'TR', 'demo-amasya-kral-kaya', 'Amasya', 'Europe/Istanbul', 'Kral Kaya Mezarları')
+        (1, 'TR', 'demo-istanbul-sultanahmet', 'İstanbul', 'Europe/Istanbul', 'Sultanahmet', 'Sultanahmet Tarih ve Kültür Rotası', 'culture', 'tarih ve kültür'),
+        (2, 'TR', 'demo-istanbul-ayasofya', 'İstanbul', 'Europe/Istanbul', 'Ayasofya', 'Ayasofya Tarih ve Mimari Rotası', 'culture', 'tarih ve mimari'),
+        (3, 'TR', 'demo-istanbul-galata', 'İstanbul', 'Europe/Istanbul', 'Galata ve Karaköy', 'Galata ve Karaköy Lezzet Rotası', 'food', 'lezzet'),
+        (4, 'TR', 'demo-nevsehir-kapadokya', 'Nevşehir', 'Europe/Istanbul', 'Kapadokya', 'Kapadokya Vadileri Doğa Rotası', 'nature', 'doğa'),
+        (5, 'TR', 'demo-izmir-efes', 'İzmir', 'Europe/Istanbul', 'Efes Antik Kenti', 'Efes Antik Kenti Tarih Rotası', 'culture', 'tarih ve kültür'),
+        (6, 'TR', 'demo-denizli-pamukkale', 'Denizli', 'Europe/Istanbul', 'Pamukkale', 'Pamukkale Doğa Rotası', 'nature', 'doğa'),
+        (7, 'TR', 'demo-antalya-kaleici', 'Antalya', 'Europe/Istanbul', 'Kaleiçi', 'Kaleiçi Sanat ve Mimari Rotası', 'art', 'sanat ve mimari'),
+        (8, 'TR', 'demo-mugla-bodrum', 'Muğla', 'Europe/Istanbul', 'Bodrum', 'Bodrum Akşam Eğlencesi Rotası', 'entertainment', 'akşam eğlencesi'),
+        (9, 'TR', 'demo-mugla-oludeniz', 'Muğla', 'Europe/Istanbul', 'Ölüdeniz', 'Ölüdeniz Yamaç Paraşütü Macera Rotası', 'adventure', 'macera'),
+        (10, 'TR', 'demo-canakkale-troya', 'Çanakkale', 'Europe/Istanbul', 'Troya Antik Kenti', 'Troya Antik Kenti Tarih Rotası', 'culture', 'tarih ve kültür'),
+        (11, 'TR', 'demo-bursa-cumalikizik', 'Bursa', 'Europe/Istanbul', 'Cumalıkızık', 'Cumalıkızık Yerel Lezzet Rotası', 'food', 'yerel lezzet'),
+        (12, 'TR', 'demo-karabuk-safranbolu', 'Karabük', 'Europe/Istanbul', 'Safranbolu', 'Safranbolu Tarih ve Kültür Rotası', 'culture', 'tarih ve kültür'),
+        (13, 'TR', 'demo-edirne-selimiye', 'Edirne', 'Europe/Istanbul', 'Selimiye Camii', 'Selimiye Camii Tarih ve Mimari Rotası', 'culture', 'tarih ve mimari'),
+        (14, 'TR', 'demo-konya-mevlana', 'Konya', 'Europe/Istanbul', 'Mevlana Müzesi', 'Mevlana Müzesi Kültür Rotası', 'culture', 'kültür'),
+        (15, 'TR', 'demo-ankara-anitkabir', 'Ankara', 'Europe/Istanbul', 'Anıtkabir', 'Anıtkabir Tarih ve Kültür Rotası', 'culture', 'tarih ve kültür'),
+        (16, 'TR', 'demo-mardin-eski-kent', 'Mardin', 'Europe/Istanbul', 'Eski Mardin', 'Eski Mardin Fotoğraf ve Mimari Rotası', 'art', 'fotoğraf ve mimari'),
+        (17, 'TR', 'demo-sanliurfa-gobeklitepe', 'Şanlıurfa', 'Europe/Istanbul', 'Göbeklitepe', 'Göbeklitepe Tarih Rotası', 'culture', 'tarih ve kültür'),
+        (18, 'TR', 'demo-gaziantep-zeugma', 'Gaziantep', 'Europe/Istanbul', 'Zeugma Mozaikleri', 'Zeugma Mozaikleri Sanat Rotası', 'art', 'sanat'),
+        (19, 'TR', 'demo-adiyaman-nemrut', 'Adıyaman', 'Europe/Istanbul', 'Nemrut Dağı', 'Nemrut Dağı Tarih ve Doğa Rotası', 'culture', 'tarih ve doğa'),
+        (20, 'TR', 'demo-trabzon-sumela', 'Trabzon', 'Europe/Istanbul', 'Sümela Manastırı', 'Sümela Manastırı Tarih ve Doğa Rotası', 'culture', 'tarih ve doğa'),
+        (21, 'TR', 'demo-rize-ayder', 'Rize', 'Europe/Istanbul', 'Ayder Yaylası', 'Ayder Yaylası Doğa Rotası', 'nature', 'doğa'),
+        (22, 'TR', 'demo-kars-ani', 'Kars', 'Europe/Istanbul', 'Ani Harabeleri', 'Ani Harabeleri Tarih Rotası', 'culture', 'tarih ve kültür'),
+        (23, 'TR', 'demo-van-akdamar', 'Van', 'Europe/Istanbul', 'Akdamar Adası', 'Akdamar Adası Tarih ve Doğa Rotası', 'culture', 'tarih ve doğa'),
+        (24, 'TR', 'demo-amasya-kral-kaya', 'Amasya', 'Europe/Istanbul', 'Kral Kaya Mezarları', 'Kral Kaya Mezarları Tarih Rotası', 'culture', 'tarih ve kültür')
 ), tour_plan as (
     select
         number as tour_index,
         2006 + ((number - 1) % 45) as guide_id,
         destination.*,
-        (array['culture', 'food', 'nature', 'art', 'entertainment', 'adventure'])[
-            1 + ((number - 1) % 6)
-        ] as category_code,
-        (array['Kültür', 'Lezzet', 'Doğa', 'Sanat', 'Eğlence', 'Macera'])[
-            1 + ((number - 1) % 6)
-        ] as category_title,
         case
             when number <= 130 then 'APPROVED'
             when number <= 150 then 'PENDING_REVIEW'
@@ -283,12 +278,7 @@ insert into tours (
 select
     pg_temp.demo_uuid('tour-' || tour_index),
     guide_id,
-    format(
-        '%s %s Rotası %s',
-        landmark_name,
-        category_title,
-        lpad(tour_index::text, 3, '0')
-    ),
+    tour_title,
     format(
         '%s ve çevresini yerel hikâyeler, tarihî bilgiler ve planlı fotoğraf duraklarıyla '
             || 'keşfedeceğiniz dengeli bir %s rotası. Küçük gruplara uygun programda sorular için de zaman ayrılır.',
@@ -334,7 +324,22 @@ select
         ]
     end
 from generate_series(1, 180) as tour_index
-cross join lateral generate_series(0, 1 + ((tour_index - 1) % 3)) as language_position;
+cross join lateral generate_series(0, 1 + ((tour_index - 1) % 3)) as language_position
+where 1 + ((tour_index - 1) % 24) not in (15, 19)
+union all
+select
+    pg_temp.demo_uuid('tour-' || tour_index),
+    language_code
+from generate_series(1, 180) as tour_index
+cross join (values ('tr'), ('de'), ('es')) as anitkabir_language(language_code)
+where 1 + ((tour_index - 1) % 24) = 15
+union all
+select
+    pg_temp.demo_uuid('tour-' || tour_index),
+    language_code
+from generate_series(1, 180) as tour_index
+cross join (values ('tr'), ('en'), ('ar')) as nemrut_language(language_code)
+where 1 + ((tour_index - 1) % 24) = 19;
 
 create temporary table demo_session_plan on commit drop as
 with completed_allocation as (
@@ -370,7 +375,9 @@ with completed_allocation as (
     select
         365 + ordinal as session_number,
         2006 + ((ordinal - 1) % 45) as guide_id,
-        ((2006 + ((ordinal - 1) % 45)) - 2006) + 1 + 45 * ((ordinal - 1) % 2) as tour_index,
+        ((2006 + ((ordinal - 1) % 45)) - 2006)
+            + 1
+            + 45 * ((ordinal - 1) / 45) as tour_index,
         'OPEN_FOR_BOOKING'::varchar as status,
         current_setting('guidemate.demo_reference_instant')::timestamptz
             + (1 + ((ordinal - 1) % 120)) * interval '1 day'

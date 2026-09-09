@@ -62,4 +62,19 @@ public class ReviewController {
     ) {
         return ResponseEntity.ok(reviewQueryService.getTourReviews(tourId, page, size));
     }
+
+    @Operation(summary = "List reviews for an owned guide tour")
+    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH_SCHEME)
+    @PreAuthorize("hasRole('GUIDE')")
+    @GetMapping("/guide/tours/{tourId}/reviews")
+    public ResponseEntity<PageResponse<TourReviewResponse>> getOwnedTourReviews(
+            @PathVariable UUID tourId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(
+                reviewQueryService.getOwnedTourReviews(currentUser, tourId, page, size)
+        );
+    }
 }

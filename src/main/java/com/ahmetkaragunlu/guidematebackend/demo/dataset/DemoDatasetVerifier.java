@@ -139,6 +139,17 @@ class DemoDatasetVerifier {
                 "select status, count(*) from tour_sessions group by status",
                 Map.of("COMPLETED", 365L, "OPEN_FOR_BOOKING", 150L, "CLOSED", 25L, "CANCELLED", 20L)
         );
+        assertCount("duplicate open tour titles per guide", 0, """
+                select count(*)
+                from (
+                    select tour.guide_id, tour.title
+                    from tour_sessions session
+                    join tours tour on tour.id = session.tour_id
+                    where session.status = 'OPEN_FOR_BOOKING'
+                    group by tour.guide_id, tour.title
+                    having count(*) > 1
+                ) duplicate_open_title
+                """);
         assertCount("tour change requests", 30, "select count(*) from tour_change_requests");
         assertGroupedCounts(
                 "tour change request statuses",
