@@ -1,12 +1,12 @@
 package com.ahmetkaragunlu.guidematebackend.common.security;
 
+import com.ahmetkaragunlu.guidematebackend.common.config.JwtProperties;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -22,16 +22,12 @@ public class JwtService {
     private static final String TOKEN_VERSION_CLAIM = "tokenVersion";
 
     private final SecretKey signingKey;
-    private final long jwtExpiration;
+    private final JwtProperties properties;
     private final Clock clock;
 
-    public JwtService(
-            @Value("${jwt.secret}") String secretKey,
-            @Value("${jwt.expiration}") long jwtExpiration,
-            Clock clock
-    ) {
-        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
-        this.jwtExpiration = jwtExpiration;
+    public JwtService(JwtProperties properties, Clock clock) {
+        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(properties.secret()));
+        this.properties = properties;
         this.clock = clock;
     }
 
@@ -43,9 +39,11 @@ public class JwtService {
         Instant issuedAt = clock.instant();
         return Jwts.builder()
                 .claims(Map.of(TOKEN_VERSION_CLAIM, user.getTokenVersion()))
+                .issuer(properties.issuer())
+                .audience().add(properties.audience()).and()
                 .subject(user.getUsername())
                 .issuedAt(Date.from(issuedAt))
-                .expiration(Date.from(issuedAt.plusMillis(jwtExpiration)))
+                .expiration(Date.from(issuedAt.plus(properties.expiration())))
                 .signWith(signingKey)
                 .compact();
     }
@@ -72,6 +70,8 @@ public class JwtService {
         return Jwts.parser()
                 .clock(() -> Date.from(clock.instant()))
                 .verifyWith(signingKey)
+                .requireIssuer(properties.issuer())
+                .requireAudience(properties.audience())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

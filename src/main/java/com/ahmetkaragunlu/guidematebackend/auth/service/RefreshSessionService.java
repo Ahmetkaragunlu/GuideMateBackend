@@ -2,13 +2,13 @@ package com.ahmetkaragunlu.guidematebackend.auth.service;
 
 import com.ahmetkaragunlu.guidematebackend.auth.domain.RefreshToken;
 import com.ahmetkaragunlu.guidematebackend.auth.repository.RefreshTokenRepository;
+import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
+import com.ahmetkaragunlu.guidematebackend.common.config.JwtProperties;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.common.security.SecureTokenService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import com.ahmetkaragunlu.guidematebackend.user.service.AccountStatusPolicy;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,7 @@ public class RefreshSessionService {
     private final SecureTokenService tokenService;
     private final AccountStatusPolicy accountStatusPolicy;
     private final Clock clock;
-    private final long refreshExpirationMillis;
+    private final JwtProperties jwtProperties;
 
     public RefreshSessionService(
             RefreshTokenRepository refreshTokenRepository,
@@ -33,14 +33,14 @@ public class RefreshSessionService {
             SecureTokenService tokenService,
             AccountStatusPolicy accountStatusPolicy,
             Clock clock,
-            @Value("${jwt.refresh-expiration}") long refreshExpirationMillis
+            JwtProperties jwtProperties
     ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
         this.tokenService = tokenService;
         this.accountStatusPolicy = accountStatusPolicy;
         this.clock = clock;
-        this.refreshExpirationMillis = refreshExpirationMillis;
+        this.jwtProperties = jwtProperties;
     }
 
     @Transactional
@@ -56,7 +56,7 @@ public class RefreshSessionService {
                 tokenService.hash(rawToken),
                 UUID.randomUUID().toString(),
                 installationId,
-                now.plusMillis(refreshExpirationMillis)
+                now.plus(jwtProperties.refreshExpiration())
         );
         refreshTokenRepository.save(session);
         return rawToken;
@@ -95,7 +95,7 @@ public class RefreshSessionService {
                 tokenService.hash(newRawToken),
                 current.getFamilyId(),
                 installationId,
-                now.plusMillis(refreshExpirationMillis)
+                now.plus(jwtProperties.refreshExpiration())
         );
         refreshTokenRepository.save(replacement);
         initializeRole(current.getUser());

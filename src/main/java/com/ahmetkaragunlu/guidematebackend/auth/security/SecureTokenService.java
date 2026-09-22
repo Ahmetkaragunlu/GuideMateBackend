@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.common.security;
+package com.ahmetkaragunlu.guidematebackend.auth.security;
 
 import org.springframework.stereotype.Component;
 

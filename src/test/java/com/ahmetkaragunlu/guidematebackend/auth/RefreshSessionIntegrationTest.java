@@ -5,7 +5,7 @@ import com.ahmetkaragunlu.guidematebackend.auth.repository.RefreshTokenRepositor
 import com.ahmetkaragunlu.guidematebackend.auth.service.RefreshSessionService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.common.security.SecureTokenService;
+import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;

@@ -1,7 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.auth.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.RateLimitException;
-import com.ahmetkaragunlu.guidematebackend.common.security.SecureTokenService;
+import com.ahmetkaragunlu.guidematebackend.auth.config.AuthRateLimitProperties;
+import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
 import com.ahmetkaragunlu.guidematebackend.support.MutableClock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,11 +28,16 @@ class AuthRateLimitServiceTest {
         service = new AuthRateLimitService(
                 new SecureTokenService(),
                 clock,
-                3,
-                10,
-                40,
-                60,
-                30
+                new AuthRateLimitProperties(
+                        new AuthRateLimitProperties.Login(
+                                3,
+                                Duration.ofSeconds(10),
+                                Duration.ofSeconds(40),
+                                Duration.ofSeconds(60)
+                        ),
+                        new AuthRateLimitProperties.PublicOperations(Duration.ofSeconds(30)),
+                        Duration.ofMinutes(10)
+                )
         );
     }
 

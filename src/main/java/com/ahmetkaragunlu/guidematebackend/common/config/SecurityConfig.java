@@ -6,6 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.common.security.RestAuthenticationEnt
 import com.ahmetkaragunlu.guidematebackend.common.util.EmailNormalizer;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,6 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(JwtProperties.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
 

@@ -1,8 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.auth.service;
 
+import com.ahmetkaragunlu.guidematebackend.auth.config.AuthRateLimitProperties;
+import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.RateLimitException;
-import com.ahmetkaragunlu.guidematebackend.common.security.SecureTokenService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -29,19 +29,16 @@ public class AuthRateLimitService {
     public AuthRateLimitService(
             SecureTokenService tokenService,
             Clock clock,
-            @Value("${auth.rate-limit.login.max-failures}") int loginMaxFailures,
-            @Value("${auth.rate-limit.login.base-block-seconds}") long loginBaseBlockSeconds,
-            @Value("${auth.rate-limit.login.max-block-seconds}") long loginMaxBlockSeconds,
-            @Value("${auth.rate-limit.login.window-seconds}") long loginWindowSeconds,
-            @Value("${auth.rate-limit.public.cooldown-seconds}") long publicCooldownSeconds
+            AuthRateLimitProperties properties
     ) {
+        AuthRateLimitProperties.Login login = properties.login();
         this.tokenService = tokenService;
         this.clock = clock;
-        this.loginMaxFailures = loginMaxFailures;
-        this.loginBaseBlock = Duration.ofSeconds(loginBaseBlockSeconds);
-        this.loginMaxBlock = Duration.ofSeconds(loginMaxBlockSeconds);
-        this.loginWindow = Duration.ofSeconds(loginWindowSeconds);
-        this.publicCooldown = Duration.ofSeconds(publicCooldownSeconds);
+        this.loginMaxFailures = login.maxFailures();
+        this.loginBaseBlock = login.baseBlock();
+        this.loginMaxBlock = login.maxBlock();
+        this.loginWindow = login.window();
+        this.publicCooldown = properties.publicOperations().cooldown();
     }
 
     public void checkLoginAllowed(String normalizedEmail, String clientIp) {
@@ -90,7 +87,7 @@ public class AuthRateLimitService {
         publicCooldowns.put(ipKey, blockedUntil);
     }
 
-    @Scheduled(fixedDelayString = "${auth.rate-limit.cleanup-ms:600000}")
+    @Scheduled(fixedDelayString = "${auth.rate-limit.cleanup-interval:PT10M}")
     public void cleanupExpiredEntries() {
         Instant now = clock.instant();
         loginAttempts.entrySet().removeIf(entry ->
