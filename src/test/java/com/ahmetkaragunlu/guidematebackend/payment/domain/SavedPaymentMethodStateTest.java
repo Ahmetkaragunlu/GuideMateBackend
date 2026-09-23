@@ -10,7 +10,7 @@ class SavedPaymentMethodStateTest {
     @Test
     void preservesProviderMetadataWhenPaymentRetrieveReturnsOnlyPartialCardDetails() {
         SavedPaymentMethod method = new SavedPaymentMethod(
-                new User(),
+                testUser(),
                 "encrypted-token",
                 "fingerprint",
                 new SavedCardMetadata(
@@ -49,7 +49,7 @@ class SavedPaymentMethodStateTest {
     @Test
     void marksSavedCardDeletedWithoutChangingProviderMetadata() {
         SavedPaymentMethod method = new SavedPaymentMethod(
-                new User(),
+                testUser(),
                 "encrypted-token",
                 "fingerprint",
                 new SavedCardMetadata(
@@ -70,5 +70,9 @@ class SavedPaymentMethodStateTest {
 
         assertThat(method.getStatus()).isEqualTo(SavedPaymentMethodStatus.DELETED);
         assertThat(method.getLastFourDigits()).isEqualTo("1234");
+    }
+
+    private User testUser() {
+        return new User("Payment", "Test", "payment@example.com", "not-used");
     }
 }

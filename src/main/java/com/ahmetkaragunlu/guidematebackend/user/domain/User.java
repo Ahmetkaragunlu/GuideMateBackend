@@ -10,9 +10,11 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +25,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(callSuper = true, exclude = {"role", "password"})
 @Entity
 @Table(name = "users", indexes = {
@@ -64,8 +66,32 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "avatar_media_id", unique = true)
     private UUID avatarMediaId;
 
+    public User(String firstName, String lastName, String email, String passwordHash) {
+        this.firstName = Objects.requireNonNull(firstName);
+        this.lastName = Objects.requireNonNull(lastName);
+        this.email = Objects.requireNonNull(email);
+        this.password = Objects.requireNonNull(passwordHash);
+    }
+
     public void activate() {
         this.accountStatus = AccountStatus.ACTIVE;
+    }
+
+    public void disable() {
+        this.accountStatus = AccountStatus.DISABLED;
+    }
+
+    public void changePasswordHash(String passwordHash) {
+        this.password = Objects.requireNonNull(passwordHash);
+    }
+
+    public void selectRole(Role role) {
+        this.role = Objects.requireNonNull(role);
+        this.roleSelected = true;
+    }
+
+    public void bindGoogleSubject(String googleSubject) {
+        this.googleSubject = Objects.requireNonNull(googleSubject);
     }
 
     public void incrementTokenVersion() {
@@ -129,13 +155,13 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         User user = (User) o;
-        return Objects.equals(email, user.email);
+        return email.equals(user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email);
+        return email.hashCode();
     }
 }

@@ -145,15 +145,23 @@ class TourDiscoveryRepositoryIntegrationTest {
 
     private User createUser(RoleType roleType, AccountStatus status, String firstName) {
         Role role = roleRepository.findByName(roleType.name()).orElseThrow();
-        User user = new User();
-        user.setFirstName(firstName);
-        user.setLastName("Integration");
-        user.setEmail(firstName.toLowerCase() + "-" + UUID.randomUUID() + "@example.com");
-        user.setPassword("not-used");
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(status);
+        User user = new User(
+                firstName,
+                "Integration",
+                firstName.toLowerCase() + "-" + UUID.randomUUID() + "@example.com",
+                "not-used"
+        );
+        applyStatus(user, status);
+        user.selectRole(role);
         return userRepository.saveAndFlush(user);
+    }
+
+    private void applyStatus(User user, AccountStatus status) {
+        if (status == AccountStatus.ACTIVE) {
+            user.activate();
+        } else if (status == AccountStatus.DISABLED) {
+            user.disable();
+        }
     }
 
     private Tour createApprovedTour(User guide, User admin, String title, Instant now) {

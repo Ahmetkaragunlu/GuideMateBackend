@@ -4,16 +4,19 @@ import com.ahmetkaragunlu.guidematebackend.auth.service.AccountVerificationServi
 import com.ahmetkaragunlu.guidematebackend.auth.service.PasswordManagementService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
+@Validated
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthWebController {
@@ -23,7 +26,11 @@ public class AuthWebController {
     private final MessageSource messageSource;
 
     @GetMapping("/confirm")
-    public ModelAndView confirmAccount(@RequestParam("token") String token) {
+    public ModelAndView confirmAccount(
+            @RequestParam("token")
+            @Size(max = 128, message = "{validation.token.size}")
+            String token
+    ) {
         try {
             accountVerificationService.confirmAccount(token);
             return confirmationView(true, "web.confirm.success.title", "web.confirm.success.message");
@@ -33,7 +40,11 @@ public class AuthWebController {
     }
 
     @GetMapping("/reset-password-form")
-    public ModelAndView showResetPasswordForm(@RequestParam("token") String token) {
+    public ModelAndView showResetPasswordForm(
+            @RequestParam("token")
+            @Size(max = 128, message = "{validation.token.size}")
+            String token
+    ) {
         try {
             passwordManagementService.validateResetToken(token);
             ModelAndView view = resetView(true, "web.reset.title", "web.reset.instructions");

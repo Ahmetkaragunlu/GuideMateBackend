@@ -151,14 +151,9 @@ class NotificationPushDeliveryServiceTest {
 
     private User createUser(String email) {
         Role role = roleRepository.findByName(RoleType.ROLE_GUIDE.name()).orElseThrow();
-        User user = new User();
-        user.setFirstName("Push");
-        user.setLastName("Recipient");
-        user.setEmail(email);
-        user.setPassword("not-used");
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        User user = new User("Push", "Recipient", email, "not-used");
+        user.activate();
+        user.selectRole(role);
         return userRepository.save(user);
     }
 

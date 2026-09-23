@@ -157,14 +157,14 @@ class NotificationPersistenceTest {
 
     private User createUser() {
         Role role = roleRepository.findByName(RoleType.ROLE_TOURIST.name()).orElseThrow();
-        User user = new User();
-        user.setFirstName("Notification");
-        user.setLastName("Recipient");
-        user.setEmail("notification-" + UUID.randomUUID() + "@example.com");
-        user.setPassword("not-used");
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        User user = new User(
+                "Notification",
+                "Recipient",
+                "notification-" + UUID.randomUUID() + "@example.com",
+                "not-used"
+        );
+        user.activate();
+        user.selectRole(role);
         return userRepository.saveAndFlush(user);
     }
 }

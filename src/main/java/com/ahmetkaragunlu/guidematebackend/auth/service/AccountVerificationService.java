@@ -22,8 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +37,15 @@ public class AccountVerificationService {
     private final EmailNormalizer emailNormalizer;
     private final PasswordPolicy passwordPolicy;
     private final AuthRateLimitService rateLimitService;
+    private final RegistrationConflictVerifier registrationConflictVerifier;
     private final MessageSource messageSource;
     private final EmailService emailService;
     private final Clock clock;
 
     @Transactional(noRollbackFor = EmailDeliveryException.class)
-    public String register(RegisterRequest request) {
+    public String register(RegisterRequest request, String clientIp) {
         String email = emailNormalizer.normalize(request.email());
+        rateLimitService.acquireRegistrationPermit(email, clientIp);
         passwordPolicy.validate(request.password());
         User existingUser = userRepository.findByEmail(email).orElse(null);
         if (existingUser != null) {
@@ -54,30 +55,33 @@ public class AccountVerificationService {
             throw new BusinessException(errorCode);
         }
 
-        User user = new User();
-        user.setFirstName(request.firstName().strip());
-        user.setLastName(request.lastName().strip());
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
-        user.setRoleSelected(false);
+        User user = new User(
+                request.firstName().strip(),
+                request.lastName().strip(),
+                email,
+                passwordEncoder.encode(request.password())
+        );
 
         try {
             userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException exception) {
-            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, exception);
+            if (registrationConflictVerifier.emailExists(email)) {
+                throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, exception);
+            }
+            throw exception;
         }
 
-        ConfirmationToken token = createConfirmationToken(user, localNow());
-        emailService.sendConfirmationEmail(user.getEmail(), token.getToken());
+        String rawToken = createConfirmationToken(user, clock.instant());
+        emailService.sendConfirmationEmail(user.getEmail(), rawToken);
         return message("auth.register.success");
     }
 
     @Transactional
     public void confirmAccount(String rawToken) {
-        ConfirmationToken token = confirmationTokenRepository.findByTokenForUpdate(rawToken)
+        ConfirmationToken token = confirmationTokenRepository
+                .findByTokenHashForUpdate(secureTokenService.hash(rawToken))
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
-        LocalDateTime now = localNow();
+        Instant now = clock.instant();
         if (token.isConfirmed() || token.isUsed()) {
             throw new BusinessException(ErrorCode.TOKEN_ALREADY_USED);
         }
@@ -108,20 +112,19 @@ public class AccountVerificationService {
             return message("auth.verification.resend");
         }
 
-        LocalDateTime now = localNow();
+        Instant now = clock.instant();
         confirmationTokenRepository.invalidateActiveTokens(user.getId(), now);
-        ConfirmationToken token = createConfirmationToken(user, now);
-        emailService.sendConfirmationEmail(user.getEmail(), token.getToken());
+        String rawToken = createConfirmationToken(user, now);
+        emailService.sendConfirmationEmail(user.getEmail(), rawToken);
         return message("auth.verification.resend");
     }
 
-    private ConfirmationToken createConfirmationToken(User user, LocalDateTime now) {
-        ConfirmationToken token = new ConfirmationToken(user, secureTokenService.generate(), now);
-        return confirmationTokenRepository.save(token);
-    }
-
-    private LocalDateTime localNow() {
-        return LocalDateTime.ofInstant(clock.instant(), ZoneId.systemDefault());
+    private String createConfirmationToken(User user, Instant now) {
+        String rawToken = secureTokenService.generate();
+        confirmationTokenRepository.save(
+                new ConfirmationToken(user, secureTokenService.hash(rawToken), now)
+        );
+        return rawToken;
     }
 
     private String message(String key) {

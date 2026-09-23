@@ -107,10 +107,8 @@ class StompJwtChannelInterceptorTest {
     }
 
     private User activeUser(String email) {
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword("not-used");
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        User user = new User("WebSocket", "Test", email, "not-used");
+        user.activate();
         return user;
     }
 }

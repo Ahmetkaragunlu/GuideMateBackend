@@ -26,8 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
@@ -61,11 +60,15 @@ public class PasswordManagementService {
             return message("auth.forgotPassword.sent");
         }
 
-        LocalDateTime now = localNow();
+        Instant now = clock.instant();
         passwordResetTokenRepository.invalidateActiveTokens(user.getId(), now);
-        PasswordResetToken token = new PasswordResetToken(user, secureTokenService.generate(), now);
-        passwordResetTokenRepository.save(token);
-        emailService.sendPasswordResetEmail(user.getEmail(), token.getToken());
+        String rawToken = secureTokenService.generate();
+        passwordResetTokenRepository.save(new PasswordResetToken(
+                user,
+                secureTokenService.hash(rawToken),
+                now
+        ));
+        emailService.sendPasswordResetEmail(user.getEmail(), rawToken);
         return message("auth.forgotPassword.sent");
     }
 
@@ -76,12 +79,12 @@ public class PasswordManagementService {
             throw new BusinessException(ErrorCode.PASSWORDS_DO_NOT_MATCH);
         }
 
-        LocalDateTime now = localNow();
+        Instant now = clock.instant();
         PasswordResetToken token = findUsableResetTokenForUpdate(request.token(), now);
         User user = userRepository.findByIdForUpdate(token.getUser().getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         accountStatusPolicy.requireActive(user);
-        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.changePasswordHash(passwordEncoder.encode(request.newPassword()));
         user.incrementTokenVersion();
         token.markUsed(now);
         refreshSessionService.revokeAll(user);
@@ -104,7 +107,7 @@ public class PasswordManagementService {
             throw new BusinessException(ErrorCode.PASSWORD_SAME_AS_CURRENT);
         }
 
-        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.changePasswordHash(passwordEncoder.encode(request.newPassword()));
         user.incrementTokenVersion();
         refreshSessionService.revokeAll(user);
         publishPasswordSecurityNotification(user, "PASSWORD_CHANGED");
@@ -113,7 +116,7 @@ public class PasswordManagementService {
 
     @Transactional(readOnly = true)
     public void validateResetToken(String rawToken) {
-        findUsableResetToken(rawToken, localNow());
+        findUsableResetToken(rawToken, clock.instant());
     }
 
     private void publishPasswordSecurityNotification(User user, String securityEvent) {
@@ -125,31 +128,29 @@ public class PasswordManagementService {
         ));
     }
 
-    private PasswordResetToken findUsableResetToken(String rawToken, LocalDateTime now) {
-        PasswordResetToken token = passwordResetTokenRepository.findByToken(rawToken)
+    private PasswordResetToken findUsableResetToken(String rawToken, Instant now) {
+        PasswordResetToken token = passwordResetTokenRepository
+                .findByTokenHash(secureTokenService.hash(rawToken))
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
         validateResetTokenState(token, now);
         return token;
     }
 
-    private PasswordResetToken findUsableResetTokenForUpdate(String rawToken, LocalDateTime now) {
-        PasswordResetToken token = passwordResetTokenRepository.findByTokenForUpdate(rawToken)
+    private PasswordResetToken findUsableResetTokenForUpdate(String rawToken, Instant now) {
+        PasswordResetToken token = passwordResetTokenRepository
+                .findByTokenHashForUpdate(secureTokenService.hash(rawToken))
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
         validateResetTokenState(token, now);
         return token;
     }
 
-    private void validateResetTokenState(PasswordResetToken token, LocalDateTime now) {
+    private void validateResetTokenState(PasswordResetToken token, Instant now) {
         if (token.isUsed()) {
             throw new BusinessException(ErrorCode.TOKEN_ALREADY_USED);
         }
         if (token.isExpired(now)) {
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
         }
-    }
-
-    private LocalDateTime localNow() {
-        return LocalDateTime.ofInstant(clock.instant(), ZoneId.systemDefault());
     }
 
     private String message(String key) {

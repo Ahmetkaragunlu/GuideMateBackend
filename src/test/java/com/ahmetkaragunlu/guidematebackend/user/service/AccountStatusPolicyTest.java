@@ -46,8 +46,12 @@ class AccountStatusPolicyTest {
     }
 
     private User userWithStatus(AccountStatus status) {
-        User user = new User();
-        user.setAccountStatus(status);
+        User user = new User("Status", "Test", "status@example.com", "not-used");
+        if (status == AccountStatus.ACTIVE) {
+            user.activate();
+        } else if (status == AccountStatus.DISABLED) {
+            user.disable();
+        }
         return user;
     }
 }

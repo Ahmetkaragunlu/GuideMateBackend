@@ -120,7 +120,7 @@ class RefreshSessionIntegrationTest {
     void accountStatusFailureRevokesTokenFamily() {
         User user = createUser(AccountStatus.ACTIVE);
         String rawToken = refreshSessionService.createSession(user, INSTALLATION_ID);
-        user.setAccountStatus(AccountStatus.DISABLED);
+        user.disable();
         userRepository.saveAndFlush(user);
 
         RefreshSessionService.RefreshRotationResult result = refreshSessionService.rotate(rawToken, INSTALLATION_ID);
@@ -156,12 +156,17 @@ class RefreshSessionIntegrationTest {
     }
 
     private User createUser(AccountStatus status) {
-        User user = new User();
-        user.setFirstName("Refresh");
-        user.setLastName("Tester");
-        user.setEmail("refresh-" + UUID.randomUUID() + "@example.com");
-        user.setPassword("not-used");
-        user.setAccountStatus(status);
+        User user = new User(
+                "Refresh",
+                "Tester",
+                "refresh-" + UUID.randomUUID() + "@example.com",
+                "not-used"
+        );
+        if (status == AccountStatus.ACTIVE) {
+            user.activate();
+        } else if (status == AccountStatus.DISABLED) {
+            user.disable();
+        }
         return userRepository.saveAndFlush(user);
     }
 }

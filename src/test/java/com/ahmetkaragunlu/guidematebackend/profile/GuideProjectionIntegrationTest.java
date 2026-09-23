@@ -203,14 +203,18 @@ class GuideProjectionIntegrationTest {
 
     private User createUser(String seed, RoleType roleType, AccountStatus status) {
         Role role = roleRepository.findByName(roleType.name()).orElseThrow();
-        User user = new User();
-        user.setFirstName(seed);
-        user.setLastName("Projection");
-        user.setEmail(seed.toLowerCase() + "-" + UUID.randomUUID() + "@example.com");
-        user.setPassword("not-used");
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(status);
+        User user = new User(
+                seed,
+                "Projection",
+                seed.toLowerCase() + "-" + UUID.randomUUID() + "@example.com",
+                "not-used"
+        );
+        if (status == AccountStatus.ACTIVE) {
+            user.activate();
+        } else if (status == AccountStatus.DISABLED) {
+            user.disable();
+        }
+        user.selectRole(role);
         return userRepository.saveAndFlush(user);
     }
 

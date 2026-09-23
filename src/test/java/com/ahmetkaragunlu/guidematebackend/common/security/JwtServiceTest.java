@@ -36,10 +36,8 @@ class JwtServiceTest {
                 "0123456789abcdef0123456789abcdef".getBytes(StandardCharsets.UTF_8)
         );
         jwtService = new JwtService(properties(ISSUER, AUDIENCE), clock);
-        user = new User();
-        user.setEmail("guide@example.com");
-        user.setPassword("not-used");
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        user = new User("Guide", "Test", "guide@example.com", "not-used");
+        user.activate();
     }
 
     @Test
@@ -63,7 +61,7 @@ class JwtServiceTest {
     void invalidatesTokenWhenAccountIsDisabled() {
         String token = jwtService.generateToken(user);
 
-        user.setAccountStatus(AccountStatus.DISABLED);
+        user.disable();
 
         assertThat(jwtService.isTokenValid(token, user)).isFalse();
     }

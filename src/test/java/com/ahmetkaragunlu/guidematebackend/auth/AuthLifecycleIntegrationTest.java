@@ -1,13 +1,17 @@
 package com.ahmetkaragunlu.guidematebackend.auth;
 
 import com.ahmetkaragunlu.guidematebackend.auth.domain.ConfirmationToken;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.ForgotPasswordRequest;
 import com.ahmetkaragunlu.guidematebackend.auth.dto.LoginRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.RegisterRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.ResendVerificationRequest;
 import com.ahmetkaragunlu.guidematebackend.auth.repository.ConfirmationTokenRepository;
+import com.ahmetkaragunlu.guidematebackend.auth.repository.PasswordResetTokenRepository;
+import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
 import com.ahmetkaragunlu.guidematebackend.auth.service.AccountVerificationService;
 import com.ahmetkaragunlu.guidematebackend.auth.service.AuthenticationService;
 import com.ahmetkaragunlu.guidematebackend.auth.service.EmailService;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.RegisterRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.ResendVerificationRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.service.PasswordManagementService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.EmailDeliveryException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
@@ -15,6 +19,7 @@ import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,14 +27,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -40,24 +44,31 @@ class AuthLifecycleIntegrationTest {
     @Autowired
     private AuthenticationService authenticationService;
     @Autowired
+    private PasswordManagementService passwordManagementService;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private ConfirmationTokenRepository confirmationTokenRepository;
     @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Autowired
     private Clock clock;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private SecureTokenService secureTokenService;
     @MockitoBean
     private EmailService emailService;
 
     @Test
     void confirmationTokenCannotReactivateDisabledAccount() {
         User user = createUser(AccountStatus.DISABLED);
+        String rawToken = "disabled-" + UUID.randomUUID();
         ConfirmationToken token = confirmationTokenRepository.saveAndFlush(
-                new ConfirmationToken(user, "disabled-" + UUID.randomUUID(), localNow())
+                new ConfirmationToken(user, secureTokenService.hash(rawToken), clock.instant())
         );
 
-        assertThatThrownBy(() -> accountVerificationService.confirmAccount(token.getToken()))
+        assertThatThrownBy(() -> accountVerificationService.confirmAccount(rawToken))
                 .isInstanceOfSatisfying(BusinessException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ACCOUNT_DISABLED));
 
@@ -70,11 +81,12 @@ class AuthLifecycleIntegrationTest {
     @Test
     void confirmationTokenActivatesPendingAccountOnce() {
         User user = createUser(AccountStatus.PENDING_VERIFICATION);
+        String rawToken = "pending-" + UUID.randomUUID();
         ConfirmationToken token = confirmationTokenRepository.saveAndFlush(
-                new ConfirmationToken(user, "pending-" + UUID.randomUUID(), localNow())
+                new ConfirmationToken(user, secureTokenService.hash(rawToken), clock.instant())
         );
 
-        accountVerificationService.confirmAccount(token.getToken());
+        accountVerificationService.confirmAccount(rawToken);
 
         User persistedUser = userRepository.findById(user.getId()).orElseThrow();
         ConfirmationToken persistedToken = confirmationTokenRepository.findById(token.getId()).orElseThrow();
@@ -95,11 +107,62 @@ class AuthLifecycleIntegrationTest {
                 "Tester",
                 email,
                 "12345678"
-        ))).isInstanceOf(EmailDeliveryException.class);
+        ), uniqueClientIp())).isInstanceOf(EmailDeliveryException.class);
 
         User persistedUser = userRepository.findByEmail(email).orElseThrow();
         assertThat(persistedUser.getAccountStatus()).isEqualTo(AccountStatus.PENDING_VERIFICATION);
         assertThat(confirmationTokenRepository.count()).isEqualTo(tokenCountBefore + 1);
+    }
+
+    @Test
+    void registrationEmailsRawTokenButPersistsOnlyItsHash() {
+        String email = "hash-register-" + UUID.randomUUID() + "@example.com";
+
+        accountVerificationService.register(new RegisterRequest(
+                "Auth",
+                "Tester",
+                email,
+                "12345678"
+        ), uniqueClientIp());
+
+        ArgumentCaptor<String> rawTokenCaptor = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendConfirmationEmail(
+                org.mockito.ArgumentMatchers.eq(email),
+                rawTokenCaptor.capture()
+        );
+        String rawToken = rawTokenCaptor.getValue();
+        Long userId = userRepository.findByEmail(email).orElseThrow().getId();
+        ConfirmationToken persistedToken = confirmationTokenRepository.findAll().stream()
+                .filter(token -> token.getUser().getId().equals(userId))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(persistedToken.getTokenHash()).isEqualTo(secureTokenService.hash(rawToken));
+        assertThat(persistedToken.getTokenHash()).isNotEqualTo(rawToken);
+    }
+
+    @Test
+    void forgotPasswordEmailsRawTokenButPersistsOnlyItsHash() {
+        User user = createUser(AccountStatus.ACTIVE);
+
+        passwordManagementService.forgotPassword(
+                new ForgotPasswordRequest(user.getEmail()),
+                uniqueClientIp()
+        );
+
+        ArgumentCaptor<String> rawTokenCaptor = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendPasswordResetEmail(
+                org.mockito.ArgumentMatchers.eq(user.getEmail()),
+                rawTokenCaptor.capture()
+        );
+        String rawToken = rawTokenCaptor.getValue();
+        var persistedToken = passwordResetTokenRepository.findAll().stream()
+                .filter(token -> token.getUser().getId().equals(user.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(persistedToken.getTokenHash()).isEqualTo(secureTokenService.hash(rawToken));
+        assertThat(persistedToken.getTokenHash()).isNotEqualTo(rawToken);
     }
 
     @Test
@@ -111,7 +174,7 @@ class AuthLifecycleIntegrationTest {
                 "Tester",
                 pendingUser.getEmail(),
                 "12345678"
-        ))).isInstanceOfSatisfying(BusinessException.class, exception ->
+        ), uniqueClientIp())).isInstanceOfSatisfying(BusinessException.class, exception ->
                 assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ACCOUNT_PENDING_VERIFICATION));
     }
 
@@ -124,7 +187,7 @@ class AuthLifecycleIntegrationTest {
                 "Tester",
                 activeUser.getEmail(),
                 "12345678"
-        ))).isInstanceOfSatisfying(BusinessException.class, exception ->
+        ), uniqueClientIp())).isInstanceOfSatisfying(BusinessException.class, exception ->
                 assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.EMAIL_ALREADY_EXISTS));
     }
 
@@ -132,7 +195,11 @@ class AuthLifecycleIntegrationTest {
     void resendKeepsExistingTokenActiveWhenEmailDeliveryFails() {
         User pendingUser = createUser(AccountStatus.PENDING_VERIFICATION);
         ConfirmationToken existingToken = confirmationTokenRepository.saveAndFlush(
-                new ConfirmationToken(pendingUser, "resend-failure-" + UUID.randomUUID(), localNow())
+                new ConfirmationToken(
+                        pendingUser,
+                        secureTokenService.hash("resend-failure-" + UUID.randomUUID()),
+                        clock.instant()
+                )
         );
         long tokenCountBefore = confirmationTokenRepository.count();
         doThrow(new EmailDeliveryException(new IllegalStateException("SMTP unavailable")))
@@ -153,7 +220,11 @@ class AuthLifecycleIntegrationTest {
     void resendInvalidatesExistingTokenAfterSuccessfulDelivery() {
         User pendingUser = createUser(AccountStatus.PENDING_VERIFICATION);
         ConfirmationToken existingToken = confirmationTokenRepository.saveAndFlush(
-                new ConfirmationToken(pendingUser, "resend-success-" + UUID.randomUUID(), localNow())
+                new ConfirmationToken(
+                        pendingUser,
+                        secureTokenService.hash("resend-success-" + UUID.randomUUID()),
+                        clock.instant()
+                )
         );
         long tokenCountBefore = confirmationTokenRepository.count();
 
@@ -216,22 +287,27 @@ class AuthLifecycleIntegrationTest {
     }
 
     private User createUser(AccountStatus status) {
-        User user = new User();
-        user.setFirstName("Auth");
-        user.setLastName("Test");
-        user.setEmail("auth-" + UUID.randomUUID() + "@example.com");
-        user.setPassword("not-used");
-        user.setAccountStatus(status);
+        User user = new User(
+                "Auth",
+                "Test",
+                "auth-" + UUID.randomUUID() + "@example.com",
+                "not-used"
+        );
+        if (status == AccountStatus.ACTIVE) {
+            user.activate();
+        } else if (status == AccountStatus.DISABLED) {
+            user.disable();
+        }
         return userRepository.saveAndFlush(user);
     }
 
     private User createLoginUser(AccountStatus status, String rawPassword) {
         User user = createUser(status);
-        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.changePasswordHash(passwordEncoder.encode(rawPassword));
         return userRepository.saveAndFlush(user);
     }
 
-    private LocalDateTime localNow() {
-        return LocalDateTime.ofInstant(clock.instant(), ZoneId.systemDefault());
+    private String uniqueClientIp() {
+        return "test-" + UUID.randomUUID();
     }
 }

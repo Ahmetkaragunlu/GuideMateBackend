@@ -413,14 +413,9 @@ class PersistenceConcurrencyIntegrationTest {
 
     private User createUser(String email, RoleType roleType) {
         Role role = roleRepository.findByName(roleType.name()).orElseThrow();
-        User user = new User();
-        user.setFirstName("Test");
-        user.setLastName(roleType.name());
-        user.setEmail(email);
-        user.setPassword("not-used");
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        User user = new User("Test", roleType.name(), email, "not-used");
+        user.activate();
+        user.selectRole(role);
         return userRepository.saveAndFlush(user);
     }
 

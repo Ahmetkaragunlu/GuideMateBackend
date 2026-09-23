@@ -95,14 +95,14 @@ class AdminTourReviewRepositoryIntegrationTest {
 
     private User createUser(RoleType roleType, String firstName) {
         Role role = roleRepository.findByName(roleType.name()).orElseThrow();
-        User user = new User();
-        user.setFirstName(firstName);
-        user.setLastName("Integration");
-        user.setEmail(firstName.toLowerCase() + "-" + UUID.randomUUID() + "@example.com");
-        user.setPassword("not-used");
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        User user = new User(
+                firstName,
+                "Integration",
+                firstName.toLowerCase() + "-" + UUID.randomUUID() + "@example.com",
+                "not-used"
+        );
+        user.activate();
+        user.selectRole(role);
         return userRepository.saveAndFlush(user);
     }
 

@@ -77,14 +77,14 @@ public class LocalDemoDataSeeder implements ApplicationRunner {
 
         Role role = roleRepository.findByName(roleType.name())
                 .orElseThrow(() -> new IllegalStateException(roleType.name() + " is missing"));
-        User user = new User();
-        user.setEmail(normalizedEmail);
-        user.setPassword(passwordEncoder.encode(properties.password()));
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        User user = new User(
+                firstName,
+                lastName,
+                normalizedEmail,
+                passwordEncoder.encode(properties.password())
+        );
+        user.activate();
+        user.selectRole(role);
         return userRepository.save(user);
     }
 

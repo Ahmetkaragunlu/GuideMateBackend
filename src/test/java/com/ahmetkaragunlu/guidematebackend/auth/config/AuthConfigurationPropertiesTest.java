@@ -30,12 +30,31 @@ class AuthConfigurationPropertiesTest {
         assertThatThrownBy(() -> new AuthRateLimitProperties(
                 login,
                 new AuthRateLimitProperties.PublicOperations(Duration.ZERO),
+                validRegisterLimit(),
+                validGoogleLimit(),
                 Duration.ofMinutes(10)
         )).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new AuthRateLimitProperties(
                 login,
                 new AuthRateLimitProperties.PublicOperations(Duration.ofMinutes(1)),
+                validRegisterLimit(),
+                validGoogleLimit(),
+                Duration.ZERO
+        )).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void rejectsInvalidRegisterAndGoogleRateLimits() {
+        assertThatThrownBy(() -> new AuthRateLimitProperties.Register(
+                0,
+                20,
+                Duration.ofMinutes(15)
+        )).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> new AuthRateLimitProperties.GoogleLogin(
+                30,
+                60,
                 Duration.ZERO
         )).isInstanceOf(IllegalArgumentException.class);
     }
@@ -53,5 +72,13 @@ class AuthConfigurationPropertiesTest {
                 Duration.ZERO,
                 Duration.ofSeconds(5)
         )).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private AuthRateLimitProperties.Register validRegisterLimit() {
+        return new AuthRateLimitProperties.Register(3, 20, Duration.ofMinutes(15));
+    }
+
+    private AuthRateLimitProperties.GoogleLogin validGoogleLimit() {
+        return new AuthRateLimitProperties.GoogleLogin(30, 60, Duration.ofMinutes(1));
     }
 }

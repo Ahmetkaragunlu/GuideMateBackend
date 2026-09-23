@@ -11,13 +11,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "password_reset_tokens", indexes = {
-        @Index(name = "idx_prt_token", columnList = "token"),
+        @Index(name = "idx_prt_token_hash", columnList = "token_hash"),
         @Index(name = "idx_prt_user_id", columnList = "user_id")
 })
 public class PasswordResetToken extends AbstractToken {
@@ -26,8 +27,8 @@ public class PasswordResetToken extends AbstractToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public PasswordResetToken(User user, String token, LocalDateTime createdAt) {
-        super(token, createdAt.plusMinutes(15));
+    public PasswordResetToken(User user, String tokenHash, Instant createdAt) {
+        super(tokenHash, createdAt.plus(Duration.ofMinutes(15)));
         this.user = user;
     }
 }

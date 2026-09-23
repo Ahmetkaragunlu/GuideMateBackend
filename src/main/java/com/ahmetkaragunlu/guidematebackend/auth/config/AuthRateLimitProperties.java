@@ -8,11 +8,13 @@ import java.time.Duration;
 public record AuthRateLimitProperties(
         Login login,
         PublicOperations publicOperations,
+        Register register,
+        GoogleLogin googleLogin,
         Duration cleanupInterval
 ) {
 
     public AuthRateLimitProperties {
-        if (login == null || publicOperations == null) {
+        if (login == null || publicOperations == null || register == null || googleLogin == null) {
             throw new IllegalArgumentException("Auth rate-limit configuration is incomplete");
         }
         requirePositive(cleanupInterval, "auth.rate-limit.cleanup-interval");
@@ -42,6 +44,28 @@ public record AuthRateLimitProperties(
     public record PublicOperations(Duration cooldown) {
         public PublicOperations {
             requirePositive(cooldown, "auth.rate-limit.public-operations.cooldown");
+        }
+    }
+
+    public record Register(int maxPerEmail, int maxPerIp, Duration window) {
+        public Register {
+            requirePositive(maxPerEmail, "auth.rate-limit.register.max-per-email");
+            requirePositive(maxPerIp, "auth.rate-limit.register.max-per-ip");
+            requirePositive(window, "auth.rate-limit.register.window");
+        }
+    }
+
+    public record GoogleLogin(int maxPerInstallation, int maxPerIp, Duration window) {
+        public GoogleLogin {
+            requirePositive(maxPerInstallation, "auth.rate-limit.google-login.max-per-installation");
+            requirePositive(maxPerIp, "auth.rate-limit.google-login.max-per-ip");
+            requirePositive(window, "auth.rate-limit.google-login.window");
+        }
+    }
+
+    private static void requirePositive(int value, String propertyName) {
+        if (value <= 0) {
+            throw new IllegalArgumentException(propertyName + " must be positive");
         }
     }
 

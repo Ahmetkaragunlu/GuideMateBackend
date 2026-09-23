@@ -22,9 +22,12 @@ public class AuthRateLimitService {
     private final Duration loginMaxBlock;
     private final Duration loginWindow;
     private final Duration publicCooldown;
+    private final AuthRateLimitProperties.Register registerLimit;
+    private final AuthRateLimitProperties.GoogleLogin googleLoginLimit;
 
     private final Map<String, LoginAttempt> loginAttempts = new ConcurrentHashMap<>();
     private final Map<String, Instant> publicCooldowns = new ConcurrentHashMap<>();
+    private final Map<String, RequestWindow> requestWindows = new ConcurrentHashMap<>();
 
     public AuthRateLimitService(
             SecureTokenService tokenService,
@@ -39,6 +42,8 @@ public class AuthRateLimitService {
         this.loginMaxBlock = login.maxBlock();
         this.loginWindow = login.window();
         this.publicCooldown = properties.publicOperations().cooldown();
+        this.registerLimit = properties.register();
+        this.googleLoginLimit = properties.googleLogin();
     }
 
     public void checkLoginAllowed(String normalizedEmail, String clientIp) {
@@ -87,6 +92,30 @@ public class AuthRateLimitService {
         publicCooldowns.put(ipKey, blockedUntil);
     }
 
+    public void acquireRegistrationPermit(String normalizedEmail, String clientIp) {
+        acquireRequestPermit(
+                "register",
+                "email",
+                normalizedEmail,
+                registerLimit.maxPerEmail(),
+                clientIp,
+                registerLimit.maxPerIp(),
+                registerLimit.window()
+        );
+    }
+
+    public void acquireGoogleLoginPermit(String installationId, String clientIp) {
+        acquireRequestPermit(
+                "google-login",
+                "installation",
+                installationId,
+                googleLoginLimit.maxPerInstallation(),
+                clientIp,
+                googleLoginLimit.maxPerIp(),
+                googleLoginLimit.window()
+        );
+    }
+
     @Scheduled(fixedDelayString = "${auth.rate-limit.cleanup-interval:PT10M}")
     public void cleanupExpiredEntries() {
         Instant now = clock.instant();
@@ -95,6 +124,46 @@ public class AuthRateLimitService {
                         && remainingSeconds(entry.getValue().blockedUntil(), now) == 0
         );
         publicCooldowns.entrySet().removeIf(entry -> !entry.getValue().isAfter(now));
+        requestWindows.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+    }
+
+    private synchronized void acquireRequestPermit(
+            String operation,
+            String identityType,
+            String identity,
+            int identityLimit,
+            String clientIp,
+            int ipLimit,
+            Duration windowDuration
+    ) {
+        Instant now = clock.instant();
+        String identityKey = publicKey(operation, identityType, identity);
+        String ipKey = publicKey(operation, "ip", clientIp);
+        RequestWindow identityWindow = currentWindow(identityKey, now, windowDuration);
+        RequestWindow ipWindow = currentWindow(ipKey, now, windowDuration);
+
+        long retryAfter = Math.max(
+                retryAfter(identityWindow, identityLimit, now),
+                retryAfter(ipWindow, ipLimit, now)
+        );
+        if (retryAfter > 0) {
+            throw new RateLimitException(retryAfter);
+        }
+
+        requestWindows.put(identityKey, identityWindow.increment());
+        requestWindows.put(ipKey, ipWindow.increment());
+    }
+
+    private RequestWindow currentWindow(String key, Instant now, Duration duration) {
+        RequestWindow current = requestWindows.get(key);
+        if (current == null || !current.expiresAt().isAfter(now)) {
+            return new RequestWindow(0, now.plus(duration));
+        }
+        return current;
+    }
+
+    private long retryAfter(RequestWindow window, int limit, Instant now) {
+        return window.count() < limit ? 0 : remainingSeconds(window.expiresAt(), now);
     }
 
     private LoginAttempt recordFailure(String key, Instant now) {
@@ -137,5 +206,12 @@ public class AuthRateLimitService {
     }
 
     private record LoginAttempt(int failures, Instant blockedUntil, Instant lastAttempt) {
+    }
+
+    private record RequestWindow(int count, Instant expiresAt) {
+
+        private RequestWindow increment() {
+            return new RequestWindow(count + 1, expiresAt);
+        }
     }
 }

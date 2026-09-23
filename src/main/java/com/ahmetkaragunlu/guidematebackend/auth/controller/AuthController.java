@@ -38,8 +38,13 @@ public class AuthController {
     private final PasswordManagementService passwordManagementService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(accountVerificationService.register(request));
+    public ResponseEntity<String> register(
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        return ResponseEntity.ok(
+                accountVerificationService.register(request, httpRequest.getRemoteAddr())
+        );
     }
 
     @PostMapping("/login")
@@ -56,9 +61,16 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> googleLogin(
             @Valid @RequestBody GoogleLoginRequest request,
-            @RequestHeader(INSTALLATION_HEADER) String installationId
+            @RequestHeader(INSTALLATION_HEADER) String installationId,
+            HttpServletRequest httpRequest
     ) {
-        return ResponseEntity.ok(authenticationService.googleLogin(request, installationId));
+        return ResponseEntity.ok(
+                authenticationService.googleLogin(
+                        request,
+                        installationId,
+                        httpRequest.getRemoteAddr()
+                )
+        );
     }
 
     @PostMapping("/refresh-token")

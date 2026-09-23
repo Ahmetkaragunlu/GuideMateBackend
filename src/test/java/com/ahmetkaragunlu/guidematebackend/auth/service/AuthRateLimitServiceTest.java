@@ -36,6 +36,8 @@ class AuthRateLimitServiceTest {
                                 Duration.ofSeconds(60)
                         ),
                         new AuthRateLimitProperties.PublicOperations(Duration.ofSeconds(30)),
+                        new AuthRateLimitProperties.Register(2, 3, Duration.ofSeconds(60)),
+                        new AuthRateLimitProperties.GoogleLogin(2, 3, Duration.ofSeconds(60)),
                         Duration.ofMinutes(10)
                 )
         );
@@ -97,6 +99,36 @@ class AuthRateLimitServiceTest {
         clock.advance(Duration.ofSeconds(30));
 
         assertThatCode(() -> service.acquirePublicPermit("forgot-password", EMAIL, CLIENT_IP))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void registrationLimitsEmailAndIpIndependentlyWithoutConsumingPartialPermit() {
+        service.acquireRegistrationPermit(EMAIL, CLIENT_IP);
+        service.acquireRegistrationPermit(EMAIL, "203.0.113.11");
+
+        assertThatThrownBy(() -> service.acquireRegistrationPermit(EMAIL, "203.0.113.12"))
+                .isInstanceOf(RateLimitException.class);
+
+        service.acquireRegistrationPermit("another@example.com", "203.0.113.12");
+        service.acquireRegistrationPermit("third@example.com", CLIENT_IP);
+        service.acquireRegistrationPermit("fourth@example.com", CLIENT_IP);
+
+        assertThatThrownBy(() -> service.acquireRegistrationPermit("fifth@example.com", CLIENT_IP))
+                .isInstanceOf(RateLimitException.class);
+    }
+
+    @Test
+    void googleLoginWindowResetsAfterConfiguredDuration() {
+        service.acquireGoogleLoginPermit("installation-1", CLIENT_IP);
+        service.acquireGoogleLoginPermit("installation-1", CLIENT_IP);
+
+        assertThatThrownBy(() -> service.acquireGoogleLoginPermit("installation-1", CLIENT_IP))
+                .isInstanceOf(RateLimitException.class);
+
+        clock.advance(Duration.ofSeconds(60));
+
+        assertThatCode(() -> service.acquireGoogleLoginPermit("installation-1", CLIENT_IP))
                 .doesNotThrowAnyException();
     }
 

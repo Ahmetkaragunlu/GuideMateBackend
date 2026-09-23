@@ -76,14 +76,14 @@ public class AdminAccountSeeder implements ApplicationRunner {
         Role adminRole = roleRepository.findByName(RoleType.ROLE_ADMIN.name())
                 .orElseThrow(() -> new IllegalStateException("ROLE_ADMIN is missing"));
 
-        User admin = new User();
-        admin.setEmail(normalizedEmail);
-        admin.setPassword(passwordEncoder.encode(password));
-        admin.setFirstName(firstName.strip());
-        admin.setLastName(lastName.strip());
-        admin.setAccountStatus(AccountStatus.ACTIVE);
-        admin.setRole(adminRole);
-        admin.setRoleSelected(true);
+        User admin = new User(
+                firstName.strip(),
+                lastName.strip(),
+                normalizedEmail,
+                passwordEncoder.encode(password)
+        );
+        admin.activate();
+        admin.selectRole(adminRole);
         userRepository.save(admin);
     }
 }

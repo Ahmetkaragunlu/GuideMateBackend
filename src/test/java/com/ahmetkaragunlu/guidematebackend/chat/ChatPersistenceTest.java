@@ -293,14 +293,14 @@ class ChatPersistenceTest {
 
     private User createUser(String email, RoleType roleType) {
         Role role = roleRepository.findByName(roleType.name()).orElseThrow();
-        User user = new User();
-        user.setFirstName(roleType == RoleType.ROLE_GUIDE ? "Guide" : "Tourist");
-        user.setLastName("Chat");
-        user.setEmail(email);
-        user.setPassword("not-used");
-        user.setRole(role);
-        user.setRoleSelected(true);
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        User user = new User(
+                roleType == RoleType.ROLE_GUIDE ? "Guide" : "Tourist",
+                "Chat",
+                email,
+                "not-used"
+        );
+        user.activate();
+        user.selectRole(role);
         return userRepository.saveAndFlush(user);
     }
 

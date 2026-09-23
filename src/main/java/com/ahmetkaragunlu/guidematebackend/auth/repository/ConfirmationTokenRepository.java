@@ -10,15 +10,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
 public interface ConfirmationTokenRepository extends JpaRepository<ConfirmationToken, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT token FROM ConfirmationToken token WHERE token.token = :token")
-    Optional<ConfirmationToken> findByTokenForUpdate(@Param("token") String token);
+    @Query("SELECT token FROM ConfirmationToken token WHERE token.tokenHash = :tokenHash")
+    Optional<ConfirmationToken> findByTokenHashForUpdate(@Param("tokenHash") String tokenHash);
 
     @Modifying
     @Query("""
@@ -28,7 +28,7 @@ public interface ConfirmationTokenRepository extends JpaRepository<ConfirmationT
                AND token.used = false
                AND token.expiresAt > :now
             """)
-    void invalidateActiveTokens(@Param("userId") Long userId, @Param("now") LocalDateTime now);
+    void invalidateActiveTokens(@Param("userId") Long userId, @Param("now") Instant now);
 
-    void deleteByExpiresAtBefore(LocalDateTime now);
+    void deleteByExpiresAtBefore(Instant now);
 }

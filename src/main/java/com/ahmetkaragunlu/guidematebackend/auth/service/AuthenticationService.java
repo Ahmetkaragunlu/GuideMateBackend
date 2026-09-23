@@ -81,8 +81,9 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public AuthResponse googleLogin(GoogleLoginRequest request, String installationId) {
+    public AuthResponse googleLogin(GoogleLoginRequest request, String installationId, String clientIp) {
         String validatedInstallationId = installationIdValidator.validate(installationId);
+        rateLimitService.acquireGoogleLoginPermit(validatedInstallationId, clientIp);
         GoogleTokenVerifier.GoogleIdentity identity = googleTokenVerifier.verify(request.idToken());
         String email = emailNormalizer.normalize(identity.email());
 
@@ -121,8 +122,7 @@ public class AuthenticationService {
         String roleName = request.role().toInternalRole().name();
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROLE_NOT_FOUND));
-        user.setRole(role);
-        user.setRoleSelected(true);
+        user.selectRole(role);
         return authResponse(user, null, "auth.role.selected");
     }
 
@@ -163,7 +163,7 @@ public class AuthenticationService {
         }
 
         if (user.getGoogleSubject() == null) {
-            user.setGoogleSubject(googleSubject);
+            user.bindGoogleSubject(googleSubject);
             try {
                 userRepository.saveAndFlush(user);
             } catch (DataIntegrityViolationException exception) {

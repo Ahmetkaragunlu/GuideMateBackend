@@ -30,6 +30,20 @@ class PostgreSqlSchemaIntegrationTest {
         String notificationPayloadType = columnType("notifications", "payload");
         String reservationCreatedAtType = columnType("reservations", "created_at");
         String userAvatarType = columnType("users", "avatar_media_id");
+        String confirmationTokenHashType = columnType("confirmation_tokens", "token_hash");
+        String confirmationExpiryType = columnType("confirmation_tokens", "expires_at");
+        String confirmationConfirmedType = columnType("confirmation_tokens", "confirmed_at");
+        String resetExpiryType = columnType("password_reset_tokens", "expires_at");
+        Integer rawAuthTokenColumnCount = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name IN ('confirmation_tokens', 'password_reset_tokens')
+                  AND column_name = 'token'
+                """,
+                Integer.class
+        );
         Integer guideAvatarColumnCount = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*)
@@ -70,6 +84,11 @@ class PostgreSqlSchemaIntegrationTest {
         assertThat(notificationPayloadType).isEqualTo("jsonb");
         assertThat(reservationCreatedAtType).isEqualTo("timestamp with time zone");
         assertThat(userAvatarType).isEqualTo("uuid");
+        assertThat(confirmationTokenHashType).isEqualTo("character varying");
+        assertThat(confirmationExpiryType).isEqualTo("timestamp with time zone");
+        assertThat(confirmationConfirmedType).isEqualTo("timestamp with time zone");
+        assertThat(resetExpiryType).isEqualTo("timestamp with time zone");
+        assertThat(rawAuthTokenColumnCount).isZero();
         assertThat(guideAvatarColumnCount).isZero();
         assertThat(mediaPurposeConstraint)
                 .contains("USER_AVATAR", "TOUR_COVER")

@@ -15,7 +15,7 @@ class ReservationStateTest {
     void confirmedLatePaymentRestoresActiveReservationGuard() {
         Reservation reservation = Reservation.hold(
                 mock(TourSession.class),
-                new User(),
+                testUser(),
                 1,
                 1000,
                 1000,
@@ -34,5 +34,9 @@ class ReservationStateTest {
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
         assertThat(reservation.getActiveGuard()).isTrue();
         assertThat(reservation.getHoldExpiresAt()).isNull();
+    }
+
+    private User testUser() {
+        return new User("Reservation", "Test", "reservation@example.com", "not-used");
     }
 }

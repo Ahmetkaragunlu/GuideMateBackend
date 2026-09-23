@@ -50,7 +50,7 @@ class UserAvatarServiceTest {
     @Test
     void assignsOwnedReadyUserAvatarToLockedUser() {
         UUID mediaAssetId = UUID.randomUUID();
-        User user = new User();
+        User user = new User("Avatar", "Test", "avatar@example.com", "not-used");
         MediaReferenceResponse expected = new MediaReferenceResponse(mediaAssetId, "https://example.test/avatar");
         when(userRepository.findByIdForUpdate(42L)).thenReturn(Optional.of(user));
         when(mediaService.requireAssignableAsset(mediaAssetId, 42L, MediaPurpose.USER_AVATAR))

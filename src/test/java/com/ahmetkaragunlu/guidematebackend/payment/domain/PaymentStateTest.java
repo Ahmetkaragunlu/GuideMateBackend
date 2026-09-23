@@ -58,7 +58,7 @@ class PaymentStateTest {
     private Payment hostedPayment(String idempotencyKey) {
         Instant quotedAt = Instant.parse("2026-08-10T00:00:00Z");
         PaymentFxQuote quote = PaymentFxQuote.walletTopUp(
-                new User(),
+                testUser(),
                 1000,
                 "USD",
                 1000,
@@ -70,11 +70,15 @@ class PaymentStateTest {
                 quotedAt.plusSeconds(600)
         );
         return Payment.hosted(
-                new User(),
+                testUser(),
                 PaymentPurpose.WALLET_TOP_UP,
                 null,
                 quote,
                 idempotencyKey
         );
+    }
+
+    private User testUser() {
+        return new User("Payment", "Test", "payment@example.com", "not-used");
     }
 }

@@ -10,8 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -25,11 +23,9 @@ public class TokenCleanupService {
     @Scheduled(cron = "0 0 3 * * ?")
     @Transactional
     public void cleanupExpiredTokens() {
-        Instant nowInstant = clock.instant();
-        LocalDateTime now = LocalDateTime.ofInstant(nowInstant, ZoneId.systemDefault());
-
+        Instant now = clock.instant();
         confirmationTokenRepository.deleteByExpiresAtBefore(now);
         passwordResetTokenRepository.deleteByExpiresAtBefore(now);
-        refreshTokenRepository.deleteByExpiresAtBefore(nowInstant);
+        refreshTokenRepository.deleteByExpiresAtBefore(now);
     }
 }
