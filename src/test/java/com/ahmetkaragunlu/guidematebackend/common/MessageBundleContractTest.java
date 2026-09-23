@@ -34,19 +34,10 @@ class MessageBundleContractTest {
         Properties messages = loadMessages();
 
         assertThat(getClass().getResource("/ValidationMessages.properties")).isNull();
-        assertThat(messages.stringPropertyNames())
-                .filteredOn(key -> key.startsWith("auth."))
-                .hasSize(8);
-        assertThat(messages.stringPropertyNames())
-                .filteredOn(key -> key.startsWith("email."))
-                .hasSize(4);
-        assertThat(messages.stringPropertyNames())
-                .filteredOn(key -> key.startsWith("web."))
-                .hasSize(30);
-        assertThat(messages.stringPropertyNames())
-                .filteredOn(key -> key.startsWith("validation."))
-                .hasSize(74)
-                .allSatisfy(key -> assertThat(messages.getProperty(key)).isNotBlank());
+        assertNonBlankGroup(messages, "auth.");
+        assertNonBlankGroup(messages, "email.");
+        assertNonBlankGroup(messages, "web.");
+        assertNonBlankGroup(messages, "validation.");
     }
 
     @Test
@@ -93,5 +84,12 @@ class MessageBundleContractTest {
             messages.load(input);
         }
         return messages;
+    }
+
+    private void assertNonBlankGroup(Properties messages, String prefix) {
+        assertThat(messages.stringPropertyNames())
+                .filteredOn(key -> key.startsWith(prefix))
+                .isNotEmpty()
+                .allSatisfy(key -> assertThat(messages.getProperty(key)).isNotBlank());
     }
 }

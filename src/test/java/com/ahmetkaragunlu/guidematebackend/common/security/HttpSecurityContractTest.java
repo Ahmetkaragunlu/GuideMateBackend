@@ -33,6 +33,14 @@ class HttpSecurityContractTest {
     }
 
     @Test
+    void rejectsMalformedBearerTokenWithStableCode() throws Exception {
+        mockMvc.perform(get("/api/v1/chats")
+                        .header("Authorization", "Bearer not-a-jwt"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
     @WithMockUser(roles = "TOURIST")
     void rejectsTouristAccessToAdminEndpoint() throws Exception {
         mockMvc.perform(get("/api/v1/admin/tour-reviews"))

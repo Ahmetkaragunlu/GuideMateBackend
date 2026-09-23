@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class NotificationPersistenceTest {
+class NotificationPersistenceIntegrationTest {
 
     @Autowired
     private NotificationPublisher notificationPublisher;

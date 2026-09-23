@@ -1,6 +1,5 @@
-package com.ahmetkaragunlu.guidematebackend.chat;
+package com.ahmetkaragunlu.guidematebackend.chat.config;
 
-import com.ahmetkaragunlu.guidematebackend.chat.config.StompJwtChannelInterceptor;
 import com.ahmetkaragunlu.guidematebackend.common.security.JwtService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -18,6 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class StompJwtChannelInterceptorTest {
@@ -99,6 +99,32 @@ class StompJwtChannelInterceptorTest {
                 message(forbidden),
                 mock(org.springframework.messaging.MessageChannel.class)
         )).isInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    void rejectsConnectWithoutBearerTokenBeforeUserLookup() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+
+        assertThatThrownBy(() -> interceptor.preSend(
+                message(accessor),
+                mock(org.springframework.messaging.MessageChannel.class)
+        )).isInstanceOf(AuthenticationCredentialsNotFoundException.class);
+        verifyNoInteractions(jwtService, userDetailsService);
+    }
+
+    @Test
+    void rejectsUnauthenticatedSendAndSubscriptionFrames() {
+        for (StompCommand command : List.of(StompCommand.SEND, StompCommand.SUBSCRIBE)) {
+            StompHeaderAccessor accessor = StompHeaderAccessor.create(command);
+            accessor.setDestination(command == StompCommand.SEND
+                    ? "/app/chats/2d9209d7-4c89-47b0-a4c5-e691701757b8/messages"
+                    : "/user/queue/chat-messages");
+
+            assertThatThrownBy(() -> interceptor.preSend(
+                    message(accessor),
+                    mock(org.springframework.messaging.MessageChannel.class)
+            )).isInstanceOf(AuthenticationCredentialsNotFoundException.class);
+        }
     }
 
     private Message<byte[]> message(StompHeaderAccessor accessor) {

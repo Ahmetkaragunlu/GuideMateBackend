@@ -1,13 +1,11 @@
-package com.ahmetkaragunlu.guidematebackend.media;
+package com.ahmetkaragunlu.guidematebackend.media.service;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.media.config.MediaProperties;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaStatus;
 import com.ahmetkaragunlu.guidematebackend.media.repository.MediaAssetRepository;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaCleanupService;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaReferencePolicy;
 import com.ahmetkaragunlu.guidematebackend.media.storage.MediaStorage;
+import com.ahmetkaragunlu.guidematebackend.support.TestSchedulerProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +54,7 @@ class MediaCleanupServiceTest {
                         4096,
                         16_777_216
                 ),
-                schedulerProperties(),
+                TestSchedulerProperties.defaults(),
                 List.of(referencePolicy),
                 Clock.fixed(Instant.parse("2026-08-13T00:00:00Z"), ZoneOffset.UTC)
         );
@@ -96,19 +94,4 @@ class MediaCleanupServiceTest {
         verify(mediaAssetRepository).delete(orphan);
     }
 
-    private SchedulerProperties schedulerProperties() {
-        return new SchedulerProperties(
-                50,
-                Duration.ofMinutes(1),
-                5,
-                Duration.ofMinutes(1),
-                5,
-                Duration.ofMinutes(5),
-                Duration.ofMinutes(1),
-                5,
-                Duration.ofHours(24),
-                Duration.ofDays(30),
-                Duration.ofDays(90)
-        );
-    }
 }

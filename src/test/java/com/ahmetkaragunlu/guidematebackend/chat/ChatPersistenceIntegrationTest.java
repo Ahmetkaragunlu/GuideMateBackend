@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class ChatPersistenceTest {
+class ChatPersistenceIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;

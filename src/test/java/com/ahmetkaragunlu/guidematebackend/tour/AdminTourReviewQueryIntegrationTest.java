@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class AdminTourReviewRepositoryIntegrationTest {
+class AdminTourReviewQueryIntegrationTest {
 
     @Autowired
     private AdminTourReviewQueryService reviewService;

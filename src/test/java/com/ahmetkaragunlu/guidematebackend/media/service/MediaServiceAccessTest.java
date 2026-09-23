@@ -1,19 +1,12 @@
-package com.ahmetkaragunlu.guidematebackend.media;
+package com.ahmetkaragunlu.guidematebackend.media.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.repository.MediaAssetRepository;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaAssetLifecycleService;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaFileValidator;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaImageProcessor;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaReferencePolicy;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
-import com.ahmetkaragunlu.guidematebackend.media.service.ProcessedMedia;
-import com.ahmetkaragunlu.guidematebackend.media.service.ValidatedMedia;
 import com.ahmetkaragunlu.guidematebackend.media.storage.MediaStorage;
+import com.ahmetkaragunlu.guidematebackend.media.storage.MediaStorageException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -122,5 +116,57 @@ class MediaServiceAccessTest {
         verify(mediaStorage).store(storageKey.capture(), content.capture());
         assertThat(storageKey.getValue()).endsWith(".png");
         assertThat(content.getValue().readAllBytes()).isEqualTo(processed);
+    }
+
+    @Test
+    void mapsUploadStorageFailureWithoutMarkingAssetReady() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                "content".getBytes(StandardCharsets.UTF_8)
+        );
+        ValidatedMedia validated = new ValidatedMedia("image/png", "png", "avatar.png", 7);
+        when(mediaFileValidator.validate(file)).thenReturn(validated);
+        when(mediaImageProcessor.process(file, validated))
+                .thenReturn(new ProcessedMedia("content".getBytes(StandardCharsets.UTF_8), validated));
+        when(mediaAssetLifecycleService.createPending(eq(7L), eq(MediaPurpose.USER_AVATAR), any(), eq(validated)))
+                .thenReturn(mediaAsset);
+        doThrow(new MediaStorageException("disk unavailable"))
+                .when(mediaStorage).store(any(), any());
+
+        assertThatThrownBy(() -> mediaService.upload(file, MediaPurpose.USER_AVATAR, 7L))
+                .isInstanceOfSatisfying(BusinessException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.MEDIA_STORAGE_FAILED));
+        verify(mediaAssetLifecycleService, never()).markReady(any());
+    }
+
+    @Test
+    void rejectsDeletingReferencedMediaBeforeTouchingStorage() {
+        UUID mediaId = UUID.randomUUID();
+        when(mediaAssetRepository.findByIdForUpdate(mediaId)).thenReturn(Optional.of(mediaAsset));
+        when(mediaAsset.isOwnedBy(7L)).thenReturn(true);
+        when(referencePolicy.isReferenced(mediaId)).thenReturn(true);
+
+        assertThatThrownBy(() -> mediaService.delete(mediaId, 7L))
+                .isInstanceOfSatisfying(BusinessException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.MEDIA_IN_USE));
+        verify(mediaStorage, never()).delete(any());
+        verify(mediaAssetRepository, never()).delete(any());
+    }
+
+    @Test
+    void mapsDeleteStorageFailureAndDoesNotDeleteDatabaseRecord() {
+        UUID mediaId = UUID.randomUUID();
+        when(mediaAssetRepository.findByIdForUpdate(mediaId)).thenReturn(Optional.of(mediaAsset));
+        when(mediaAsset.isOwnedBy(7L)).thenReturn(true);
+        when(mediaAsset.getStorageKey()).thenReturn("media/key.png");
+        doThrow(new MediaStorageException("disk unavailable"))
+                .when(mediaStorage).delete("media/key.png");
+
+        assertThatThrownBy(() -> mediaService.delete(mediaId, 7L))
+                .isInstanceOfSatisfying(BusinessException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.MEDIA_STORAGE_FAILED));
+        verify(mediaAssetRepository, never()).delete(mediaAsset);
     }
 }

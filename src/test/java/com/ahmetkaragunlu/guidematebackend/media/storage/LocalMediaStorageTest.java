@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.media;
+package com.ahmetkaragunlu.guidematebackend.media.storage;
 
 import com.ahmetkaragunlu.guidematebackend.media.config.MediaProperties;
 import com.ahmetkaragunlu.guidematebackend.media.storage.LocalMediaStorage;
