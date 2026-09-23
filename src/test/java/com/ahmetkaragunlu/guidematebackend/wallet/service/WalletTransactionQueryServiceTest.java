@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.service;
 
-import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.Refund;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.Refund;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.RefundRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.PurchaseSnapshot;

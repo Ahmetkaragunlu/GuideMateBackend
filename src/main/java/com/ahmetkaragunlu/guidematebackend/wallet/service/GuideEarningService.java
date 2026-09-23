@@ -90,12 +90,14 @@ public class GuideEarningService {
         earning.makeAvailable();
         walletAccountService.credit(
                 wallet,
-                earning.getNetMinor(),
-                LedgerEntryType.GUIDE_EARNING,
-                "GUIDE_EARNING",
-                earning.getId(),
-                "earning-credit:" + earning.getId(),
-                clock.instant()
+                new WalletEntryCommand(
+                        earning.getNetMinor(),
+                        LedgerEntryType.GUIDE_EARNING,
+                        "GUIDE_EARNING",
+                        earning.getId(),
+                        "earning-credit:" + earning.getId(),
+                        clock.instant()
+                )
         );
         notificationPublisher.publish(new NotificationCommand(
                 guide.getId(),
@@ -126,12 +128,14 @@ public class GuideEarningService {
             Wallet wallet = walletAccountService.getOrCreateForUpdate(guide);
             walletAccountService.recordMandatoryDebit(
                     wallet,
-                    earning.getNetMinor(),
-                    LedgerEntryType.EARNING_REVERSAL,
-                    "GUIDE_EARNING",
-                    earning.getId(),
-                    "earning-reversal:" + earning.getId(),
-                    now
+                    new WalletEntryCommand(
+                            earning.getNetMinor(),
+                            LedgerEntryType.EARNING_REVERSAL,
+                            "GUIDE_EARNING",
+                            earning.getId(),
+                            "earning-reversal:" + earning.getId(),
+                            now
+                    )
             );
         }
     }

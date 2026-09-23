@@ -1,10 +1,10 @@
 package com.ahmetkaragunlu.guidematebackend.payment.controller;
 
-import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
-import com.ahmetkaragunlu.guidematebackend.payment.dto.IyzicoWebhookRequest;
-import com.ahmetkaragunlu.guidematebackend.payment.dto.PaymentCallbackResponse;
-import com.ahmetkaragunlu.guidematebackend.payment.service.IyzicoWebhookService;
-import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentVerificationService;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.request.IyzicoWebhookRequest;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.response.PaymentCallbackResponse;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentVerificationService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.webhook.IyzicoWebhookService;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

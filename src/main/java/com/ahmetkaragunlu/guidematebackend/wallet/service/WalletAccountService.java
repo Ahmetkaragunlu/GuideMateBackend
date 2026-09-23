@@ -5,7 +5,6 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerDirection;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.WalletLedgerEntry;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.WithdrawalStatus;
@@ -18,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -76,100 +73,50 @@ public class WalletAccountService {
         );
     }
 
-    public void credit(
-            Wallet wallet,
-            long amountMinor,
-            LedgerEntryType type,
-            String referenceType,
-            UUID referenceId,
-            String idempotencyKey,
-            Instant occurredAt
-    ) {
-        addEntry(
-                wallet,
-                LedgerDirection.CREDIT,
-                amountMinor,
-                type,
-                referenceType,
-                referenceId,
-                idempotencyKey,
-                occurredAt
-        );
+    public void credit(Wallet wallet, WalletEntryCommand command) {
+        addEntry(wallet, LedgerDirection.CREDIT, command);
     }
 
-    public void debit(
-            Wallet wallet,
-            long amountMinor,
-            LedgerEntryType type,
-            String referenceType,
-            UUID referenceId,
-            String idempotencyKey,
-            Instant occurredAt
-    ) {
-        if (ledgerRepository.findByWallet_IdAndIdempotencyKey(wallet.getId(), idempotencyKey).isPresent()) {
+    public void debit(Wallet wallet, WalletEntryCommand command) {
+        if (ledgerRepository.findByWallet_IdAndIdempotencyKey(
+                wallet.getId(),
+                command.idempotencyKey()
+        ).isPresent()) {
             return;
         }
-        if (balance(wallet).availableBalanceMinor() < amountMinor) {
+        if (balance(wallet).availableBalanceMinor() < command.amountMinor()) {
             throw new BusinessException(ErrorCode.INSUFFICIENT_WALLET_BALANCE);
         }
-        addEntry(
-                wallet,
-                LedgerDirection.DEBIT,
-                amountMinor,
-                type,
-                referenceType,
-                referenceId,
-                idempotencyKey,
-                occurredAt
-        );
+        addEntry(wallet, LedgerDirection.DEBIT, command);
     }
 
-    public void recordMandatoryDebit(
-            Wallet wallet,
-            long amountMinor,
-            LedgerEntryType type,
-            String referenceType,
-            UUID referenceId,
-            String idempotencyKey,
-            Instant occurredAt
-    ) {
-        addEntry(
-                wallet,
-                LedgerDirection.DEBIT,
-                amountMinor,
-                type,
-                referenceType,
-                referenceId,
-                idempotencyKey,
-                occurredAt
-        );
+    public void recordMandatoryDebit(Wallet wallet, WalletEntryCommand command) {
+        addEntry(wallet, LedgerDirection.DEBIT, command);
     }
 
     private void addEntry(
             Wallet wallet,
             LedgerDirection direction,
-            long amountMinor,
-            LedgerEntryType type,
-            String referenceType,
-            UUID referenceId,
-            String idempotencyKey,
-            Instant occurredAt
+            WalletEntryCommand command
     ) {
-        if (amountMinor <= 0) {
+        if (command.amountMinor() <= 0) {
             throw new BusinessException(ErrorCode.INVALID_AMOUNT);
         }
-        if (ledgerRepository.findByWallet_IdAndIdempotencyKey(wallet.getId(), idempotencyKey).isPresent()) {
+        if (ledgerRepository.findByWallet_IdAndIdempotencyKey(
+                wallet.getId(),
+                command.idempotencyKey()
+        ).isPresent()) {
             return;
         }
         ledgerRepository.save(new WalletLedgerEntry(
                 wallet,
                 direction,
-                type,
-                amountMinor,
-                referenceType,
-                referenceId,
-                idempotencyKey,
-                occurredAt
+                command.type(),
+                command.amountMinor(),
+                command.referenceType(),
+                command.referenceId(),
+                command.idempotencyKey(),
+                command.occurredAt()
         ));
     }
 }

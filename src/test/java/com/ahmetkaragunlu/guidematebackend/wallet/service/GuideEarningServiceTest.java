@@ -151,12 +151,14 @@ class GuideEarningServiceTest {
         verify(earning).makeAvailable();
         verify(walletAccountService).credit(
                 wallet,
-                8_500L,
-                LedgerEntryType.GUIDE_EARNING,
-                "GUIDE_EARNING",
-                earningId,
-                "earning-credit:" + earningId,
-                NOW
+                new WalletEntryCommand(
+                        8_500L,
+                        LedgerEntryType.GUIDE_EARNING,
+                        "GUIDE_EARNING",
+                        earningId,
+                        "earning-credit:" + earningId,
+                        NOW
+                )
         );
         verify(notificationPublisher).publish(any());
         verify(earningRepository, times(2)).findByIdForUpdate(earningId);

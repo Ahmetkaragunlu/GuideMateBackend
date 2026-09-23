@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.service;
 
-import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;

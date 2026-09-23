@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.dto;
 
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.RefundEligibility;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.RefundStatus;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.RefundStatus;
 
 import java.util.UUID;
 

@@ -1,9 +1,9 @@
 package com.ahmetkaragunlu.guidematebackend.payment.repository;
 
-import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentMethod;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentPurpose;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentPurpose;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

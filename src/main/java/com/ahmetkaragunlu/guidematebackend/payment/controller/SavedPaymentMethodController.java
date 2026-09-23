@@ -1,8 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.payment.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.payment.dto.SavedPaymentMethodResponse;
-import com.ahmetkaragunlu.guidematebackend.payment.service.SavedPaymentMethodService;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.response.SavedPaymentMethodResponse;
+import com.ahmetkaragunlu.guidematebackend.payment.service.savedcard.SavedPaymentMethodService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

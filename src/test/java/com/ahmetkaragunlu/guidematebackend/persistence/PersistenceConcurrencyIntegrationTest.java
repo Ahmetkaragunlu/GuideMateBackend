@@ -9,13 +9,13 @@ import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentMethod;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.RefundStatus;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentStatus;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.RefundStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.RefundRepository;
-import com.ahmetkaragunlu.guidematebackend.payment.service.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentIntentService;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
@@ -44,6 +44,7 @@ import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarningStatus;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.GuideEarningRepository;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.WalletLedgerRepository;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletAccountService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletEntryCommand;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -249,7 +250,7 @@ class PersistenceConcurrencyIntegrationTest {
         User tourist = userRepository.findByEmailWithRole(fixture.firstTouristEmail()).orElseThrow();
         assertThat(paymentRepository.findByUser_IdAndPurposeAndIdempotencyKey(
                 tourist.getId(),
-                com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentPurpose.TOUR_BOOKING,
+                com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentPurpose.TOUR_BOOKING,
                 idempotencyKey
         )).isEmpty();
         assertThat(reservationRepository.findByTourist_IdAndIdempotencyKey(tourist.getId(), idempotencyKey))
@@ -310,12 +311,14 @@ class PersistenceConcurrencyIntegrationTest {
             Wallet wallet = walletAccountService.getOrCreateForUpdate(user);
             walletAccountService.credit(
                     wallet,
-                    amountMinor,
-                    LedgerEntryType.TOP_UP,
-                    "TEST_SETUP",
-                    UUID.randomUUID(),
-                    "seed-" + UUID.randomUUID(),
-                    clock.instant()
+                    new WalletEntryCommand(
+                            amountMinor,
+                            LedgerEntryType.TOP_UP,
+                            "TEST_SETUP",
+                            UUID.randomUUID(),
+                            "seed-" + UUID.randomUUID(),
+                            clock.instant()
+                    )
             );
             walletLedgerRepository.flush();
             return new WalletFixture(user.getId(), wallet.getId());
@@ -328,12 +331,14 @@ class PersistenceConcurrencyIntegrationTest {
             Wallet wallet = walletAccountService.getOrCreateForUpdate(user);
             walletAccountService.credit(
                     wallet,
-                    amountMinor,
-                    LedgerEntryType.TOP_UP,
-                    "TEST_SETUP",
-                    UUID.randomUUID(),
-                    "seed-" + UUID.randomUUID(),
-                    clock.instant()
+                    new WalletEntryCommand(
+                            amountMinor,
+                            LedgerEntryType.TOP_UP,
+                            "TEST_SETUP",
+                            UUID.randomUUID(),
+                            "seed-" + UUID.randomUUID(),
+                            clock.instant()
+                    )
             );
             walletLedgerRepository.flush();
             return new WalletFixture(user.getId(), wallet.getId());
@@ -352,12 +357,14 @@ class PersistenceConcurrencyIntegrationTest {
                 Wallet wallet = walletAccountService.getOrCreateForUpdate(user);
                 walletAccountService.debit(
                         wallet,
-                        amountMinor,
-                        LedgerEntryType.TOUR_PURCHASE,
-                        "TEST_PURCHASE",
-                        UUID.randomUUID(),
-                        idempotencyKey,
-                        clock.instant()
+                        new WalletEntryCommand(
+                                amountMinor,
+                                LedgerEntryType.TOUR_PURCHASE,
+                                "TEST_PURCHASE",
+                                UUID.randomUUID(),
+                                idempotencyKey,
+                                clock.instant()
+                        )
                 );
                 walletLedgerRepository.flush();
             });

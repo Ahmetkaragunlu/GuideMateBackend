@@ -79,12 +79,14 @@ public class WithdrawalService {
         withdrawal.markProcessing();
         walletAccountService.recordMandatoryDebit(
                 wallet,
-                amountMinor,
-                LedgerEntryType.WITHDRAWAL,
-                "WITHDRAWAL",
-                withdrawal.getId(),
-                "withdrawal-debit:" + withdrawal.getId(),
-                now
+                new WalletEntryCommand(
+                        amountMinor,
+                        LedgerEntryType.WITHDRAWAL,
+                        "WITHDRAWAL",
+                        withdrawal.getId(),
+                        "withdrawal-debit:" + withdrawal.getId(),
+                        now
+                )
         );
         withdrawal.complete("SIMULATED-" + withdrawal.getId(), now);
         notificationPublisher.publish(new NotificationCommand(

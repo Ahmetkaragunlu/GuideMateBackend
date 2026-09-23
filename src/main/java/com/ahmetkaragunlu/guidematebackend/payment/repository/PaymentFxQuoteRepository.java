@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.payment.repository;
 
-import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentFxQuote;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.checkout.PaymentFxQuote;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

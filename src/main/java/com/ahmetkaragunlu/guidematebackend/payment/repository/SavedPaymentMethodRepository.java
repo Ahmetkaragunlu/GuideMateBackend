@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.payment.repository;
 
-import com.ahmetkaragunlu.guidematebackend.payment.domain.SavedPaymentMethod;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.SavedPaymentMethodStatus;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.savedcard.SavedPaymentMethod;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.savedcard.SavedPaymentMethodStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

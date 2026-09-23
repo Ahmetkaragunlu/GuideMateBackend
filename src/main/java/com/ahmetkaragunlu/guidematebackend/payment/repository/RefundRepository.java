@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.payment.repository;
 
-import com.ahmetkaragunlu.guidematebackend.payment.domain.Refund;
-import com.ahmetkaragunlu.guidematebackend.payment.domain.RefundStatus;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.Refund;
+import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.RefundStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
