@@ -8,6 +8,7 @@ import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
+import com.ahmetkaragunlu.guidematebackend.notification.event.NotificationCreatedEvent;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
@@ -35,6 +36,9 @@ public class NotificationService implements NotificationPublisher {
     @Override
     @Transactional
     public UUID publish(NotificationCommand command) {
+        User recipient = command.deduplicationKey() == null
+                ? userRepository.getReferenceById(command.recipientId())
+                : userRepository.findByIdForUpdate(command.recipientId()).orElseThrow();
         if (command.deduplicationKey() != null) {
             Notification existing = notificationRepository
                     .findByRecipient_IdAndTypeAndDeduplicationKey(
@@ -51,7 +55,6 @@ public class NotificationService implements NotificationPublisher {
                 command.recipientId(),
                 command.type()
         ) ? NotificationPushStatus.PENDING : NotificationPushStatus.NOT_REQUESTED;
-        User recipient = userRepository.getReferenceById(command.recipientId());
         Notification notification = notificationRepository.save(new Notification(
                 recipient,
                 command.type(),

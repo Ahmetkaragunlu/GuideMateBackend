@@ -284,13 +284,15 @@ public class ReservationBookingService {
                 reservation.getTourist().getId(),
                 NotificationType.RESERVATION_CONFIRMED,
                 null,
-                payload
+                payload,
+                "reservation:" + reservation.getId()
         ));
         notificationPublisher.publish(new NotificationCommand(
                 reservation.getSession().getTour().getGuide().getId(),
                 NotificationType.TOUR_PURCHASED,
                 reservation.getTourist().getId(),
-                payload
+                payload,
+                "reservation:" + reservation.getId()
         ));
     }
 

@@ -250,13 +250,15 @@ public class ReservationService {
                 reservation.getTourist().getId(),
                 NotificationType.RESERVATION_CANCELLED,
                 null,
-                payload
+                payload,
+                "reservation:" + reservation.getId()
         ));
         notificationPublisher.publish(new NotificationCommand(
                 reservation.getSession().getTour().getGuide().getId(),
                 NotificationType.RESERVATION_CANCELLED,
                 reservation.getTourist().getId(),
-                payload
+                payload,
+                "reservation:" + reservation.getId()
         ));
     }
 }

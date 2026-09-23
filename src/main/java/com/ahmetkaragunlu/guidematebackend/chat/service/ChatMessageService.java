@@ -152,7 +152,8 @@ public class ChatMessageService {
                         "senderId", sender.getId(),
                         "senderName", sender.displayName(),
                         "messagePreview", preview(body)
-                )
+                ),
+                "chat-message:" + message.getId()
         ));
         eventPublisher.publishEvent(new ChatMessageCreatedEvent(
                 response,

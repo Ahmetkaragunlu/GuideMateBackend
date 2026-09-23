@@ -71,7 +71,7 @@ public class MediaCleanupService {
             mediaStorage.delete(media.getStorageKey());
             mediaAssetRepository.delete(media);
         } catch (MediaStorageException exception) {
-            log.warn("Media cleanup will retry asset {}", media.getId());
+            log.warn("Media cleanup will retry asset {}", media.getId(), exception);
         }
     }
 

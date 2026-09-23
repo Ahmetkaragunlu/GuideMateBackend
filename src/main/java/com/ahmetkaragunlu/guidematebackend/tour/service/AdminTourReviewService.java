@@ -209,7 +209,8 @@ public class AdminTourReviewService {
                 tour.getGuide().getId(),
                 type,
                 admin.getId(),
-                payload
+                payload,
+                "tour-review:" + reviewId
         ));
     }
 }

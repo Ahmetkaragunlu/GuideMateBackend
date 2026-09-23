@@ -38,7 +38,7 @@ public class ReservationTimeoutScheduler {
         try {
             stateService.expireHold(reservationId);
         } catch (RuntimeException exception) {
-            log.warn("Reservation hold expiration will retry reservation {}", reservationId);
+            log.warn("Reservation hold expiration will retry reservation {}", reservationId, exception);
         }
     }
 }

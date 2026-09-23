@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.event;
 
 import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationRealtimeResponse;
 import lombok.RequiredArgsConstructor;

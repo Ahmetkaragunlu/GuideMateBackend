@@ -71,7 +71,8 @@ public class ReservationLifecycleService {
                                     "tourId", reservation.getSession().getTour().getId().toString(),
                                     "tourTitle", reservation.getSession().getTour().getTitle(),
                                     "refundEligibility", eligibility.name()
-                            )
+                            ),
+                            "reservation:" + reservation.getId()
                     ));
                 });
     }
@@ -94,7 +95,8 @@ public class ReservationLifecycleService {
                                     "sessionId", reservation.getSession().getId().toString(),
                                     "tourId", reservation.getSession().getTour().getId().toString(),
                                     "tourTitle", reservation.getSession().getTour().getTitle()
-                            )
+                            ),
+                            "reservation:" + reservation.getId()
                     ));
                 });
         return reservations.size();

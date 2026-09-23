@@ -1,13 +1,14 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.reminder;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,18 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UpcomingTourReminderService {
-
-    private static final List<TourSessionStatus> REMINDABLE_SESSION_STATUSES = List.of(
-            TourSessionStatus.OPEN_FOR_BOOKING,
-            TourSessionStatus.CLOSED
-    );
 
     private final ReservationRepository reservationRepository;
     private final TourSessionRepository sessionRepository;
@@ -66,7 +61,7 @@ public class UpcomingTourReminderService {
         Instant now = clock.instant();
         if (session == null
                 || session.getTour().getApprovalStatus() != TourApprovalStatus.APPROVED
-                || !REMINDABLE_SESSION_STATUSES.contains(session.getStatus())
+                || !UpcomingTourReminderPolicy.supports(session.getStatus())
                 || session.getUpcomingReminderSentAt() != null
                 || !isWithinReminderWindow(session.getStartsAt(), now)) {
             return;

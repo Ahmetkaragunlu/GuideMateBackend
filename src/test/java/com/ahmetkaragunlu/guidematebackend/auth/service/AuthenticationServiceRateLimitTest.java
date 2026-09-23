@@ -5,7 +5,7 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.RateLimitException;
 import com.ahmetkaragunlu.guidematebackend.common.security.JwtService;
 import com.ahmetkaragunlu.guidematebackend.common.util.EmailNormalizer;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
-import com.ahmetkaragunlu.guidematebackend.notification.service.DeviceRegistrationService;
+import com.ahmetkaragunlu.guidematebackend.notification.service.device.DeviceRegistrationService;
 import com.ahmetkaragunlu.guidematebackend.user.repository.RoleRepository;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import com.ahmetkaragunlu.guidematebackend.user.service.AccountStatusPolicy;

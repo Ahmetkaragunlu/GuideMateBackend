@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.delivery;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.DeviceRegistration;
@@ -6,6 +6,8 @@ import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.DeviceRegistrationRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPayloadCodec;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPreferenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -92,6 +94,7 @@ public class NotificationPushDeliveryStateService {
     private Map<String, String> pushData(Notification notification) {
         Map<String, String> data = new HashMap<>();
         data.put("notificationId", notification.getId().toString());
+        data.put("recipientUserId", notification.getRecipient().getId().toString());
         data.put("type", notification.getType().name());
         payloadCodec.decode(notification.getPayloadJson())
                 .forEach((key, value) -> {

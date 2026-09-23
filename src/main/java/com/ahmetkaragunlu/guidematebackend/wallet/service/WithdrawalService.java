@@ -96,7 +96,8 @@ public class WithdrawalService {
                         "bankAccountId", bankAccount.getId().toString(),
                         "amountMinor", withdrawal.getAmountMinor(),
                         "currencyCode", withdrawal.getCurrencyCode()
-                )
+                ),
+                "withdrawal:" + withdrawal.getId()
         ));
         return withdrawal;
     }

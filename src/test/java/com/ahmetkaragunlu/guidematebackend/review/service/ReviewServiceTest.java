@@ -93,6 +93,8 @@ class ReviewServiceTest {
         assertThat(notificationCaptor.getValue().type()).isEqualTo(NotificationType.COMMENT_RECEIVED);
         assertThat(notificationCaptor.getValue().recipientId()).isEqualTo(fixture.guideId());
         assertThat(notificationCaptor.getValue().actorId()).isEqualTo(fixture.tourist().getId());
+        assertThat(notificationCaptor.getValue().deduplicationKey())
+                .isEqualTo("review:" + expected.reviewId());
         assertThat(notificationCaptor.getValue().payload())
                 .containsEntry("reviewId", expected.reviewId().toString())
                 .containsEntry("tourTitle", "Review tour")

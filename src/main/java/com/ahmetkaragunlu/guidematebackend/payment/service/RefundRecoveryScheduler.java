@@ -54,7 +54,7 @@ public class RefundRecoveryScheduler {
         try {
             refundProcessor.process(new RefundRequestedEvent(refundId));
         } catch (RuntimeException exception) {
-            log.warn("Refund recovery will retry refund {}", refundId);
+            log.warn("Refund recovery will retry refund {}", refundId, exception);
         }
     }
 }

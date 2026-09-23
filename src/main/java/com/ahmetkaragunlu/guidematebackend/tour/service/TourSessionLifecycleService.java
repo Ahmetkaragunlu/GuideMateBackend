@@ -61,7 +61,8 @@ public class TourSessionLifecycleService {
                                     "sessionId", session.getId().toString(),
                                     "tourId", session.getTour().getId().toString(),
                                     "tourTitle", session.getTour().getTitle()
-                            )
+                            ),
+                            "tour-session:" + session.getId()
                     ));
                 });
     }

@@ -107,7 +107,8 @@ public class GuideEarningService {
                         "tourId", earning.getReservation().getSession().getTour().getId().toString(),
                         "amountMinor", earning.getNetMinor(),
                         "currencyCode", earning.getCurrencyCode()
-                )
+                ),
+                "earning:" + earning.getId()
         ));
     }
 

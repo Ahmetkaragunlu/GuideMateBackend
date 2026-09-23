@@ -1,10 +1,9 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.reminder;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,18 +13,12 @@ import org.springframework.stereotype.Component;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class UpcomingTourReminderScheduler {
-
-    private static final List<TourSessionStatus> REMINDABLE_SESSION_STATUSES = List.of(
-            TourSessionStatus.OPEN_FOR_BOOKING,
-            TourSessionStatus.CLOSED
-    );
 
     private final ReservationRepository reservationRepository;
     private final TourSessionRepository sessionRepository;
@@ -51,7 +44,7 @@ public class UpcomingTourReminderScheduler {
 
         sessionRepository.findUpcomingReminderCandidateIds(
                 TourApprovalStatus.APPROVED,
-                REMINDABLE_SESSION_STATUSES,
+                UpcomingTourReminderPolicy.sessionStatuses(),
                 now,
                 until,
                 batch
@@ -62,7 +55,7 @@ public class UpcomingTourReminderScheduler {
         try {
             reminderService.remindTourist(reservationId);
         } catch (RuntimeException exception) {
-            log.warn("Tourist reminder will retry reservation {}", reservationId);
+            log.warn("Tourist reminder will retry reservation {}", reservationId, exception);
         }
     }
 
@@ -70,7 +63,7 @@ public class UpcomingTourReminderScheduler {
         try {
             reminderService.remindGuide(sessionId);
         } catch (RuntimeException exception) {
-            log.warn("Guide reminder will retry session {}", sessionId);
+            log.warn("Guide reminder will retry session {}", sessionId, exception);
         }
     }
 }

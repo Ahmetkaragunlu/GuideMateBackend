@@ -3,7 +3,7 @@ package com.ahmetkaragunlu.guidematebackend.notification.controller;
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.DeviceRegistrationResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.RegisterDeviceRegistrationRequest;
-import com.ahmetkaragunlu.guidematebackend.notification.service.DeviceRegistrationService;
+import com.ahmetkaragunlu.guidematebackend.notification.service.device.DeviceRegistrationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

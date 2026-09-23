@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.device;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.DeviceRegistration;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.DeviceRegistrationResponse;

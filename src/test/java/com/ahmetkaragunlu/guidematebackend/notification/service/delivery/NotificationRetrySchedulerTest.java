@@ -1,10 +1,14 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.delivery;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.support.TestSchedulerProperties;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.Clock;
@@ -13,6 +17,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -44,9 +49,26 @@ class NotificationRetrySchedulerTest {
                 .when(deliveryService)
                 .deliver(failed);
 
-        scheduler.retryPushDeliveries();
+        Logger logger = (Logger) LoggerFactory.getLogger(NotificationRetryScheduler.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            scheduler.retryPushDeliveries();
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
 
         verify(deliveryService).deliver(failed);
         verify(deliveryService).deliver(successful);
+        assertThat(appender.list)
+                .singleElement()
+                .satisfies(event -> {
+                    assertThat(event.getFormattedMessage()).contains(failed.toString());
+                    assertThat(event.getThrowableProxy()).isNotNull();
+                    assertThat(event.getThrowableProxy().getClassName())
+                            .isEqualTo(IllegalStateException.class.getName());
+                });
     }
 }

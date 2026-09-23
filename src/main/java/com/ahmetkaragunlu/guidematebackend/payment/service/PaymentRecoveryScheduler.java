@@ -56,7 +56,7 @@ public class PaymentRecoveryScheduler {
             reconciliationService.reconcile(paymentId);
         } catch (RuntimeException exception) {
             stateService.markUncertain(paymentId);
-            log.warn("Payment reconciliation will retry payment {}", paymentId);
+            log.warn("Payment reconciliation will retry payment {}", paymentId, exception);
         }
     }
 }

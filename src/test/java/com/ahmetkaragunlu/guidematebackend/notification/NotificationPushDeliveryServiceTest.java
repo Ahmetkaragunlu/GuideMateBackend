@@ -10,7 +10,7 @@ import com.ahmetkaragunlu.guidematebackend.notification.gateway.PushSendResult;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.DeviceRegistrationRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationPreferenceRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
-import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPushDeliveryService;
+import com.ahmetkaragunlu.guidematebackend.notification.service.delivery.NotificationPushDeliveryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
@@ -88,7 +88,7 @@ class NotificationPushDeliveryServiceTest {
                             + "\"accountSecret\":\"must-not-leak\"}",
                     NotificationPushStatus.PENDING
             ));
-            return new Fixture(notification.getId(), registration.getId());
+            return new Fixture(notification.getId(), registration.getId(), user.getId());
         });
 
         when(pushNotificationSender.isAvailable()).thenReturn(true);
@@ -96,6 +96,7 @@ class NotificationPushDeliveryServiceTest {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
             Map<String, String> data = invocation.getArgument(1);
             assertThat(data).containsEntry("notificationId", fixture.notificationId().toString());
+            assertThat(data).containsEntry("recipientUserId", fixture.userId().toString());
             assertThat(data).containsEntry("type", NotificationType.SECURITY_ALERT.name());
             assertThat(data).containsEntry("tourId", tourId.toString());
             assertThat(data).containsEntry("securityEvent", "PASSWORD_CHANGED");
@@ -157,6 +158,6 @@ class NotificationPushDeliveryServiceTest {
         return userRepository.save(user);
     }
 
-    private record Fixture(UUID notificationId, UUID registrationId) {
+    private record Fixture(UUID notificationId, UUID registrationId, Long userId) {
     }
 }

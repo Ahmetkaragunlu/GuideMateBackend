@@ -85,7 +85,8 @@ public class ReviewService {
                         ? NotificationType.RATING_RECEIVED
                         : NotificationType.COMMENT_RECEIVED,
                 reservation.getTourist().getId(),
-                payload
+                payload,
+                "review:" + review.getId()
         ));
     }
 }

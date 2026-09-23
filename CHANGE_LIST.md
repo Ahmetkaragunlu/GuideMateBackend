@@ -47,6 +47,65 @@ konusulmus maddeler bu listeye eklenmez.
 - Yeni degisiklik tamamlanmadan once ilgili testler, production compile ve gerekli
   sozlesme/migration kontrolleri calistirilir.
 
+## Uygulama Partlari
+
+Her part uygulanmadan once bu bolum ile ilgili numarali maddeler birlikte okunur.
+Part, listelenen maddelerin tamami ve maddelerde acikca belirtilen backend/Android
+degisiklikleri tamamlanmadan bitmis sayilmaz.
+
+### Part 1: Yapilandirma ve Auth Guvenlik Altyapisi
+
+- `5` SMTP tek kaynak
+- `6` Secrets ornegi
+- `9` `JwtProperties`
+- `10` `AuthRateLimitProperties`
+- `15` `SecureTokenService` paket sahipligi
+- `21` Google timeout ve `GoogleAuthProperties`
+- `26` JWT issuer/audience
+
+### Part 2: Auth Davranisi, Persistence ve User Domain
+
+- `1` Token hashleme
+- `2` Register rate limit
+- `3` Google login rate limit
+- `7` Auth girdi sinirlari
+- `8` DB hata esleme
+- `11` Token zamanlarini `Instant` yapma
+- `19` User setter temizligi
+- `20` E-posta degismezligi ve equality
+
+Token hash ve zaman degisikligi ayni migration'da uygulanir.
+
+### Part 3: Ortak Metin, Log ve Notification
+
+- `12` Merkezi kullanici metinleri
+- `13` Log temizligi
+- `14` Merkezi validation mesajlari
+- `16` Notification paket duzeni
+- `17` Reminder ortak policy
+- `23` Scheduler hata loglari
+- `24` Bildirim duplicate guvenligi
+- `25` FCM `recipientUserId`
+
+Bu part Android'deki FCM alici kontrolunu ve ilgili Android regression testlerini
+de icerir.
+
+### Part 4: Payment ve Wallet
+
+- `28` Payment paket duzeni
+- `30` `WalletEntryCommand`
+
+Once payment dosyalari nihai paketlerine tasinir, sonra wallet cagrilari
+guncellenir.
+
+### Part 5: Tour, Media, API ve Son Temizlik
+
+- `4` `cityPlaceId` duzeltmesi
+- `18` `ReservationMapper` ortak medya donusumu
+- `22` Goruntu guvenligi
+- `29` `/guides/me/...` endpoint standardi
+- `27` Kullanilmayan kod/import ve newline temizligi
+
 ## Kabul Edilen Degisiklikler
 
 1. E-posta dogrulama ve sifre sifirlama tokenlari veritabaninda ham olarak

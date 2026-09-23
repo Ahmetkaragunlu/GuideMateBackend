@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.device;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.DeviceRegistrationRepository;
@@ -42,7 +42,7 @@ public class DeviceRegistrationCleanupScheduler {
         try {
             registrationService.deactivateIfInactive(registrationId, cutoff);
         } catch (RuntimeException exception) {
-            log.warn("Device registration cleanup will retry registration {}", registrationId);
+            log.warn("Device registration cleanup will retry registration {}", registrationId, exception);
         }
     }
 
@@ -50,7 +50,7 @@ public class DeviceRegistrationCleanupScheduler {
         try {
             registrationService.deleteIfExpired(registrationId, cutoff);
         } catch (RuntimeException exception) {
-            log.warn("Device registration deletion will retry registration {}", registrationId);
+            log.warn("Device registration deletion will retry registration {}", registrationId, exception);
         }
     }
 }

@@ -5,6 +5,10 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.repository.MediaAssetRepository;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
+import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.PaymentStatus;
@@ -52,6 +56,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -99,6 +104,10 @@ class PersistenceConcurrencyIntegrationTest {
     private TourRepository tourRepository;
     @Autowired
     private TourSessionRepository tourSessionRepository;
+    @Autowired
+    private NotificationPublisher notificationPublisher;
+    @Autowired
+    private NotificationRepository notificationRepository;
     @Autowired
     private PlatformTransactionManager transactionManager;
     @Autowired
@@ -170,6 +179,35 @@ class PersistenceConcurrencyIntegrationTest {
         assertThat(attempts).allMatch(attempt -> attempt.errorCode() == null);
         assertThat(attempts).extracting(ReservationAttempt::reservationId).doesNotContainNull();
         assertThat(attempts.get(0).reservationId()).isEqualTo(attempts.get(1).reservationId());
+    }
+
+    @Test
+    void storesOneNotificationForConcurrentDeliveryOfSameDomainEvent() throws Exception {
+        User recipient = transactionTemplate().execute(status -> createUser(
+                "notification-" + UUID.randomUUID() + "@example.com",
+                RoleType.ROLE_TOURIST
+        ));
+        String deduplicationKey = "reservation:" + UUID.randomUUID();
+        NotificationCommand command = new NotificationCommand(
+                recipient.getId(),
+                NotificationType.RESERVATION_CONFIRMED,
+                null,
+                Map.of("reservationId", UUID.randomUUID().toString()),
+                deduplicationKey
+        );
+
+        List<UUID> notificationIds = runConcurrently(
+                () -> notificationPublisher.publish(command),
+                () -> notificationPublisher.publish(command)
+        );
+
+        assertThat(notificationIds).containsOnly(notificationIds.get(0));
+        assertThat(notificationRepository.findByRecipient_IdAndTypeAndDeduplicationKey(
+                recipient.getId(),
+                NotificationType.RESERVATION_CONFIRMED,
+                deduplicationKey
+        )).hasValueSatisfying(notification ->
+                assertThat(notification.getId()).isEqualTo(notificationIds.get(0)));
     }
 
     @Test

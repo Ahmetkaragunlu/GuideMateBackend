@@ -86,6 +86,8 @@ class TourSessionLifecycleServiceTest {
                 ArgumentCaptor.forClass(NotificationCommand.class);
         verify(notificationPublisher).publish(notificationCaptor.capture());
         assertThat(notificationCaptor.getValue().type()).isEqualTo(NotificationType.TOUR_COMPLETED);
+        assertThat(notificationCaptor.getValue().deduplicationKey())
+                .isEqualTo("tour-session:" + sessionId);
         assertThat(notificationCaptor.getValue().payload())
                 .containsEntry("sessionId", sessionId.toString())
                 .containsEntry("tourId", tourId.toString())

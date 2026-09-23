@@ -63,6 +63,7 @@ class RefundNotificationPublisherTest {
         NotificationCommand command = captor.getValue();
         assertThat(command.recipientId()).isEqualTo(42L);
         assertThat(command.type()).isEqualTo(NotificationType.REFUND_COMPLETED);
+        assertThat(command.deduplicationKey()).isEqualTo("refund:" + refundId);
         assertThat(command.payload()).containsEntry("refundId", refundId.toString());
         assertThat(command.payload()).containsEntry("paymentId", paymentId.toString());
         assertThat(command.payload()).containsEntry("reservationId", reservationId.toString());

@@ -71,7 +71,8 @@ class PostgreSqlSchemaIntegrationTest {
                     'uq_reservation_booking_idempotency',
                     'uq_payment_idempotency',
                     'uq_wallet_ledger_idempotency',
-                    'uq_chat_message_client_id'
+                    'uq_chat_message_client_id',
+                    'uq_notification_deduplication'
                 )
                 """,
                 Integer.class
@@ -93,7 +94,7 @@ class PostgreSqlSchemaIntegrationTest {
         assertThat(mediaPurposeConstraint)
                 .contains("USER_AVATAR", "TOUR_COVER")
                 .doesNotContain("GUIDE_AVATAR");
-        assertThat(criticalConstraintCount).isEqualTo(5);
+        assertThat(criticalConstraintCount).isEqualTo(6);
     }
 
     private String columnType(String tableName, String columnName) {

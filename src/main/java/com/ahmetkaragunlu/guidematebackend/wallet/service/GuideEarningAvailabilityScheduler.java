@@ -38,7 +38,7 @@ public class GuideEarningAvailabilityScheduler {
         try {
             earningService.makeAvailableById(earningId);
         } catch (RuntimeException exception) {
-            log.warn("Guide earning availability will retry earning {}", earningId);
+            log.warn("Guide earning availability will retry earning {}", earningId, exception);
         }
     }
 }

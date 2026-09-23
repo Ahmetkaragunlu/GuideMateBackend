@@ -122,6 +122,8 @@ class AdminTourReviewServiceTest {
         verify(notificationPublisher).publish(notificationCaptor.capture());
         assertThat(notificationCaptor.getValue().type()).isEqualTo(NotificationType.TOUR_APPROVED);
         assertThat(notificationCaptor.getValue().recipientId()).isEqualTo(guide.getId());
+        assertThat(notificationCaptor.getValue().deduplicationKey())
+                .isEqualTo("tour-review:" + reviewId);
     }
 
     @Test
@@ -175,6 +177,8 @@ class AdminTourReviewServiceTest {
                 ArgumentCaptor.forClass(NotificationCommand.class);
         verify(notificationPublisher).publish(notificationCaptor.capture());
         assertThat(notificationCaptor.getValue().type()).isEqualTo(NotificationType.TOUR_REJECTED);
+        assertThat(notificationCaptor.getValue().deduplicationKey())
+                .isEqualTo("tour-review:" + reviewId);
         assertThat(notificationCaptor.getValue().payload())
                 .containsEntry("rejectionReason", "Insufficient detail");
     }

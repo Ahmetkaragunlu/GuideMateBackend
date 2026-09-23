@@ -35,7 +35,8 @@ public class RefundNotificationPublisher {
                 refund.getPayment().getUser().getId(),
                 type,
                 null,
-                payload
+                payload,
+                "refund:" + refund.getId()
         ));
     }
 }

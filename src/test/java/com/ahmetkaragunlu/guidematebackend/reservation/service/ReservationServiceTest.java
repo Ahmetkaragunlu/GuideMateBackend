@@ -247,6 +247,9 @@ class ReservationServiceTest {
         assertThat(notificationCaptor.getAllValues())
                 .extracting(NotificationCommand::recipientId)
                 .containsExactlyInAnyOrder(tourist.getId(), guide.getId());
+        assertThat(notificationCaptor.getAllValues())
+                .extracting(NotificationCommand::deduplicationKey)
+                .containsOnly("reservation:" + reservationId);
     }
 
     private User tourist() {

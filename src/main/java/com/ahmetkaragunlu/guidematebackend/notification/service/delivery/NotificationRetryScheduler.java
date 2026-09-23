@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.delivery;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
@@ -45,7 +45,7 @@ public class NotificationRetryScheduler {
         try {
             deliveryService.deliver(notificationId);
         } catch (RuntimeException exception) {
-            log.warn("Push delivery will retry notification {}", notificationId);
+            log.warn("Push delivery will retry notification {}", notificationId, exception);
         }
     }
 }

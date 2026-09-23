@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.service;
+package com.ahmetkaragunlu.guidematebackend.notification.service.delivery;
 
 import com.ahmetkaragunlu.guidematebackend.notification.gateway.PushNotificationSender;
 import com.ahmetkaragunlu.guidematebackend.notification.gateway.PushSendResult;

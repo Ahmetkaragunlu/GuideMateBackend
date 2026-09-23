@@ -51,7 +51,10 @@ public class EmailServiceImpl implements EmailService {
 
             mailSender.send(message);
         } catch (MailException exception) {
-            log.error("Confirmation email delivery failed: {}", exception.getClass().getSimpleName());
+            log.error(
+                    "Confirmation email delivery failed; causeType={}",
+                    exception.getMostSpecificCause().getClass().getName()
+            );
             throw new EmailDeliveryException(exception);
         }
     }
@@ -71,7 +74,10 @@ public class EmailServiceImpl implements EmailService {
 
             mailSender.send(message);
         } catch (MailException exception) {
-            log.error("Password reset email delivery failed: {}", exception.getClass().getSimpleName());
+            log.error(
+                    "Password reset email delivery failed; causeType={}",
+                    exception.getMostSpecificCause().getClass().getName()
+            );
             throw new EmailDeliveryException(exception);
         }
     }
