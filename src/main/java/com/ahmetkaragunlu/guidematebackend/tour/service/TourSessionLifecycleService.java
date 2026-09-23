@@ -1,7 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationLifecycleService;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;

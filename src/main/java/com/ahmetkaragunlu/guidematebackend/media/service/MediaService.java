@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
@@ -27,25 +28,27 @@ public class MediaService {
     private final MediaAssetRepository mediaAssetRepository;
     private final MediaStorage mediaStorage;
     private final MediaFileValidator mediaFileValidator;
+    private final MediaImageProcessor mediaImageProcessor;
     private final MediaAssetLifecycleService mediaAssetLifecycleService;
     private final MediaUrlFactory mediaUrlFactory;
     private final List<MediaReferencePolicy> referencePolicies;
 
     public MediaUploadResponse upload(MultipartFile file, MediaPurpose purpose, Long ownerUserId) {
         ValidatedMedia validated = mediaFileValidator.validate(file);
-        String storageKey = UUID.randomUUID() + "." + validated.fileExtension();
+        ProcessedMedia processed = mediaImageProcessor.process(file, validated);
+        String storageKey = UUID.randomUUID() + "." + processed.metadata().fileExtension();
         MediaAsset pendingMedia = mediaAssetLifecycleService.createPending(
                 ownerUserId,
                 purpose,
                 storageKey,
-                validated
+                processed.metadata()
         );
 
         try {
-            mediaStorage.store(storageKey, file.getInputStream());
+            mediaStorage.store(storageKey, new ByteArrayInputStream(processed.content()));
             MediaAsset readyMedia = mediaAssetLifecycleService.markReady(pendingMedia.getId());
             return toUploadResponse(readyMedia);
-        } catch (IOException | MediaStorageException exception) {
+        } catch (MediaStorageException exception) {
             throw new BusinessException(ErrorCode.MEDIA_STORAGE_FAILED, exception);
         }
     }

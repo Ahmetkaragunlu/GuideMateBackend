@@ -48,7 +48,14 @@ class MediaCleanupServiceTest {
         service = new MediaCleanupService(
                 mediaAssetRepository,
                 mediaStorage,
-                new MediaProperties(Path.of("build/test-media"), DataSize.ofMegabytes(5), Duration.ofHours(24)),
+                new MediaProperties(
+                        Path.of("build/test-media"),
+                        DataSize.ofMegabytes(5),
+                        Duration.ofHours(24),
+                        4096,
+                        4096,
+                        16_777_216
+                ),
                 schedulerProperties(),
                 List.of(referencePolicy),
                 Clock.fixed(Instant.parse("2026-08-13T00:00:00Z"), ZoneOffset.UTC)

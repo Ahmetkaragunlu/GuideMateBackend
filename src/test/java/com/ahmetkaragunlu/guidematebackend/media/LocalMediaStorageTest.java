@@ -51,7 +51,10 @@ class LocalMediaStorageTest {
         return new LocalMediaStorage(new MediaProperties(
                 storageRoot,
                 DataSize.ofMegabytes(5),
-                Duration.ofHours(1)
+                Duration.ofHours(1),
+                4096,
+                4096,
+                16_777_216
         ));
     }
 }

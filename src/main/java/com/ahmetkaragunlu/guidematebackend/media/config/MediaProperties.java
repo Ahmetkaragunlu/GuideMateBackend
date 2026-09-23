@@ -13,7 +13,10 @@ import java.time.Duration;
 public record MediaProperties(
         @NotNull Path storageRoot,
         @NotNull DataSize maxFileSize,
-        @NotNull Duration orphanGracePeriod
+        @NotNull Duration orphanGracePeriod,
+        int maxImageWidth,
+        int maxImageHeight,
+        long maxImagePixels
 ) {
 
     public MediaProperties {
@@ -22,6 +25,9 @@ public record MediaProperties(
         }
         if (orphanGracePeriod != null && (orphanGracePeriod.isNegative() || orphanGracePeriod.isZero())) {
             throw new IllegalArgumentException("media.orphan-grace-period must be positive");
+        }
+        if (maxImageWidth <= 0 || maxImageHeight <= 0 || maxImagePixels <= 0) {
+            throw new IllegalArgumentException("media image dimensions must be positive");
         }
     }
 }

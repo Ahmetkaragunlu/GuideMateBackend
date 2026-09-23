@@ -58,7 +58,7 @@ public class TourDiscoveryService {
         validateSearchRange(request.minRating(), request.minPriceMinor(), request.maxPriceMinor());
         Set<String> normalizedLanguages = languageCodePolicy.normalizeOptional(request.languageCodes());
         TourSearchCriteria criteria = new TourSearchCriteria(
-                trimToNull(request.q()),
+                normalizeQuery(request.q()),
                 null,
                 request.countryCode() == null
                         ? null
@@ -209,6 +209,11 @@ public class TourDiscoveryService {
         if (value == null || value.isBlank()) {
             return null;
         }
-        return value.trim().toLowerCase(Locale.ROOT);
+        return value.trim();
+    }
+
+    private String normalizeQuery(String value) {
+        String trimmed = trimToNull(value);
+        return trimmed == null ? null : trimmed.toLowerCase(Locale.ROOT);
     }
 }

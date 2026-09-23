@@ -41,6 +41,21 @@ class HttpSecurityContractTest {
     }
 
     @Test
+    void rejectsAnonymousAccessToGuideOwnedEndpoint() throws Exception {
+        mockMvc.perform(get("/api/v1/guides/me/tours"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    @WithMockUser(roles = "TOURIST")
+    void rejectsTouristAccessToGuideOwnedEndpoint() throws Exception {
+        mockMvc.perform(get("/api/v1/guides/me/tours"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
+
+    @Test
     void allowsAnonymousMediaLookupToReachResourcePolicy() throws Exception {
         mockMvc.perform(get("/api/v1/media/{mediaId}/content", UUID.randomUUID()))
                 .andExpect(status().isNotFound())

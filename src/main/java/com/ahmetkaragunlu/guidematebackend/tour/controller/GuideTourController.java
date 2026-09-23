@@ -47,7 +47,7 @@ import java.util.UUID;
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH_SCHEME)
 @PreAuthorize("hasRole('GUIDE')")
 @RestController
-@RequestMapping("/api/v1/guide")
+@RequestMapping("/api/v1/guides/me")
 @RequiredArgsConstructor
 public class GuideTourController {
 

@@ -66,7 +66,7 @@ public class ReviewController {
     @Operation(summary = "List reviews for an owned guide tour")
     @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH_SCHEME)
     @PreAuthorize("hasRole('GUIDE')")
-    @GetMapping("/guide/tours/{tourId}/reviews")
+    @GetMapping("/guides/me/tours/{tourId}/reviews")
     public ResponseEntity<PageResponse<TourReviewResponse>> getOwnedTourReviews(
             @PathVariable UUID tourId,
             @RequestParam(defaultValue = "0") @Min(0) int page,

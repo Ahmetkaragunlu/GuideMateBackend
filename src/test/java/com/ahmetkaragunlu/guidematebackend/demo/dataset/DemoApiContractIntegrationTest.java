@@ -205,7 +205,7 @@ class DemoApiContractIntegrationTest {
                 .andExpect(jsonPath("$.reviewCount").value(50))
                 .andExpect(jsonPath("$.level").value("LEGENDARY"));
 
-        JsonNode monthly = json(mockMvc.perform(get("/api/v1/guide/earnings/monthly")
+        JsonNode monthly = json(mockMvc.perform(get("/api/v1/guides/me/earnings/monthly")
                         .header("Authorization", bearer(guideToken))
                         .param("year", "2026"))
                 .andExpect(status().isOk())
@@ -338,7 +338,9 @@ class DemoApiContractIntegrationTest {
         JsonNode paths = openApi.path("paths");
         assertThat(paths.has("/api/v1/tours/search")).isTrue();
         assertThat(paths.has("/api/v1/reservations/me")).isTrue();
-        assertThat(paths.has("/api/v1/guide/earnings/monthly")).isTrue();
+        assertThat(paths.has("/api/v1/guides/me/earnings/monthly")).isTrue();
+        assertThat(paths.has("/api/v1/guides/me/tours/{tourId}/reviews")).isTrue();
+        assertThat(paths.has("/api/v1/guide/earnings/monthly")).isFalse();
         assertThat(paths.has("/api/v1/chats/{chatId}/messages")).isTrue();
         assertThat(paths.has("/api/v1/notifications")).isTrue();
         assertThat(paths.has("/api/v1/users/me/avatar")).isTrue();

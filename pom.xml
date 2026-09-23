@@ -18,6 +18,7 @@
         <flyway.version>12.8.1</flyway.version>
         <postgresql.version>42.7.13</postgresql.version>
         <jjwt.version>0.13.0</jjwt.version>
+        <twelvemonkeys.version>3.15.0</twelvemonkeys.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <maven.compiler.proc>full</maven.compiler.proc>
         <argLine/>
@@ -117,6 +118,12 @@
             <groupId>com.iyzipay</groupId>
             <artifactId>iyzipay-java</artifactId>
             <version>2.0.142</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-webp</artifactId>
+            <version>${twelvemonkeys.version}</version>
         </dependency>
 
         <dependency>

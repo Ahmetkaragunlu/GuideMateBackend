@@ -33,7 +33,10 @@ class MediaFileValidatorTest {
         validator = new MediaFileValidator(new MediaProperties(
                 Path.of("/tmp/guidemate-media-validator-test"),
                 DataSize.ofKilobytes(10),
-                Duration.ofHours(1)
+                Duration.ofHours(1),
+                4096,
+                4096,
+                16_777_216
         ));
     }
 

@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.PurchaseSnapshot;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.dto.ReservationResponse;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class ReservationMapper {
 
     private final PurchaseSnapshotCodec snapshotCodec;
-    private final MediaUrlFactory mediaUrlFactory;
+    private final MediaReferenceMapper mediaReferenceMapper;
 
     public ReservationResponse toResponse(
             Reservation reservation,
@@ -27,12 +27,7 @@ public class ReservationMapper {
             int bookedCount
     ) {
         PurchaseSnapshot snapshot = snapshotCodec.decode(reservation.getPurchaseSnapshot());
-        MediaReferenceResponse avatar = snapshot.guideAvatarMediaId() == null
-                ? null
-                : new MediaReferenceResponse(
-                        snapshot.guideAvatarMediaId(),
-                        mediaUrlFactory.contentUrl(snapshot.guideAvatarMediaId())
-                );
+        MediaReferenceResponse avatar = mediaReferenceMapper.fromId(snapshot.guideAvatarMediaId());
         return new ReservationResponse(
                 reservation.getId(),
                 reservation.getSession().getId(),
@@ -68,10 +63,7 @@ public class ReservationMapper {
                         snapshot.timeZoneId(),
                         snapshot.categoryCode(),
                         snapshot.languageCodes(),
-                        new MediaReferenceResponse(
-                                snapshot.coverMediaId(),
-                                mediaUrlFactory.contentUrl(snapshot.coverMediaId())
-                        ),
+                        mediaReferenceMapper.fromId(snapshot.coverMediaId()),
                         snapshot.startsAt(),
                         snapshot.durationMinutes(),
                         snapshot.meetingPoint(),
