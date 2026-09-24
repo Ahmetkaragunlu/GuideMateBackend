@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.common.config;
 
+import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -15,22 +15,43 @@ public class ProductionConfigurationValidator {
 
     private static final Set<String> LOCAL_HOSTS = Set.of("localhost", "127.0.0.1", "10.0.2.2");
 
-    private final String publicBaseUrl;
+    private final AppProperties appProperties;
+    private final PaymentProperties paymentProperties;
 
-    public ProductionConfigurationValidator(@Value("${app.public-base-url}") String publicBaseUrl) {
-        this.publicBaseUrl = publicBaseUrl;
+    public ProductionConfigurationValidator(
+            AppProperties appProperties,
+            PaymentProperties paymentProperties
+    ) {
+        this.appProperties = appProperties;
+        this.paymentProperties = paymentProperties;
     }
 
     @PostConstruct
     void validate() {
-        URI uri = URI.create(publicBaseUrl);
+        requirePublicHttps(appProperties.publicBaseUrl(), "PUBLIC_BASE_URL");
+        String callbackBaseUrl = paymentProperties.callbackBaseUrl();
+        if (callbackBaseUrl == null || callbackBaseUrl.isBlank()) {
+            throw invalidPublicUrl("PAYMENT_CALLBACK_BASE_URL");
+        }
+        try {
+            requirePublicHttps(URI.create(callbackBaseUrl.trim()), "PAYMENT_CALLBACK_BASE_URL");
+        } catch (IllegalArgumentException exception) {
+            throw invalidPublicUrl("PAYMENT_CALLBACK_BASE_URL");
+        }
+    }
+
+    private void requirePublicHttps(URI uri, String propertyName) {
         String host = uri.getHost() == null ? null : uri.getHost().toLowerCase(Locale.ROOT);
         if (!"https".equalsIgnoreCase(uri.getScheme())
                 || host == null
                 || LOCAL_HOSTS.contains(host)
                 || isPrivateHost(host)) {
-            throw new IllegalStateException("Production PUBLIC_BASE_URL must be a public HTTPS URL");
+            throw invalidPublicUrl(propertyName);
         }
+    }
+
+    private IllegalStateException invalidPublicUrl(String propertyName) {
+        return new IllegalStateException("Production " + propertyName + " must be a public HTTPS URL");
     }
 
     private boolean isPrivateHost(String host) {

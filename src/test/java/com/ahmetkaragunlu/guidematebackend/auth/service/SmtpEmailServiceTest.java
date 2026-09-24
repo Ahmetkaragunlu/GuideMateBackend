@@ -1,5 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.auth.service;
 
+import com.ahmetkaragunlu.guidematebackend.common.config.AppProperties;
 import com.ahmetkaragunlu.guidematebackend.common.exception.EmailDeliveryException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.Locale;
+import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,10 +23,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class EmailServiceImplTest {
+class SmtpEmailServiceTest {
 
     private JavaMailSender mailSender;
-    private EmailServiceImpl service;
+    private SmtpEmailService service;
 
     @BeforeEach
     void setUp() {
@@ -37,11 +39,11 @@ class EmailServiceImplTest {
                             ? invocation.getArgument(0)
                             : invocation.getArgument(0) + ":" + arguments[0];
                 });
-        service = new EmailServiceImpl(
+        service = new SmtpEmailService(
                 mailSender,
                 messageSource,
                 "noreply@guidemate.test",
-                "https://api.guidemate.test/"
+                new AppProperties(URI.create("https://api.guidemate.test/"))
         );
     }
 

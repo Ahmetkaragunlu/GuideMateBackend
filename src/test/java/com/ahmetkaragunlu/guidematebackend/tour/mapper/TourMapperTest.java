@@ -1,5 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.mapper;
 
+import com.ahmetkaragunlu.guidematebackend.common.config.AppProperties;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
@@ -11,6 +12,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideTourCardResponse;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -22,7 +24,9 @@ import static org.mockito.Mockito.when;
 class TourMapperTest {
 
     private final TourMapper mapper = new TourMapper(
-            new MediaReferenceMapper(new MediaUrlFactory("http://localhost:8080"))
+            new MediaReferenceMapper(new MediaUrlFactory(
+                    new AppProperties(URI.create("http://localhost:8080"))
+            ))
     );
 
     @Test

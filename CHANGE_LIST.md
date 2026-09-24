@@ -72,3 +72,90 @@
 - API response'lari, repository davranisi ve is akislari degismez.
 - Ortak persistence davranisi PostgreSQL/Flyway entegrasyon testleriyle ve ilgili
   mevcut regression testleriyle dogrulanir.
+
+### 3. Admin Hesap Seed Yapilandirmasini Merkezilestirme
+
+- `auth.admin-seed` altindaki email, password, first-name ve last-name ayarlari
+  typed bir `AdminAccountSeedProperties` yapisinda toplanir.
+- `AdminAccountSeeder`, ilgili degerleri ayri `@Value` parametreleriyle okumak
+  yerine bu ortak yapilandirmaya baglanir.
+- Admin seed kapaliyken mevcut davranis korunur; zorunlu alan kontrolleri yalniz
+  seed etkin oldugunda uygulanir.
+- Admin olusturma akisi, parola politikasi, veritabani semasi ve kullanici
+  davranisi degismez.
+- Property binding ve etkin/devre disi admin seed senaryolari kalici regression
+  testleriyle dogrulanir.
+
+### 4. SMTP E-posta Servisini Somut Saglayiciyla Adlandirma
+
+- `EmailServiceImpl`, kullandigi altyapiyi acikca anlatan `SmtpEmailService`
+  olarak yeniden adlandirilir.
+- `EmailService` sozlesmesi ve mevcut constructor bagimliliklari korunur; tek
+  implementasyon icin yeni alt paket veya ek soyutlama olusturulmaz.
+- E-posta icerigi, link uretimi, gonderim sekli ve hata esleme davranisi
+  degismez.
+- Mevcut servis testi yeni sinif adina tasinir ve ayni davranislari dogrulamaya
+  devam eder.
+
+### 5. Production Odeme Callback Adresini Baslangicta Dogrulama
+
+- Yalniz `prod` profilinde `PAYMENT_CALLBACK_BASE_URL` uygulama baslangicinda
+  fail-fast olarak dogrulanir.
+- Adres bos olamaz; HTTPS ve public bir host kullanmalidir. Localhost, LAN ve
+  private IP adresleri production callback adresi olarak kabul edilmez.
+- Local ve demo profilleri ile Quick Tunnel tabanli gelistirme akisi etkilenmez.
+- Gecerli production yapilandirmasinda odeme, callback, API ve veritabani
+  davranisi degismez; yalniz hatali production ayari backend acilirken reddedilir.
+- Public, bos, HTTP ve private callback adresleri odakli yapilandirma testleriyle
+  dogrulanir.
+
+### 6. Dil Kodu Politikasinin Is Kurallarini Test Etme
+
+- `LanguageCodePolicyTest`, production sinifini aynalayan `common/validation`
+  test paketine eklenir.
+- ISO dil kodu kabul/red davranisi, trim ve `Locale.ROOT` ile kucuk harfe
+  donusturme, tekrarlarin kaldirilmasi, `und` reddi ve optional bos deger
+  davranisi dogrulanir.
+- Yalniz anlamli is kurallari test edilir; Java `Locale` kutuphanesinin kendi
+  implementasyon ayrintilari tekrar test edilmez.
+
+### 7. Canonical Odeme Response Donusumunu Test Etme
+
+- `PaymentQueryServiceTest`, production sinifini aynalayan
+  `payment/service/payment` test paketine eklenir.
+- Ownership bulunamamasi, refund ve reservation bilgilerinin response'a
+  aktarilmasi ve `paymentPageUrl` alaninin yalniz `REQUIRES_ACTION` durumunda
+  gosterilmesi dogrulanir.
+- Testler para akisinin Android'e donen canonical response sozlesmesini korur;
+  repository implementasyonunu veya basit getter'lari tekrar test etmez.
+
+### 8. Notification Push Event Zincirini Tamamlama
+
+- `NotificationPushDeliveryEventListenerTest`, production listener'i aynalayan
+  `notification/event` test paketine eklenir.
+- `pushRequested=true` durumunda delivery'nin tetiklendigi,
+  `pushRequested=false` durumunda tetiklenmedigi dogrulanir.
+- Mevcut `NotificationServiceTest`, kullanici tercihinden uretilen push kararinin
+  `NotificationCreatedEvent.pushRequested` alanina dogru aktarildigini
+  dogrulayacak sekilde genisletilir.
+- Async altyapiyi taklit eden kirilgan bekleme testleri yazilmaz; listener kosulu
+  ve event sozlesmesi deterministik unit testlerle korunur.
+
+### 9. Chat ve Notification OpenAPI Sozlesmelerinin Sahipligini Ayirma
+
+- `CommunicationOpenApiContractTest` tek bir `common` testine tasinmaz.
+- Chat endpoint ve DTO kontrolleri `chat/ChatOpenApiContractTest` sinifina;
+  notification, preference ve FCM device kontrolleri
+  `notification/NotificationOpenApiContractTest` sinifina ayrilir.
+- Mevcut OpenAPI assertion'lari korunur; API sozlesmesi veya endpoint davranisi
+  degismez.
+- Genel API ve hassas alan sizintisi kontrolleri mevcut
+  `common/OpenApiCompletenessContractTest` sinirinda kalir.
+
+### 10. Media Service Testini Kapsamini Anlatan Isimle Adlandirma
+
+- `MediaServiceAccessTest`, artik access kontrolunun yaninda upload, canonical
+  metadata, storage failure ve delete davranislarini da kapsadigi icin
+  `MediaServiceTest` olarak yeniden adlandirilir.
+- Test paketi `media/service` olarak korunur; test icerigi ve production davranisi
+  degismez.

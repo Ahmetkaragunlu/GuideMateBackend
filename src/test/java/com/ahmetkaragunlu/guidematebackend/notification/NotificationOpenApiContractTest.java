@@ -14,13 +14,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class CommunicationOpenApiContractTest {
+class NotificationOpenApiContractTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void publishesNotificationDeviceAndChatContracts() throws Exception {
+    void publishesNotificationPreferenceAndDeviceContracts() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paths['/api/v1/notifications']").exists())
@@ -35,12 +35,6 @@ class CommunicationOpenApiContractTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/devices/fcm-registration/{installationId}']"
                 ).exists())
-                .andExpect(jsonPath("$.paths['/api/v1/chats/with-user/{remoteUserId}']").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/chats']").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/chats/{chatId}/messages']").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/chats/{chatId}/read']").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/chats/{chatId}/clear']").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/chats/unread-count']").exists())
                 .andExpect(jsonPath(
                         "$.components.schemas.UpdateNotificationPreferenceRequest.properties.securityAlertsEnabled"
                 ).doesNotExist())
@@ -52,7 +46,6 @@ class CommunicationOpenApiContractTest {
                 ).exists())
                 .andExpect(jsonPath(
                         "$.components.schemas.DeviceRegistrationResponse.properties.firebaseInstallationId"
-                ).doesNotExist())
-                .andExpect(jsonPath("$.components.schemas.SendChatMessageRequest.required").isArray());
+                ).doesNotExist());
     }
 }

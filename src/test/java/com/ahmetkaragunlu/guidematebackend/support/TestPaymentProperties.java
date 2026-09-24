@@ -13,10 +13,14 @@ public final class TestPaymentProperties {
     }
 
     public static PaymentProperties defaults() {
+        return withCallbackBaseUrl("https://payments.guidemate.test");
+    }
+
+    public static PaymentProperties withCallbackBaseUrl(String callbackBaseUrl) {
         return new PaymentProperties(
                 "USD",
                 Duration.ofMinutes(30),
-                "https://payments.guidemate.test",
+                callbackBaseUrl,
                 new PaymentProperties.Fx(
                         URI.create("https://api.frankfurter.dev"),
                         Duration.ofMinutes(10),

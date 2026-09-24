@@ -2,11 +2,14 @@ package com.ahmetkaragunlu.guidematebackend.notification.service;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.event.NotificationCreatedEvent;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,5 +74,44 @@ class NotificationServiceTest {
         assertThat(result).isEqualTo(existingId);
         verify(notificationRepository, never()).save(org.mockito.ArgumentMatchers.any());
         verifyNoInteractions(preferenceService, payloadCodec, eventPublisher);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void publishesNotificationEventWithPushDecisionFromUserPreference(boolean pushEnabled) {
+        Long recipientId = 42L;
+        UUID notificationId = UUID.randomUUID();
+        User recipient = mock(User.class);
+        Notification savedNotification = mock(Notification.class);
+        when(userRepository.getReferenceById(recipientId)).thenReturn(recipient);
+        when(recipient.getUsername()).thenReturn("user@guidemate.test");
+        when(preferenceService.isPushEnabled(recipientId, NotificationType.CHAT_MESSAGE))
+                .thenReturn(pushEnabled);
+        when(payloadCodec.encode(Map.of("chatId", "chat-1"))).thenReturn("{\"chatId\":\"chat-1\"}");
+        when(notificationRepository.save(org.mockito.ArgumentMatchers.any(Notification.class)))
+                .thenReturn(savedNotification);
+        when(savedNotification.getId()).thenReturn(notificationId);
+        NotificationService service = new NotificationService(
+                notificationRepository,
+                preferenceService,
+                payloadCodec,
+                userRepository,
+                eventPublisher,
+                Clock.systemUTC()
+        );
+
+        UUID result = service.publish(new NotificationCommand(
+                recipientId,
+                NotificationType.CHAT_MESSAGE,
+                null,
+                Map.of("chatId", "chat-1")
+        ));
+
+        assertThat(result).isEqualTo(notificationId);
+        verify(eventPublisher).publishEvent(new NotificationCreatedEvent(
+                notificationId,
+                "user@guidemate.test",
+                pushEnabled
+        ));
     }
 }

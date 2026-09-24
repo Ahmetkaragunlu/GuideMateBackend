@@ -1,5 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.auth.service;
 
+import com.ahmetkaragunlu.guidematebackend.common.config.AppProperties;
 import com.ahmetkaragunlu.guidematebackend.common.exception.EmailDeliveryException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,23 +14,23 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Slf4j
-public class EmailServiceImpl implements EmailService {
+public class SmtpEmailService implements EmailService {
 
     private final JavaMailSender mailSender;
     private final MessageSource messageSource;
     private final String fromEmail;
     private final String publicBaseUrl;
 
-    public EmailServiceImpl(
+    public SmtpEmailService(
             JavaMailSender mailSender,
             MessageSource messageSource,
             @Value("${spring.mail.username}") String fromEmail,
-            @Value("${app.public-base-url}") String publicBaseUrl
+            AppProperties appProperties
     ) {
         this.mailSender = mailSender;
         this.messageSource = messageSource;
         this.fromEmail = fromEmail;
-        this.publicBaseUrl = publicBaseUrl;
+        this.publicBaseUrl = appProperties.publicBaseUrl().toString();
     }
 
     private String getMessage(String key, Object... args) {
@@ -83,11 +84,8 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private String buildUrl(String path, String token) {
-        String normalizedBaseUrl = publicBaseUrl.endsWith("/")
-                ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1)
-                : publicBaseUrl;
         return UriComponentsBuilder
-                .fromUriString(normalizedBaseUrl)
+                .fromUriString(publicBaseUrl)
                 .path(path)
                 .queryParam("token", token)
                 .build()

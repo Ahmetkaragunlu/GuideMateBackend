@@ -2,6 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.user.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.util.EmailNormalizer;
 import com.ahmetkaragunlu.guidematebackend.common.validation.PasswordPolicy;
+import com.ahmetkaragunlu.guidematebackend.user.config.AdminAccountSeedProperties;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
@@ -87,10 +88,13 @@ class AdminAccountSeederTest {
                 passwordEncoder,
                 passwordPolicy,
                 new EmailNormalizer(),
-                " Admin@Example.com ",
-                "12345678",
-                "GuideMate",
-                "Admin"
+                new AdminAccountSeedProperties(
+                        true,
+                        " Admin@Example.com ",
+                        "12345678",
+                        "GuideMate",
+                        "Admin"
+                )
         );
     }
 }
