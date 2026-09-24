@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.auth.controller;
 
-import com.ahmetkaragunlu.guidematebackend.auth.service.AccountVerificationService;
-import com.ahmetkaragunlu.guidematebackend.auth.service.PasswordManagementService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.AccountVerificationService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.password.PasswordManagementService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;

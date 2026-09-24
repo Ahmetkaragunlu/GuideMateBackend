@@ -1,17 +1,18 @@
 package com.ahmetkaragunlu.guidematebackend.auth;
 
 import com.ahmetkaragunlu.guidematebackend.auth.domain.ConfirmationToken;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.ForgotPasswordRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.LoginRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.RegisterRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.ResendVerificationRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.ForgotPasswordRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.LoginRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.RegisterRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.ResendVerificationRequest;
 import com.ahmetkaragunlu.guidematebackend.auth.repository.ConfirmationTokenRepository;
 import com.ahmetkaragunlu.guidematebackend.auth.repository.PasswordResetTokenRepository;
 import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
-import com.ahmetkaragunlu.guidematebackend.auth.service.AccountVerificationService;
-import com.ahmetkaragunlu.guidematebackend.auth.service.AuthenticationService;
-import com.ahmetkaragunlu.guidematebackend.auth.service.EmailService;
-import com.ahmetkaragunlu.guidematebackend.auth.service.PasswordManagementService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.AccountVerificationService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.RegistrationService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.password.PasswordManagementService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.authentication.login.AuthenticationService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.email.EmailService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.EmailDeliveryException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
@@ -41,6 +42,8 @@ class AuthLifecycleIntegrationTest {
 
     @Autowired
     private AccountVerificationService accountVerificationService;
+    @Autowired
+    private RegistrationService registrationService;
     @Autowired
     private AuthenticationService authenticationService;
     @Autowired
@@ -102,7 +105,7 @@ class AuthLifecycleIntegrationTest {
                 .when(emailService)
                 .sendConfirmationEmail(anyString(), anyString());
 
-        assertThatThrownBy(() -> accountVerificationService.register(new RegisterRequest(
+        assertThatThrownBy(() -> registrationService.register(new RegisterRequest(
                 "Auth",
                 "Tester",
                 email,
@@ -118,7 +121,7 @@ class AuthLifecycleIntegrationTest {
     void registrationEmailsRawTokenButPersistsOnlyItsHash() {
         String email = "hash-register-" + UUID.randomUUID() + "@example.com";
 
-        accountVerificationService.register(new RegisterRequest(
+        registrationService.register(new RegisterRequest(
                 "Auth",
                 "Tester",
                 email,
@@ -169,7 +172,7 @@ class AuthLifecycleIntegrationTest {
     void registrationReportsPendingVerificationForExistingPendingAccount() {
         User pendingUser = createUser(AccountStatus.PENDING_VERIFICATION);
 
-        assertThatThrownBy(() -> accountVerificationService.register(new RegisterRequest(
+        assertThatThrownBy(() -> registrationService.register(new RegisterRequest(
                 "Auth",
                 "Tester",
                 pendingUser.getEmail(),
@@ -182,7 +185,7 @@ class AuthLifecycleIntegrationTest {
     void registrationReportsExistingEmailForActiveAccount() {
         User activeUser = createUser(AccountStatus.ACTIVE);
 
-        assertThatThrownBy(() -> accountVerificationService.register(new RegisterRequest(
+        assertThatThrownBy(() -> registrationService.register(new RegisterRequest(
                 "Auth",
                 "Tester",
                 activeUser.getEmail(),

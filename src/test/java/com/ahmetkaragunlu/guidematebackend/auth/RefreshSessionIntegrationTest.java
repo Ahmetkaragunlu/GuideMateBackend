@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.auth;
 
 import com.ahmetkaragunlu.guidematebackend.auth.domain.RefreshToken;
 import com.ahmetkaragunlu.guidematebackend.auth.repository.RefreshTokenRepository;
-import com.ahmetkaragunlu.guidematebackend.auth.service.RefreshSessionService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.token.RefreshSessionService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;

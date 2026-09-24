@@ -1,19 +1,22 @@
 package com.ahmetkaragunlu.guidematebackend.auth.controller;
 
-import com.ahmetkaragunlu.guidematebackend.auth.dto.AuthResponse;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.ChangePasswordRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.CurrentUserResponse;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.ForgotPasswordRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.GoogleLoginRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.LoginRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.RefreshTokenRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.RegisterRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.ResendVerificationRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.ResetPasswordRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.dto.RoleSelectionRequest;
-import com.ahmetkaragunlu.guidematebackend.auth.service.AccountVerificationService;
-import com.ahmetkaragunlu.guidematebackend.auth.service.AuthenticationService;
-import com.ahmetkaragunlu.guidematebackend.auth.service.PasswordManagementService;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.ChangePasswordRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.ForgotPasswordRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.GoogleLoginRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.LoginRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.RefreshTokenRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.RegisterRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.ResendVerificationRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.ResetPasswordRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.request.RoleSelectionRequest;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.response.AuthResponse;
+import com.ahmetkaragunlu.guidematebackend.auth.dto.response.CurrentUserResponse;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.AccountVerificationService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.AuthenticatedUserService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.RegistrationService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.account.password.PasswordManagementService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.authentication.AuthSessionService;
+import com.ahmetkaragunlu.guidematebackend.auth.service.authentication.login.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,9 @@ public class AuthController {
     private static final String INSTALLATION_HEADER = "X-Installation-Id";
 
     private final AuthenticationService authenticationService;
+    private final AuthSessionService authSessionService;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final RegistrationService registrationService;
     private final AccountVerificationService accountVerificationService;
     private final PasswordManagementService passwordManagementService;
 
@@ -43,7 +49,7 @@ public class AuthController {
             HttpServletRequest httpRequest
     ) {
         return ResponseEntity.ok(
-                accountVerificationService.register(request, httpRequest.getRemoteAddr())
+                registrationService.register(request, httpRequest.getRemoteAddr())
         );
     }
 
@@ -78,7 +84,7 @@ public class AuthController {
             @Valid @RequestBody RefreshTokenRequest request,
             @RequestHeader(INSTALLATION_HEADER) String installationId
     ) {
-        return ResponseEntity.ok(authenticationService.refreshToken(request.token(), installationId));
+        return ResponseEntity.ok(authSessionService.refreshToken(request.token(), installationId));
     }
 
     @PostMapping("/logout")
@@ -88,7 +94,7 @@ public class AuthController {
             Authentication authentication
     ) {
         return ResponseEntity.ok(
-                authenticationService.logout(request.token(), authentication.getName(), installationId)
+                authSessionService.logout(request.token(), authentication.getName(), installationId)
         );
     }
 
@@ -97,12 +103,12 @@ public class AuthController {
             @Valid @RequestBody RoleSelectionRequest request,
             Authentication authentication
     ) {
-        return ResponseEntity.ok(authenticationService.selectRole(request, authentication.getName()));
+        return ResponseEntity.ok(authenticatedUserService.selectRole(request, authentication.getName()));
     }
 
     @GetMapping("/me")
     public ResponseEntity<CurrentUserResponse> currentUser(Authentication authentication) {
-        return ResponseEntity.ok(authenticationService.currentUser(authentication.getName()));
+        return ResponseEntity.ok(authenticatedUserService.currentUser(authentication.getName()));
     }
 
     @PostMapping("/change-password")
