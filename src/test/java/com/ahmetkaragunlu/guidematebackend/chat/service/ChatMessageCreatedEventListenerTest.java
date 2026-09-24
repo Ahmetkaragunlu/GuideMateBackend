@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.chat.service;
 
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessageResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatMessageResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 

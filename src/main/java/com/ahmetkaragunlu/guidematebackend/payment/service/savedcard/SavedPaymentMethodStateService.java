@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.payment.service.savedcard;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.common.security.SensitiveDataCipher;
+import com.ahmetkaragunlu.guidematebackend.common.security.crypto.SensitiveDataCipher;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.provider.PaymentProviderCustomer;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.savedcard.SavedCardMetadata;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.savedcard.SavedPaymentMethod;

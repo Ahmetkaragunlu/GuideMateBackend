@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.notification.service.delivery;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;

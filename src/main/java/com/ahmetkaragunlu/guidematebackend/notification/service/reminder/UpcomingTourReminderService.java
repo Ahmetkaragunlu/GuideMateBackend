@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.notification.service.reminder;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;

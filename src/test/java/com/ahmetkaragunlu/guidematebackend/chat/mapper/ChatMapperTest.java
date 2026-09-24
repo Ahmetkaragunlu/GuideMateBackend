@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.chat.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatConversation;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatConversationResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatConversationResponse;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

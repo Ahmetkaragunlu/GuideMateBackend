@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.support;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 
 import java.time.Duration;
 

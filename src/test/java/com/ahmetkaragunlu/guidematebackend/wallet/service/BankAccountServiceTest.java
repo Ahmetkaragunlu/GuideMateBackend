@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.wallet.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.common.security.SensitiveDataCipher;
+import com.ahmetkaragunlu.guidematebackend.common.security.crypto.SensitiveDataCipher;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.BankAccount;

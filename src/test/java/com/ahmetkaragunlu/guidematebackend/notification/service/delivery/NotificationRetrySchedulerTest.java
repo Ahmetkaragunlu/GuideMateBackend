@@ -3,7 +3,7 @@ package com.ahmetkaragunlu.guidematebackend.notification.service.delivery;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.support.TestSchedulerProperties;

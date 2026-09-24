@@ -1,5 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.common.exception;
 
+import com.ahmetkaragunlu.guidematebackend.common.exception.response.ErrorResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

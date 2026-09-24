@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.chat.config;
 
-import com.ahmetkaragunlu.guidematebackend.common.security.JwtService;
+import com.ahmetkaragunlu.guidematebackend.common.security.jwt.JwtService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import org.junit.jupiter.api.Test;

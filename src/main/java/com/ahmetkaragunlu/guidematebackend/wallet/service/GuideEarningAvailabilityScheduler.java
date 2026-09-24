@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.service;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarningStatus;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.GuideEarningRepository;
 import lombok.RequiredArgsConstructor;

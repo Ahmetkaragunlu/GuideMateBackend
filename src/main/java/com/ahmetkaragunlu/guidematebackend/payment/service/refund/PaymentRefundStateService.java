@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.payment.service.refund;
 
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.Refund;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.RefundStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.ProviderRefundResult;

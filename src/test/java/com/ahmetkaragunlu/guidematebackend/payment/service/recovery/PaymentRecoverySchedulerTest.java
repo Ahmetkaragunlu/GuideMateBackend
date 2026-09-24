@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.payment.service.recovery;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;

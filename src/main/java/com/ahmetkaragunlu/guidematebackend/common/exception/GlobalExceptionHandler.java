@@ -1,5 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.common.exception;
 
+import com.ahmetkaragunlu.guidematebackend.common.exception.response.ErrorResponse;
+import com.ahmetkaragunlu.guidematebackend.common.exception.response.FieldErrorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;

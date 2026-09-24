@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.auth.service.authentication;
 
 import com.ahmetkaragunlu.guidematebackend.auth.dto.response.AuthResponse;
 import com.ahmetkaragunlu.guidematebackend.auth.mapper.AuthResponseMapper;
-import com.ahmetkaragunlu.guidematebackend.common.security.JwtService;
+import com.ahmetkaragunlu.guidematebackend.common.security.jwt.JwtService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.service.AccountStatusPolicy;
 import lombok.RequiredArgsConstructor;

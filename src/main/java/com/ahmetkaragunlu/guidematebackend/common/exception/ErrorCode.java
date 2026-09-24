@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ErrorCode {
+
+    // Authentication and users
     USER_NOT_FOUND("error.user.notFound", HttpStatus.NOT_FOUND),
     EMAIL_ALREADY_EXISTS("error.email.alreadyExists", HttpStatus.CONFLICT),
     ACCOUNT_PENDING_VERIFICATION("error.account.pendingVerification", HttpStatus.FORBIDDEN),
@@ -18,9 +20,11 @@ public enum ErrorCode {
     ROLE_NOT_FOUND("error.role.notFound", HttpStatus.NOT_FOUND),
     INVALID_INSTALLATION_ID("error.installation.invalid", HttpStatus.BAD_REQUEST),
 
+    // Profiles
     GUIDE_PROFILE_NOT_FOUND("error.guideProfile.notFound", HttpStatus.NOT_FOUND),
     INVALID_LANGUAGE_CODE("error.language.invalid", HttpStatus.BAD_REQUEST),
 
+    // Media
     MEDIA_NOT_FOUND("error.media.notFound", HttpStatus.NOT_FOUND),
     MEDIA_INVALID_TYPE("error.media.invalidType", HttpStatus.BAD_REQUEST),
     MEDIA_TOO_LARGE("error.media.tooLarge", HttpStatus.PAYLOAD_TOO_LARGE),
@@ -28,6 +32,7 @@ public enum ErrorCode {
     MEDIA_IN_USE("error.media.inUse", HttpStatus.CONFLICT),
     MEDIA_PURPOSE_MISMATCH("error.media.purposeMismatch", HttpStatus.BAD_REQUEST),
 
+    // Tours and sessions
     TOUR_NOT_FOUND("error.tour.notFound", HttpStatus.NOT_FOUND),
     TOUR_NOT_APPROVED("error.tour.notApproved", HttpStatus.CONFLICT),
     TOUR_CHANGE_PENDING("error.tour.changePending", HttpStatus.CONFLICT),
@@ -48,6 +53,7 @@ public enum ErrorCode {
     SCHEDULE_CONFLICT("error.tourSession.scheduleConflict", HttpStatus.CONFLICT),
     CONCURRENT_UPDATE("error.concurrentUpdate", HttpStatus.CONFLICT),
 
+    // Reservations and reviews
     RESERVATION_NOT_FOUND("error.reservation.notFound", HttpStatus.NOT_FOUND),
     RESERVATION_ALREADY_EXISTS("error.reservation.alreadyExists", HttpStatus.CONFLICT),
     RESERVATION_NOT_CANCELLABLE("error.reservation.notCancellable", HttpStatus.CONFLICT),
@@ -56,6 +62,7 @@ public enum ErrorCode {
     REVIEW_ALREADY_EXISTS("error.review.alreadyExists", HttpStatus.CONFLICT),
     IDEMPOTENCY_CONFLICT("error.idempotency.conflict", HttpStatus.CONFLICT),
 
+    // Payments and wallets
     PAYMENT_NOT_FOUND("error.payment.notFound", HttpStatus.NOT_FOUND),
     PAYMENT_INITIALIZATION_FAILED("error.payment.initializationFailed", HttpStatus.SERVICE_UNAVAILABLE),
     PAYMENT_VERIFICATION_FAILED("error.payment.verificationFailed", HttpStatus.BAD_REQUEST),
@@ -77,12 +84,14 @@ public enum ErrorCode {
     BANK_ACCOUNT_INVALID("error.bankAccount.invalid", HttpStatus.BAD_REQUEST),
     BANK_ACCOUNT_ALREADY_EXISTS("error.bankAccount.alreadyExists", HttpStatus.CONFLICT),
 
+    // Notifications and chat
     NOTIFICATION_NOT_FOUND("error.notification.notFound", HttpStatus.NOT_FOUND),
     CHAT_NOT_FOUND("error.chat.notFound", HttpStatus.NOT_FOUND),
     CHAT_PARTICIPANT_INVALID("error.chat.participantInvalid", HttpStatus.BAD_REQUEST),
     CHAT_MESSAGE_NOT_FOUND("error.chat.messageNotFound", HttpStatus.NOT_FOUND),
     CHAT_MESSAGE_TOO_LONG("error.chat.messageTooLong", HttpStatus.BAD_REQUEST),
 
+    // Tokens and external authentication
     INVALID_TOKEN("error.token.invalid", HttpStatus.BAD_REQUEST),
     TOKEN_EXPIRED("error.token.expired", HttpStatus.BAD_REQUEST),
     TOKEN_ALREADY_USED("error.token.alreadyUsed", HttpStatus.BAD_REQUEST),
@@ -94,6 +103,7 @@ public enum ErrorCode {
     GOOGLE_ACCOUNT_NOT_FOUND("error.google.accountNotFound", HttpStatus.NOT_FOUND),
     GOOGLE_ACCOUNT_MISMATCH("error.google.accountMismatch", HttpStatus.CONFLICT),
 
+    // Security and infrastructure
     UNAUTHORIZED("error.security.unauthorized", HttpStatus.UNAUTHORIZED),
     FORBIDDEN("error.security.forbidden", HttpStatus.FORBIDDEN),
     VALIDATION_FAILED("error.validation.failed", HttpStatus.BAD_REQUEST),

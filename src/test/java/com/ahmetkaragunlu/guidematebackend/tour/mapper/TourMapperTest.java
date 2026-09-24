@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.mapper;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.AppProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.application.AppProperties;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;

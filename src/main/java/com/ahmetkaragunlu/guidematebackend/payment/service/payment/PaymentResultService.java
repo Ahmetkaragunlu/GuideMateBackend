@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.payment.service.payment;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.common.security.SensitiveDataCipher;
+import com.ahmetkaragunlu.guidematebackend.common.security.crypto.SensitiveDataCipher;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;

@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.demo.dataset;
 
-import com.ahmetkaragunlu.guidematebackend.common.security.SensitiveDataCipher;
+import com.ahmetkaragunlu.guidematebackend.common.security.crypto.SensitiveDataCipher;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.TurkishIbanPolicy;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.ValidatedIban;
 import org.springframework.stereotype.Component;

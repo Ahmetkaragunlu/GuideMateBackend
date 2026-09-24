@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.chat.service;
 
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatConversation;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatParticipantProfileUpdatedResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatParticipantProfileUpdatedResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatConversationRepository;
 import com.ahmetkaragunlu.guidematebackend.profile.service.UserAvatarUpdatedEvent;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

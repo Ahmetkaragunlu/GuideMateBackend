@@ -3,7 +3,7 @@ package com.ahmetkaragunlu.guidematebackend.auth.service.token;
 import com.ahmetkaragunlu.guidematebackend.auth.domain.RefreshToken;
 import com.ahmetkaragunlu.guidematebackend.auth.repository.RefreshTokenRepository;
 import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
-import com.ahmetkaragunlu.guidematebackend.common.config.JwtProperties;
+import com.ahmetkaragunlu.guidematebackend.common.security.jwt.JwtProperties;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

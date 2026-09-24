@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.service;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.SchedulerProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;

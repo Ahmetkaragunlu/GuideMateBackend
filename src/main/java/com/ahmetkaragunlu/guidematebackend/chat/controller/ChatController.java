@@ -1,10 +1,10 @@
 package com.ahmetkaragunlu.guidematebackend.chat.controller;
 
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatConversationResponse;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ClearChatRequest;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessagePageResponse;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatMessageResponse;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.SendChatMessageRequest;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatConversationResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.request.ClearChatRequest;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatMessagePageResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatMessageResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.request.SendChatMessageRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.service.ChatConversationService;
 import com.ahmetkaragunlu.guidematebackend.chat.service.ChatMessageService;
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;

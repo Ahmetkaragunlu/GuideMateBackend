@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.auth.service.email;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.AppProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.application.AppProperties;
 import com.ahmetkaragunlu.guidematebackend.common.exception.EmailDeliveryException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

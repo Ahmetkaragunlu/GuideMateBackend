@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.chat.service;
 
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatConversation;
 import com.ahmetkaragunlu.guidematebackend.chat.domain.ChatMessage;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.SendChatMessageRequest;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.request.SendChatMessageRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.mapper.ChatMapper;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatConversationRepository;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatMessageRepository;

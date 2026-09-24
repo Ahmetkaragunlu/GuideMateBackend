@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.media.service;
 
-import com.ahmetkaragunlu.guidematebackend.common.config.AppProperties;
+import com.ahmetkaragunlu.guidematebackend.common.config.application.AppProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

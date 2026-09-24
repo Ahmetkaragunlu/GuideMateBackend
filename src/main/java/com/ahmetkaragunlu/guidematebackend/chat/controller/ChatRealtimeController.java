@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.chat.controller;
 
-import com.ahmetkaragunlu.guidematebackend.chat.dto.ChatRealtimeErrorResponse;
-import com.ahmetkaragunlu.guidematebackend.chat.dto.SendChatMessageRequest;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatRealtimeErrorResponse;
+import com.ahmetkaragunlu.guidematebackend.chat.dto.request.SendChatMessageRequest;
 import com.ahmetkaragunlu.guidematebackend.chat.service.ChatMessageService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;

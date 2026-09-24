@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.payment.service.recovery;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.common.security.SensitiveDataCipher;
+import com.ahmetkaragunlu.guidematebackend.common.security.crypto.SensitiveDataCipher;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
