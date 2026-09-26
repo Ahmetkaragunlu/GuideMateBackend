@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.dto;
+package com.ahmetkaragunlu.guidematebackend.notification.dto.request;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationTargetType;
 import jakarta.validation.constraints.NotNull;

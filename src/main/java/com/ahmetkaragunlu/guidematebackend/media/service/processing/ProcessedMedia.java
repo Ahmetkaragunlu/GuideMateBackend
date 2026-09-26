@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.service.processing;
 
 import java.util.Arrays;
 import java.util.Objects;

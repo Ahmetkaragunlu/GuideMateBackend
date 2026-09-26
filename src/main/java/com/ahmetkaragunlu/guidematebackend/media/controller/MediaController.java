@@ -6,7 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.media.dto.MediaDeletionResponse;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaUploadResponse;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaContent;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUploadPolicy;
+import com.ahmetkaragunlu.guidematebackend.media.service.policy.MediaUploadPolicy;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

@@ -6,8 +6,8 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPushStatus;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationResponse;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationTargetType;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.event.NotificationCreatedEvent;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -109,12 +109,13 @@ public class NotificationService implements NotificationPublisher {
     @Transactional
     public UnreadCountResponse markRelatedRead(
             User currentUser,
-            MarkRelatedNotificationsReadRequest request
+            NotificationTargetType targetType,
+            UUID targetId
     ) {
         notificationRepository.markRelatedRead(
                 currentUser.getId(),
-                request.targetType().payloadKey(),
-                request.targetId().toString(),
+                targetType.payloadKey(),
+                targetId.toString(),
                 clock.instant()
         );
         return unreadCount(currentUser);

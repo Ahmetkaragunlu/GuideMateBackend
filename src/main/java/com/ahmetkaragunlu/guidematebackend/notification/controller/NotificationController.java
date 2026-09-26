@@ -3,10 +3,10 @@ package com.ahmetkaragunlu.guidematebackend.notification.controller;
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.common.dto.UnreadCountResponse;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationPreferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationResponse;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.UpdateNotificationPreferenceRequest;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationPreferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.request.MarkRelatedNotificationsReadRequest;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.request.UpdateNotificationPreferenceRequest;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPreferenceService;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -79,7 +79,11 @@ public class NotificationController {
             @AuthenticationPrincipal User currentUser,
             @Valid @RequestBody MarkRelatedNotificationsReadRequest request
     ) {
-        return ResponseEntity.ok(notificationService.markRelatedRead(currentUser, request));
+        return ResponseEntity.ok(notificationService.markRelatedRead(
+                currentUser,
+                request.targetType(),
+                request.targetId()
+        ));
     }
 
     @Operation(summary = "Get the current user's push notification preferences")

@@ -1,8 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.notification.service.device;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.DeviceRegistration;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.DeviceRegistrationResponse;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.RegisterDeviceRegistrationRequest;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.DeviceRegistrationResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.request.RegisterDeviceRegistrationRequest;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.DeviceRegistrationRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;

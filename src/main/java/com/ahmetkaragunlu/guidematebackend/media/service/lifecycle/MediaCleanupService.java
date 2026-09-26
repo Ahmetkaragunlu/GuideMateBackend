@@ -1,10 +1,11 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.service.lifecycle;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.media.config.MediaProperties;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaStatus;
 import com.ahmetkaragunlu.guidematebackend.media.repository.MediaAssetRepository;
+import com.ahmetkaragunlu.guidematebackend.media.service.policy.MediaReferencePolicy;
 import com.ahmetkaragunlu.guidematebackend.media.storage.MediaStorage;
 import com.ahmetkaragunlu.guidematebackend.media.storage.MediaStorageException;
 import lombok.RequiredArgsConstructor;

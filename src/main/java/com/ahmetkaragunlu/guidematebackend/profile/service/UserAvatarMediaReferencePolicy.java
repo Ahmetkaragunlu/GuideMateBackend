@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.profile.service;
 
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaReferencePolicy;
+import com.ahmetkaragunlu.guidematebackend.media.service.policy.MediaReferencePolicy;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

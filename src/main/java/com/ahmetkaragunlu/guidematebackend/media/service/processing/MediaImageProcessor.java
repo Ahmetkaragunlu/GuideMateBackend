@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.service.processing;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;

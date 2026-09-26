@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.service;
 
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaReferencePolicy;
+import com.ahmetkaragunlu.guidematebackend.media.service.policy.MediaReferencePolicy;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

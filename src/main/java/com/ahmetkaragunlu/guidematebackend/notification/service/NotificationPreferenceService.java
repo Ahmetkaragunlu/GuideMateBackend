@@ -2,8 +2,8 @@ package com.ahmetkaragunlu.guidematebackend.notification.service;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationPreference;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationPreferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.UpdateNotificationPreferenceRequest;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationPreferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.request.UpdateNotificationPreferenceRequest;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationPreferenceRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;

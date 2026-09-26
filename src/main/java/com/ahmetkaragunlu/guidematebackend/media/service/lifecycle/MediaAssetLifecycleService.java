@@ -1,10 +1,11 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.service.lifecycle;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.repository.MediaAssetRepository;
+import com.ahmetkaragunlu.guidematebackend.media.service.processing.ValidatedMedia;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

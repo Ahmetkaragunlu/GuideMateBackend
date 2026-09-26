@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.notification.dto;
+package com.ahmetkaragunlu.guidematebackend.notification.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

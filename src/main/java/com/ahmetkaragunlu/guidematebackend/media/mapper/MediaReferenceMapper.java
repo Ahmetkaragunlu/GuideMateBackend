@@ -2,7 +2,6 @@ package com.ahmetkaragunlu.guidematebackend.media.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

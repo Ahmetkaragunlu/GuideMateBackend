@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.service.processing;
 
 public record ValidatedMedia(
         String contentType,

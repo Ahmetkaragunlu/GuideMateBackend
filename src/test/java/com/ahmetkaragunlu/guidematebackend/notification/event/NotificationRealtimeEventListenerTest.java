@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.notification.event;
 
-import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationRealtimeResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationRealtimeResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

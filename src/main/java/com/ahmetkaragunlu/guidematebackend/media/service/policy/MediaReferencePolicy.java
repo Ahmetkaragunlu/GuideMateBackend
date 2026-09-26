@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.service.policy;
 
 import java.util.UUID;
 

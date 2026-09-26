@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.application.AppProperties;
 import org.springframework.stereotype.Component;

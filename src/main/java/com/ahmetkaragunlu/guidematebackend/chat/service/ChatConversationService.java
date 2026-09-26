@@ -14,7 +14,6 @@ import com.ahmetkaragunlu.guidematebackend.common.dto.UnreadCountResponse;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationTargetType;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
@@ -126,7 +125,8 @@ public class ChatConversationService {
             readStateRepository.save(readState);
             notificationService.markRelatedRead(
                     currentUser,
-                    new MarkRelatedNotificationsReadRequest(NotificationTargetType.CHAT, conversationId)
+                    NotificationTargetType.CHAT,
+                    conversationId
             );
         }
         return unreadCount(currentUser);

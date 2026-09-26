@@ -1,10 +1,9 @@
 package com.ahmetkaragunlu.guidematebackend.notification;
 
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;
-import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationTargetType;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.MarkRelatedNotificationsReadRequest;
-import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPayloadCodec;
@@ -139,10 +138,16 @@ class NotificationPersistenceIntegrationTest {
                 recipient.getId(),
                 Map.of("chatId", chatId.toString())
         ));
-        var request = new MarkRelatedNotificationsReadRequest(NotificationTargetType.CHAT, chatId);
-
-        var firstResult = notificationService.markRelatedRead(recipient, request);
-        var repeatedResult = notificationService.markRelatedRead(recipient, request);
+        var firstResult = notificationService.markRelatedRead(
+                recipient,
+                NotificationTargetType.CHAT,
+                chatId
+        );
+        var repeatedResult = notificationService.markRelatedRead(
+                recipient,
+                NotificationTargetType.CHAT,
+                chatId
+        );
 
         assertThat(firstResult.unreadCount()).isEqualTo(1);
         assertThat(repeatedResult.unreadCount()).isEqualTo(1);

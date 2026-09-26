@@ -71,7 +71,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
             SET notification.readAt = :readAt
             WHERE notification.recipient.id = :recipientId AND notification.readAt IS NULL
             """)
-    int markAllRead(@Param("recipientId") Long recipientId, @Param("readAt") Instant readAt);
+    void markAllRead(@Param("recipientId") Long recipientId, @Param("readAt") Instant readAt);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
@@ -81,7 +81,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
               AND read_at IS NULL
               AND jsonb_extract_path_text(payload, :payloadKey) = :targetId
             """, nativeQuery = true)
-    int markRelatedRead(
+    void markRelatedRead(
             @Param("recipientId") Long recipientId,
             @Param("payloadKey") String payloadKey,
             @Param("targetId") String targetId,

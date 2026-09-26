@@ -1,11 +1,8 @@
-package com.ahmetkaragunlu.guidematebackend.media.service;
+package com.ahmetkaragunlu.guidematebackend.media.service.processing;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.media.config.MediaProperties;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaImageProcessor;
-import com.ahmetkaragunlu.guidematebackend.media.service.ProcessedMedia;
-import com.ahmetkaragunlu.guidematebackend.media.service.ValidatedMedia;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

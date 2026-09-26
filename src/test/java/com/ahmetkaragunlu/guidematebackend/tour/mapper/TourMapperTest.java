@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.tour.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.application.AppProperties;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
-import com.ahmetkaragunlu.guidematebackend.media.service.MediaUrlFactory;
+import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;

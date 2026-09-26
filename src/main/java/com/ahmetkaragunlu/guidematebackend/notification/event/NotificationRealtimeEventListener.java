@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.notification.event;
 
-import com.ahmetkaragunlu.guidematebackend.notification.dto.NotificationRealtimeResponse;
+import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationRealtimeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
