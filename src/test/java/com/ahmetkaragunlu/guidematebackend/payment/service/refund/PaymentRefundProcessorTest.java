@@ -2,8 +2,8 @@ package com.ahmetkaragunlu.guidematebackend.payment.service.refund;
 
 import com.ahmetkaragunlu.guidematebackend.payment.event.RefundRequestedEvent;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.HostedPaymentGateway;
-import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.ProviderRefundCommand;
-import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.ProviderRefundResult;
+import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.refund.ProviderRefundCommand;
+import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.refund.ProviderRefundResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

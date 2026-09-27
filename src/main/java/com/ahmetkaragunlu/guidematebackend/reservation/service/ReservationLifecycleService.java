@@ -6,7 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationCancell
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.refund.PaymentRefundService;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.checkout.PaymentIntentService;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;

@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.chat.service;
 
 import com.ahmetkaragunlu.guidematebackend.chat.dto.response.ChatParticipantProfileUpdatedResponse;
 import com.ahmetkaragunlu.guidematebackend.chat.repository.ChatConversationRepository;
-import com.ahmetkaragunlu.guidematebackend.profile.service.UserAvatarUpdatedEvent;
+import com.ahmetkaragunlu.guidematebackend.profile.service.avatar.UserAvatarUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;

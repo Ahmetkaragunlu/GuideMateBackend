@@ -4,7 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.Refund;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.RefundStatus;
-import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.ProviderRefundResult;
+import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.refund.ProviderRefundResult;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.RefundRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.payment.ProviderFailureCodeMapper;
 import com.ahmetkaragunlu.guidematebackend.support.TestPaymentProperties;

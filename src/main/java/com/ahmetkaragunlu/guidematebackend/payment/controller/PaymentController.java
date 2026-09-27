@@ -9,8 +9,8 @@ import com.ahmetkaragunlu.guidematebackend.payment.dto.request.WalletTopUpReques
 import com.ahmetkaragunlu.guidematebackend.payment.dto.response.CheckoutCurrenciesResponse;
 import com.ahmetkaragunlu.guidematebackend.payment.dto.response.PaymentQuoteResponse;
 import com.ahmetkaragunlu.guidematebackend.payment.dto.response.PaymentResponse;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentCheckoutService;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.checkout.PaymentCheckoutService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.checkout.PaymentIntentService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentQueryService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.quote.PaymentQuoteService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

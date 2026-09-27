@@ -1,9 +1,9 @@
 package com.ahmetkaragunlu.guidematebackend.profile.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideProfileResponse;
-import com.ahmetkaragunlu.guidematebackend.profile.dto.UpdateGuideProfileRequest;
-import com.ahmetkaragunlu.guidematebackend.profile.service.GuideProfileService;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.response.GuideProfileResponse;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.request.UpdateGuideProfileRequest;
+import com.ahmetkaragunlu.guidematebackend.profile.service.guide.GuideProfileService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

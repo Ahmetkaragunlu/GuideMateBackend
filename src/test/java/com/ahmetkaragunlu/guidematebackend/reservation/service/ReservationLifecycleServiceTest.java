@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.service;
 
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.checkout.PaymentIntentService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.refund.PaymentRefundService;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.RefundEligibility;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;

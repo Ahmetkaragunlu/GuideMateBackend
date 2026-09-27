@@ -10,13 +10,20 @@ import java.util.Set;
 
 @ConfigurationProperties(prefix = "payment")
 public record PaymentProperties(
+        // Core checkout settings
         String canonicalCurrencyCode,
         Duration checkoutExpiration,
         String callbackBaseUrl,
+
+        // External providers
         Fx fx,
         Iyzico iyzico,
+
+        // Settlement
         PayoutMode payoutMode,
         int platformCommissionBasisPoints,
+
+        // Sandbox fallback
         SandboxBuyer sandboxBuyer
 ) {
 
@@ -36,10 +43,13 @@ public record PaymentProperties(
     }
 
     public record Fx(
+            // Provider access
             URI baseUrl,
+            // Cache validity and network timeouts
             Duration quoteTtl,
             Duration connectTimeout,
             Duration readTimeout,
+            // Supported contract
             Set<String> enabledChargeCurrencies,
             String rateProvider
     ) {
@@ -100,12 +110,15 @@ public record PaymentProperties(
 
     public record SandboxBuyer(
             boolean enabled,
+            // Buyer identity and contact
             String identityNumber,
             String phoneNumber,
+            // Billing address
             String address,
             String city,
             String country,
             String zipCode,
+            // Request context
             String ipAddress
     ) {
         public SandboxBuyer {

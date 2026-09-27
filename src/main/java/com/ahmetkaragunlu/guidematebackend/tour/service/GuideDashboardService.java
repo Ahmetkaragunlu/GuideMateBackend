@@ -8,8 +8,8 @@ import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideDashboardRespo
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourChangeRequestRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
-import com.ahmetkaragunlu.guidematebackend.profile.dto.GuidePerformanceSummary;
-import com.ahmetkaragunlu.guidematebackend.profile.service.GuidePerformanceService;
+import com.ahmetkaragunlu.guidematebackend.profile.domain.GuidePerformanceSummary;
+import com.ahmetkaragunlu.guidematebackend.profile.service.guide.GuidePerformanceService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
 import lombok.RequiredArgsConstructor;

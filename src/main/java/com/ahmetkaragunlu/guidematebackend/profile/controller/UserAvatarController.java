@@ -2,8 +2,8 @@ package com.ahmetkaragunlu.guidematebackend.profile.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
-import com.ahmetkaragunlu.guidematebackend.profile.dto.UpdateUserAvatarRequest;
-import com.ahmetkaragunlu.guidematebackend.profile.service.UserAvatarService;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.request.UpdateUserAvatarRequest;
+import com.ahmetkaragunlu.guidematebackend.profile.service.avatar.UserAvatarService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

@@ -6,7 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.common.security.crypto.SensitiveDataC
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentVerificationService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.processing.PaymentVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

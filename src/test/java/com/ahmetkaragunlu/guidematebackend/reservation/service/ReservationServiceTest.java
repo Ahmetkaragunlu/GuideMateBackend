@@ -7,7 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.common.validation.VersionPolicy;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.checkout.PaymentIntentService;
 import com.ahmetkaragunlu.guidematebackend.payment.service.refund.PaymentRefundService;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.RefundEligibility;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;

@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.common;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.profile.dto.UpdateUserAvatarRequest;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.request.UpdateUserAvatarRequest;
 import com.ahmetkaragunlu.guidematebackend.review.dto.CreateReviewRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.Test;

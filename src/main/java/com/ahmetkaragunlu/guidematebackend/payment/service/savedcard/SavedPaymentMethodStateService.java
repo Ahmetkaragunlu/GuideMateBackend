@@ -123,16 +123,16 @@ public class SavedPaymentMethodStateService {
         method.markDeleted();
     }
 
-    private PaymentProviderCustomer requireOrCreateCustomer(User user, String customerKey) {
+    private void requireOrCreateCustomer(User user, String customerKey) {
         String fingerprint = dataCipher.fingerprint(customerKey);
         PaymentProviderCustomer existing = customerRepository.findById(user.getId()).orElse(null);
         if (existing != null) {
             if (!existing.getProviderCustomerKeyFingerprint().equals(fingerprint)) {
                 throw syncFailed();
             }
-            return existing;
+            return;
         }
-        return customerRepository.saveAndFlush(new PaymentProviderCustomer(
+        customerRepository.saveAndFlush(new PaymentProviderCustomer(
                 user,
                 dataCipher.encrypt(customerKey),
                 fingerprint

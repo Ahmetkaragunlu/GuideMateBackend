@@ -4,7 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.dto.request.IyzicoWebhookRequest;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentVerificationService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.processing.PaymentVerificationService;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

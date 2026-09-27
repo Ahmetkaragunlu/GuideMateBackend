@@ -1,8 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.profile.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
-import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideSearchItemResponse;
-import com.ahmetkaragunlu.guidematebackend.profile.service.GuideDiscoveryService;
+import com.ahmetkaragunlu.guidematebackend.profile.dto.response.GuideSearchItemResponse;
+import com.ahmetkaragunlu.guidematebackend.profile.service.guide.GuideDiscoveryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;

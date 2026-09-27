@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.dto.response;
 
-import com.ahmetkaragunlu.guidematebackend.profile.dto.GuideLevel;
+import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideLevel;
 
 public record GuideDashboardResponse(
         long activeSessionCount,

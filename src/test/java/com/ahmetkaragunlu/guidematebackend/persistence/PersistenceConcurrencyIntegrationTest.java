@@ -15,7 +15,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.RefundStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.RefundRepository;
-import com.ahmetkaragunlu.guidematebackend.payment.service.payment.PaymentIntentService;
+import com.ahmetkaragunlu.guidematebackend.payment.service.payment.checkout.WalletPaymentService;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
@@ -82,7 +82,7 @@ class PersistenceConcurrencyIntegrationTest {
     @Autowired
     private WalletLedgerRepository walletLedgerRepository;
     @Autowired
-    private PaymentIntentService paymentIntentService;
+    private WalletPaymentService walletPaymentService;
     @Autowired
     private PaymentRepository paymentRepository;
     @Autowired
@@ -347,7 +347,7 @@ class PersistenceConcurrencyIntegrationTest {
 
     private Payment purchaseWithWallet(String email, UUID sessionId, String idempotencyKey) {
         User tourist = userRepository.findByEmailWithRole(email).orElseThrow();
-        return paymentIntentService.purchaseTourWithWallet(tourist, sessionId, 1, idempotencyKey);
+        return walletPaymentService.purchaseTour(tourist, sessionId, 1, idempotencyKey);
     }
 
     private ErrorCode debit(Long userId, long amountMinor, String idempotencyKey) {

@@ -2,12 +2,12 @@ package com.ahmetkaragunlu.guidematebackend.payment.gateway.iyzico;
 
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.buyer.BuyerProfile;
-import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.HostedCheckoutCommand;
-import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.HostedCheckoutSession;
+import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.checkout.HostedCheckoutCommand;
+import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.checkout.HostedCheckoutSession;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.HostedPaymentGateway;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.PaymentGatewayException;
-import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.ProviderRefundCommand;
-import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.ProviderRefundResult;
+import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.refund.ProviderRefundCommand;
+import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.refund.ProviderRefundResult;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.VerifiedPaymentResult;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.savedcard.ProviderCardDetails;
 import com.iyzipay.Options;
