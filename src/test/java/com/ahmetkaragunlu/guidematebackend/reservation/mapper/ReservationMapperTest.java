@@ -7,7 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.dto.response.ReservationResponse;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.snapshot.PurchaseSnapshotCodec;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

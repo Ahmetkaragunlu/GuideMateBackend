@@ -9,7 +9,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRep
 import com.ahmetkaragunlu.guidematebackend.reservation.service.lifecycle.CancellationPolicy;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.snapshot.PurchaseSnapshotCodec;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.snapshot.PurchaseSnapshotFactory;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

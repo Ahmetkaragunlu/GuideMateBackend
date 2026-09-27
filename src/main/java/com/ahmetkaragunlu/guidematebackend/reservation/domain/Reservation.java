@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.domain;
 
 import com.ahmetkaragunlu.guidematebackend.common.domain.UuidAuditedEntity;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

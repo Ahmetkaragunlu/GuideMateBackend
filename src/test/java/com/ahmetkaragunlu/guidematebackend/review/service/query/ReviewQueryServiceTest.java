@@ -4,7 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.review.mapper.ReviewMapper;
 import com.ahmetkaragunlu.guidematebackend.review.repository.ReviewRepository;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import org.junit.jupiter.api.Test;

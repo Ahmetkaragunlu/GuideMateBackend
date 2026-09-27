@@ -6,8 +6,8 @@ import com.ahmetkaragunlu.guidematebackend.reservation.repository.GuideParticipa
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewQueryService;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.repository.GuideCompletedSessionCount;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.repository.projection.GuideCompletedSessionCount;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

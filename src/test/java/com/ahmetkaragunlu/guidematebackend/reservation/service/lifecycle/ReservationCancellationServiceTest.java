@@ -19,8 +19,8 @@ import com.ahmetkaragunlu.guidematebackend.reservation.dto.response.ReservationR
 import com.ahmetkaragunlu.guidematebackend.reservation.mapper.ReservationResponseAssembler;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
 import org.junit.jupiter.api.BeforeEach;

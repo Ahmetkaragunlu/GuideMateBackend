@@ -6,8 +6,8 @@ import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPubl
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.Refund;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

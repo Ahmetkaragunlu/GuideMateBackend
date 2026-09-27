@@ -9,7 +9,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.dto.response.ReservationS
 import com.ahmetkaragunlu.guidematebackend.reservation.service.snapshot.PurchaseSnapshotCodec;
 import com.ahmetkaragunlu.guidematebackend.review.dto.response.ReviewResponse;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.PublicGuideSummaryResponse;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.response.tour.PublicGuideSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

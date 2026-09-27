@@ -1,8 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.tour.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideDashboardResponse;
-import com.ahmetkaragunlu.guidematebackend.tour.service.GuideDashboardService;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.response.guide.GuideDashboardResponse;
+import com.ahmetkaragunlu.guidematebackend.tour.service.guide.GuideDashboardService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

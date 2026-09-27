@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.notification.service.reminder;
 
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -3,7 +3,7 @@ package com.ahmetkaragunlu.guidematebackend.notification.service.reminder;
 import com.ahmetkaragunlu.guidematebackend.common.config.scheduling.SchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -5,7 +5,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.repository.GuideParticipa
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewQueryService;
-import com.ahmetkaragunlu.guidematebackend.tour.repository.GuideCompletedSessionCount;
+import com.ahmetkaragunlu.guidematebackend.tour.repository.projection.GuideCompletedSessionCount;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

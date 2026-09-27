@@ -5,11 +5,11 @@ import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.GuideTourCardResponse;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.response.guide.GuideTourCardResponse;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;

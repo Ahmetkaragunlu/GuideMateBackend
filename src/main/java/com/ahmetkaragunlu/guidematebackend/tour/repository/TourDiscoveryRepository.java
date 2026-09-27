@@ -1,13 +1,14 @@
 package com.ahmetkaragunlu.guidematebackend.tour.repository;
 
+import com.ahmetkaragunlu.guidematebackend.tour.search.TourSearchCriteria;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.review.domain.Review;
 import com.ahmetkaragunlu.guidematebackend.review.domain.ReviewRankingPolicy;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import jakarta.persistence.EntityManager;

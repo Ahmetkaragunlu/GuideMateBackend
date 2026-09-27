@@ -7,8 +7,8 @@ import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPubl
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

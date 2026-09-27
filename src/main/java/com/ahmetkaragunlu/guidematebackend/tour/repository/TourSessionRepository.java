@@ -1,9 +1,10 @@
 package com.ahmetkaragunlu.guidematebackend.tour.repository;
 
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeRequestStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.change.TourChangeRequestStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.repository.projection.GuideCompletedSessionCount;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

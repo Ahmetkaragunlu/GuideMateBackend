@@ -13,8 +13,8 @@ import com.ahmetkaragunlu.guidematebackend.review.dto.request.CreateReviewReques
 import com.ahmetkaragunlu.guidematebackend.review.dto.response.ReviewResponse;
 import com.ahmetkaragunlu.guidematebackend.review.mapper.ReviewMapper;
 import com.ahmetkaragunlu.guidematebackend.review.repository.ReviewRepository;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

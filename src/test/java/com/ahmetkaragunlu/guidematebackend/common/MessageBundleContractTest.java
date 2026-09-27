@@ -3,6 +3,8 @@ package com.ahmetkaragunlu.guidematebackend.common;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.request.UpdateUserAvatarRequest;
 import com.ahmetkaragunlu.guidematebackend.review.dto.request.CreateReviewRequest;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.request.query.TourSearchRequest;
+import com.ahmetkaragunlu.guidematebackend.tour.search.TourSearchSort;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -11,6 +13,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -63,6 +66,29 @@ class MessageBundleContractTest {
         assertThat(violations)
                 .extracting(ConstraintViolation::getMessage)
                 .containsExactly("Puan en fazla 5 olmal\u0131d\u0131r");
+        validator.close();
+    }
+
+    @Test
+    void resolvesTourSearchValidationFromCentralBundle() {
+        LocalValidatorFactoryBean validator = createValidator();
+        TourSearchRequest request = new TourSearchRequest(
+                "q".repeat(101),
+                "TR",
+                "istanbul",
+                "culture",
+                List.of("tr"),
+                4.5,
+                0L,
+                10_000L,
+                0,
+                20,
+                TourSearchSort.STARTS_AT_ASC
+        );
+
+        assertThat(validator.validate(request))
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly("Arama metni en fazla 100 karakter olabilir");
         validator.close();
     }
 

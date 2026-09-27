@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.repository;
 
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;

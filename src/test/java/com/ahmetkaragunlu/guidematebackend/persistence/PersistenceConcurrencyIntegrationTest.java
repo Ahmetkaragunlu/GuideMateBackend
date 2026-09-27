@@ -26,10 +26,10 @@ import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRep
 import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationCapacityService;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.lifecycle.ReservationCancellationService;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeSnapshot;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.change.TourChangeSnapshot;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;

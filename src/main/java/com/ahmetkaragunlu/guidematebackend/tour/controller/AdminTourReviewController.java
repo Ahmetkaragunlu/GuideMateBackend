@@ -2,12 +2,12 @@ package com.ahmetkaragunlu.guidematebackend.tour.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.request.RejectTourReviewRequest;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewDecisionResponse;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewDetailResponse;
-import com.ahmetkaragunlu.guidematebackend.tour.dto.response.AdminTourReviewSummaryResponse;
-import com.ahmetkaragunlu.guidematebackend.tour.service.AdminTourReviewService;
-import com.ahmetkaragunlu.guidematebackend.tour.service.AdminTourReviewQueryService;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.request.review.RejectTourReviewRequest;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.response.review.AdminTourReviewDecisionResponse;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.response.review.AdminTourReviewDetailResponse;
+import com.ahmetkaragunlu.guidematebackend.tour.dto.response.review.AdminTourReviewSummaryResponse;
+import com.ahmetkaragunlu.guidematebackend.tour.service.admin.AdminTourReviewService;
+import com.ahmetkaragunlu.guidematebackend.tour.service.admin.AdminTourReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

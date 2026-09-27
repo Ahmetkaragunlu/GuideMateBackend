@@ -10,7 +10,7 @@ import com.ahmetkaragunlu.guidematebackend.review.mapper.ReviewMapper;
 import com.ahmetkaragunlu.guidematebackend.review.repository.GuideRatingSummary;
 import com.ahmetkaragunlu.guidematebackend.review.repository.ReviewRepository;
 import com.ahmetkaragunlu.guidematebackend.review.repository.TourRatingSummary;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;

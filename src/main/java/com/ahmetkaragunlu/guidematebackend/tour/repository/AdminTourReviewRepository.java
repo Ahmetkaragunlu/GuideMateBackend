@@ -1,6 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.repository;
 
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.repository.projection.AdminTourReviewSummaryProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

@@ -2,9 +2,9 @@ package com.ahmetkaragunlu.guidematebackend.reservation.service.booking;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

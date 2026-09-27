@@ -1,8 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.tour.service;
 
 import com.ahmetkaragunlu.guidematebackend.media.service.policy.MediaReferencePolicy;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeRequestStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.TourApprovalStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.change.TourChangeRequestStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourChangeRequestRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;

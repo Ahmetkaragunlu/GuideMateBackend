@@ -5,8 +5,8 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.PurchaseSnapshot;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.lifecycle.CancellationPolicy;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

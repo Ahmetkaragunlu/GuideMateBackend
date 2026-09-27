@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.repository;
 
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeRequest;
-import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeRequestStatus;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.change.TourChangeRequest;
+import com.ahmetkaragunlu.guidematebackend.tour.domain.change.TourChangeRequestStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
