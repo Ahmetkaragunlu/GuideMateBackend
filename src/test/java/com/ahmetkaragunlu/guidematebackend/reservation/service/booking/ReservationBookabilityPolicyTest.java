@@ -26,26 +26,26 @@ class ReservationBookabilityPolicyTest {
 
     @Test
     void acceptsApprovedFutureSessionOwnedByActiveGuide() {
-        TourSession session = session(TourSessionStatus.OPEN_FOR_BOOKING, NOW.plusSeconds(3_600));
+        TourSession session = session(NOW.plusSeconds(3_600));
 
         assertThat(policy.isBookable(session, NOW)).isTrue();
     }
 
     @Test
     void rejectsSessionThatHasAlreadyStarted() {
-        TourSession session = session(TourSessionStatus.OPEN_FOR_BOOKING, NOW);
+        TourSession session = session(NOW);
 
         assertThatThrownBy(() -> policy.requireBookable(session, NOW))
                 .isInstanceOfSatisfying(BusinessException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.SESSION_NOT_BOOKABLE));
     }
 
-    private TourSession session(TourSessionStatus status, Instant startsAt) {
+    private TourSession session(Instant startsAt) {
         TourSession session = mock(TourSession.class);
         Tour tour = mock(Tour.class);
         User guide = mock(User.class);
         when(session.getTour()).thenReturn(tour);
-        when(session.getStatus()).thenReturn(status);
+        when(session.getStatus()).thenReturn(TourSessionStatus.OPEN_FOR_BOOKING);
         when(session.getStartsAt()).thenReturn(startsAt);
         when(tour.getApprovalStatus()).thenReturn(TourApprovalStatus.APPROVED);
         when(tour.getGuide()).thenReturn(guide);

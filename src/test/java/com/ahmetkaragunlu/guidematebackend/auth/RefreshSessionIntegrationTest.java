@@ -6,7 +6,6 @@ import com.ahmetkaragunlu.guidematebackend.auth.service.token.RefreshSessionServ
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.auth.security.SecureTokenService;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -41,7 +40,7 @@ class RefreshSessionIntegrationTest {
 
     @Test
     void rotatesRefreshTokenWithinSameFamily() {
-        User user = createUser(AccountStatus.ACTIVE);
+        User user = createUser();
         String originalRawToken = refreshSessionService.createSession(user, INSTALLATION_ID);
         RefreshToken original = findByRawToken(originalRawToken);
 
@@ -61,7 +60,7 @@ class RefreshSessionIntegrationTest {
 
     @Test
     void replayRevokesReplacementTokenFamily() {
-        User user = createUser(AccountStatus.ACTIVE);
+        User user = createUser();
         String originalRawToken = refreshSessionService.createSession(user, INSTALLATION_ID);
         RefreshSessionService.RefreshRotationResult rotation = refreshSessionService.rotate(
                 originalRawToken,
@@ -84,7 +83,7 @@ class RefreshSessionIntegrationTest {
 
     @Test
     void installationMismatchDoesNotConsumeValidToken() {
-        User user = createUser(AccountStatus.ACTIVE);
+        User user = createUser();
         String rawToken = refreshSessionService.createSession(user, INSTALLATION_ID);
 
         RefreshSessionService.RefreshRotationResult mismatch = refreshSessionService.rotate(
@@ -99,7 +98,7 @@ class RefreshSessionIntegrationTest {
 
     @Test
     void rejectsExpiredRefreshTokenAndRevokesIt() {
-        User user = createUser(AccountStatus.ACTIVE);
+        User user = createUser();
         String rawToken = "expired-" + UUID.randomUUID();
         RefreshToken expired = new RefreshToken(
                 user,
@@ -118,7 +117,7 @@ class RefreshSessionIntegrationTest {
 
     @Test
     void accountStatusFailureRevokesTokenFamily() {
-        User user = createUser(AccountStatus.ACTIVE);
+        User user = createUser();
         String rawToken = refreshSessionService.createSession(user, INSTALLATION_ID);
         user.disable();
         userRepository.saveAndFlush(user);
@@ -131,7 +130,7 @@ class RefreshSessionIntegrationTest {
 
     @Test
     void logoutRejectsDifferentInstallationWithoutRevokingSession() {
-        User user = createUser(AccountStatus.ACTIVE);
+        User user = createUser();
         String rawToken = refreshSessionService.createSession(user, INSTALLATION_ID);
 
         assertThatThrownBy(() -> refreshSessionService.revoke(
@@ -155,18 +154,14 @@ class RefreshSessionIntegrationTest {
                 .orElseThrow();
     }
 
-    private User createUser(AccountStatus status) {
+    private User createUser() {
         User user = new User(
                 "Refresh",
                 "Tester",
                 "refresh-" + UUID.randomUUID() + "@example.com",
                 "not-used"
         );
-        if (status == AccountStatus.ACTIVE) {
-            user.activate();
-        } else if (status == AccountStatus.DISABLED) {
-            user.disable();
-        }
+        user.activate();
         return userRepository.saveAndFlush(user);
     }
 }

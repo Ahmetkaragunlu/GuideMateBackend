@@ -14,12 +14,12 @@ import com.ahmetkaragunlu.guidematebackend.chat.service.ChatMessageService;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationService;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.RoleRepository;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,13 +33,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
+import static com.ahmetkaragunlu.guidematebackend.support.persistence.ConcurrentTestExecutor.run;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -179,13 +174,14 @@ class ChatPersistenceIntegrationTest {
             ));
             return new ChatRaceFixture(conversation.getId(), guide.getId(), tourist.getId());
         });
+        Assertions.assertNotNull(fixture);
         User guide = userRepository.findById(fixture.guideId()).orElseThrow();
         SendChatMessageRequest request = new SendChatMessageRequest(
                 UUID.randomUUID(),
                 "First race-safe message"
         );
 
-        runConcurrently(
+        run(
                 () -> {
                     chatMessageService.send(guide, fixture.conversationId(), request);
                     return null;
@@ -262,33 +258,6 @@ class ChatPersistenceIntegrationTest {
         assertThat(chatConversationService.getConversations(tourist))
                 .singleElement()
                 .satisfies(item -> assertThat(item.lastMessage().body()).isEqualTo("Message after clear"));
-    }
-
-    private <T> void runConcurrently(Callable<T> first, Callable<T> second) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        CountDownLatch ready = new CountDownLatch(2);
-        CountDownLatch start = new CountDownLatch(1);
-        try {
-            Future<T> firstFuture = executor.submit(gated(first, ready, start));
-            Future<T> secondFuture = executor.submit(gated(second, ready, start));
-            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
-            start.countDown();
-            firstFuture.get(10, TimeUnit.SECONDS);
-            secondFuture.get(10, TimeUnit.SECONDS);
-        } finally {
-            start.countDown();
-            executor.shutdownNow();
-        }
-    }
-
-    private <T> Callable<T> gated(Callable<T> task, CountDownLatch ready, CountDownLatch start) {
-        return () -> {
-            ready.countDown();
-            if (!start.await(5, TimeUnit.SECONDS)) {
-                throw new IllegalStateException("Concurrent test start timed out");
-            }
-            return task.call();
-        };
     }
 
     private User createUser(String email, RoleType roleType) {

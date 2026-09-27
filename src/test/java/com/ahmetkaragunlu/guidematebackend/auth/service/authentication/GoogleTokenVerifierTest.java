@@ -21,7 +21,7 @@ class GoogleTokenVerifierTest {
 
     @Test
     void returnsVerifiedGoogleIdentity() {
-        when(decoder.decode("valid-token")).thenReturn(token(true, "subject-1", "tourist@example.com"));
+        when(decoder.decode("valid-token")).thenReturn(token(true));
 
         GoogleTokenVerifier.GoogleIdentity identity = verifier.verify("valid-token");
 
@@ -31,7 +31,7 @@ class GoogleTokenVerifierTest {
 
     @Test
     void rejectsUnverifiedOrIncompleteIdentity() {
-        when(decoder.decode("unverified-token")).thenReturn(token(false, "subject-1", "tourist@example.com"));
+        when(decoder.decode("unverified-token")).thenReturn(token(false));
 
         assertGoogleLoginFailure("unverified-token");
     }
@@ -43,12 +43,12 @@ class GoogleTokenVerifierTest {
         assertGoogleLoginFailure("invalid-token");
     }
 
-    private Jwt token(boolean emailVerified, String subject, String email) {
+    private Jwt token(boolean emailVerified) {
         Instant issuedAt = Instant.parse("2026-08-27T10:00:00Z");
         return Jwt.withTokenValue("token")
                 .header("alg", "RS256")
-                .subject(subject)
-                .claim("email", email)
+                .subject("subject-1")
+                .claim("email", "tourist@example.com")
                 .claim("email_verified", emailVerified)
                 .issuedAt(issuedAt)
                 .expiresAt(issuedAt.plusSeconds(300))

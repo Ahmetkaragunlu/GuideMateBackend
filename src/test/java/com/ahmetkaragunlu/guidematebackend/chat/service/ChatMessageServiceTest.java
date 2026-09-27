@@ -59,7 +59,7 @@ class ChatMessageServiceTest {
     @Test
     void rejectsBlankAndOversizedMessagesBeforePersistence() {
         UUID conversationId = UUID.randomUUID();
-        User current = sender(1);
+        User current = sender();
         ChatConversation conversation = conversation(current);
         when(conversationRepository.findParticipantConversationForUpdate(conversationId, current.getId()))
                 .thenReturn(Optional.of(conversation));
@@ -92,7 +92,7 @@ class ChatMessageServiceTest {
     @Test
     void rejectsReusedClientMessageIdForDifferentContent() {
         UUID conversationId = UUID.randomUUID();
-        User current = sender(1);
+        User current = sender();
         ChatConversation conversation = conversation(current);
         ChatMessage duplicate = mock(ChatMessage.class);
         ChatConversation duplicateConversation = mock(ChatConversation.class);
@@ -108,11 +108,11 @@ class ChatMessageServiceTest {
         verify(messageRepository, never()).saveAndFlush(org.mockito.ArgumentMatchers.any());
     }
 
-    private User sender(int tokenVersion) {
+    private User sender() {
         User sender = mock(User.class);
         when(sender.getId()).thenReturn(1L);
         when(sender.isEnabled()).thenReturn(true);
-        when(sender.getTokenVersion()).thenReturn(tokenVersion);
+        when(sender.getTokenVersion()).thenReturn(1);
         when(sender.hasRole(any(RoleType.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0) == RoleType.ROLE_TOURIST);
         return sender;

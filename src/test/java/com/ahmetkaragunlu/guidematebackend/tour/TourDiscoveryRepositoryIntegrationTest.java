@@ -16,7 +16,6 @@ import com.ahmetkaragunlu.guidematebackend.tour.repository.TourDiscoveryReposito
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.search.TourSearchCriteria;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -64,10 +63,10 @@ class TourDiscoveryRepositoryIntegrationTest {
     @Test
     void appliesGuideFilterAndCountsOnlyLiveCapacityHolds() {
         Instant now = clock.instant();
-        User admin = createUser(RoleType.ROLE_ADMIN, AccountStatus.ACTIVE, "DiscoveryAdmin");
-        User selectedGuide = createUser(RoleType.ROLE_GUIDE, AccountStatus.ACTIVE, "SelectedGuide");
-        User otherGuide = createUser(RoleType.ROLE_GUIDE, AccountStatus.ACTIVE, "OtherGuide");
-        User tourist = createUser(RoleType.ROLE_TOURIST, AccountStatus.ACTIVE, "DiscoveryTourist");
+        User admin = createUser(RoleType.ROLE_ADMIN, "DiscoveryAdmin");
+        User selectedGuide = createUser(RoleType.ROLE_GUIDE, "SelectedGuide");
+        User otherGuide = createUser(RoleType.ROLE_GUIDE, "OtherGuide");
+        User tourist = createUser(RoleType.ROLE_TOURIST, "DiscoveryTourist");
         Tour selectedTour = createApprovedTour(selectedGuide, admin, "Selected tour", now);
         Tour otherTour = createApprovedTour(otherGuide, admin, "Other tour", now);
         TourSession available = createSession(selectedTour, now.plus(1, ChronoUnit.DAYS), 2);
@@ -101,9 +100,9 @@ class TourDiscoveryRepositoryIntegrationTest {
     @Test
     void ratingSortUsesBayesianScoreInsteadOfRawAverage() {
         Instant now = clock.instant();
-        User admin = createUser(RoleType.ROLE_ADMIN, AccountStatus.ACTIVE, "BayesianAdmin");
-        User oneFiveStarGuide = createUser(RoleType.ROLE_GUIDE, AccountStatus.ACTIVE, "BayesianFive");
-        User tenFourStarGuide = createUser(RoleType.ROLE_GUIDE, AccountStatus.ACTIVE, "BayesianFour");
+        User admin = createUser(RoleType.ROLE_ADMIN, "BayesianAdmin");
+        User oneFiveStarGuide = createUser(RoleType.ROLE_GUIDE, "BayesianFive");
+        User tenFourStarGuide = createUser(RoleType.ROLE_GUIDE, "BayesianFour");
         String searchToken = "bayesian" + UUID.randomUUID().toString().replace("-", "");
         Tour oneFiveStarTour = createApprovedTour(
                 oneFiveStarGuide,
@@ -143,7 +142,7 @@ class TourDiscoveryRepositoryIntegrationTest {
                 .containsExactly(tenFourStarAvailable.getId(), oneFiveStarAvailable.getId());
     }
 
-    private User createUser(RoleType roleType, AccountStatus status, String firstName) {
+    private User createUser(RoleType roleType, String firstName) {
         Role role = roleRepository.findByName(roleType.name()).orElseThrow();
         User user = new User(
                 firstName,
@@ -151,17 +150,13 @@ class TourDiscoveryRepositoryIntegrationTest {
                 firstName.toLowerCase() + "-" + UUID.randomUUID() + "@example.com",
                 "not-used"
         );
-        applyStatus(user, status);
+        applyStatus(user);
         user.selectRole(role);
         return userRepository.saveAndFlush(user);
     }
 
-    private void applyStatus(User user, AccountStatus status) {
-        if (status == AccountStatus.ACTIVE) {
-            user.activate();
-        } else if (status == AccountStatus.DISABLED) {
-            user.disable();
-        }
+    private void applyStatus(User user) {
+        user.activate();
     }
 
     private Tour createApprovedTour(User guide, User admin, String title, Instant now) {
@@ -249,7 +244,6 @@ class TourDiscoveryRepositoryIntegrationTest {
         for (int index = 0; index < reviewCount; index++) {
             User tourist = createUser(
                     RoleType.ROLE_TOURIST,
-                    AccountStatus.ACTIVE,
                     "RatingTourist" + index
             );
             Reservation reservation = Reservation.hold(

@@ -11,7 +11,6 @@ import com.ahmetkaragunlu.guidematebackend.notification.repository.DeviceRegistr
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationPreferenceRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.repository.NotificationRepository;
 import com.ahmetkaragunlu.guidematebackend.notification.service.delivery.NotificationPushDeliveryService;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
@@ -28,6 +27,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,7 +70,7 @@ class NotificationPushDeliveryIntegrationTest {
     void sendsOutsideDatabaseTransactionWithWhitelistedSemanticPayloadOnly() {
         String firebaseInstallationId = "test-fid-" + UUID.randomUUID();
         UUID tourId = UUID.randomUUID();
-        Fixture fixture = new TransactionTemplate(transactionManager).execute(status -> {
+        Fixture fixture = Objects.requireNonNull(new TransactionTemplate(transactionManager).execute(status -> {
             User user = createUser("push-delivery@example.com");
             DeviceRegistration registration = registrationRepository.save(new DeviceRegistration(
                     user,
@@ -89,7 +89,7 @@ class NotificationPushDeliveryIntegrationTest {
                     NotificationPushStatus.PENDING
             ));
             return new Fixture(notification.getId(), registration.getId(), user.getId());
-        });
+        }));
 
         when(pushNotificationSender.isAvailable()).thenReturn(true);
         when(pushNotificationSender.send(eq(firebaseInstallationId), anyMap())).thenAnswer(invocation -> {
@@ -120,7 +120,7 @@ class NotificationPushDeliveryIntegrationTest {
 
     @Test
     void skipsPendingDeliveryWhenUserDisablesItsCategoryBeforeRetry() {
-        UUID notificationId = new TransactionTemplate(transactionManager).execute(status -> {
+        UUID notificationId = Objects.requireNonNull(new TransactionTemplate(transactionManager).execute(status -> {
             User user = createUser("disabled-push-delivery@example.com");
             registrationRepository.save(new DeviceRegistration(
                     user,
@@ -138,7 +138,7 @@ class NotificationPushDeliveryIntegrationTest {
                     "{}",
                     NotificationPushStatus.PENDING
             )).getId();
-        });
+        }));
 
         when(pushNotificationSender.isAvailable()).thenReturn(true);
 

@@ -12,7 +12,6 @@ import com.ahmetkaragunlu.guidematebackend.tour.dto.response.review.AdminTourRev
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourChangeRequestRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.service.admin.AdminTourReviewQueryService;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

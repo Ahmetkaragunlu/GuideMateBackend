@@ -3,6 +3,8 @@ package com.ahmetkaragunlu.guidematebackend.auth.dto.request;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -12,12 +14,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class RegisterRequestValidationTest {
 
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
+    private static final Validator VALIDATOR = VALIDATOR_FACTORY.getValidator();
+
+    @AfterAll
+    static void closeValidatorFactory() {
+        VALIDATOR_FACTORY.close();
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"José", "Anne-Marie", "O'Connor", "D'Arcy", "İlker Can", " José "})
     void acceptsInternationalFirstNames(String firstName) {
-        Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(request(firstName, "Li"));
+        Set<ConstraintViolation<RegisterRequest>> violations = VALIDATOR.validate(request(firstName, "Li"));
 
         assertThat(violations).isEmpty();
     }
@@ -25,7 +33,7 @@ class RegisterRequestValidationTest {
     @ParameterizedTest
     @ValueSource(strings = {"aa ", "a a", "a-", "a''a", "Anne  Marie"})
     void rejectsInvalidFirstNames(String firstName) {
-        Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(request(firstName, "Li"));
+        Set<ConstraintViolation<RegisterRequest>> violations = VALIDATOR.validate(request(firstName, "Li"));
 
         assertThat(violations)
                 .extracting(violation -> violation.getPropertyPath().toString())
@@ -35,7 +43,7 @@ class RegisterRequestValidationTest {
     @ParameterizedTest
     @ValueSource(strings = {"Li", "O'Connor", " García "})
     void acceptsValidLastNames(String lastName) {
-        Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(request("Ada", lastName));
+        Set<ConstraintViolation<RegisterRequest>> violations = VALIDATOR.validate(request("Ada", lastName));
 
         assertThat(violations).isEmpty();
     }
@@ -43,7 +51,7 @@ class RegisterRequestValidationTest {
     @ParameterizedTest
     @ValueSource(strings = {"A ", "A-", "A  B"})
     void rejectsInvalidLastNames(String lastName) {
-        Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(request("Ada", lastName));
+        Set<ConstraintViolation<RegisterRequest>> violations = VALIDATOR.validate(request("Ada", lastName));
 
         assertThat(violations)
                 .extracting(violation -> violation.getPropertyPath().toString())

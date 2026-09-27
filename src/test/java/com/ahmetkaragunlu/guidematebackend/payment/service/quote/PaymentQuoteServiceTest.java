@@ -4,6 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.checkout.PaymentFxQuote;
+import com.ahmetkaragunlu.guidematebackend.payment.dto.response.CheckoutCurrencyOptionResponse;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRate;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRateProvider;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
@@ -97,7 +98,7 @@ class PaymentQuoteServiceTest {
     void exposesCanonicalAndEnabledChargeCurrencies() {
         assertThat(service.getCurrencyOptions().baseCurrencyCode()).isEqualTo("USD");
         assertThat(service.getCurrencyOptions().chargeCurrencies())
-                .extracting(option -> option.currencyCode())
+                .extracting(CheckoutCurrencyOptionResponse::currencyCode)
                 .containsExactly("EUR", "GBP", "TRY", "USD");
     }
 

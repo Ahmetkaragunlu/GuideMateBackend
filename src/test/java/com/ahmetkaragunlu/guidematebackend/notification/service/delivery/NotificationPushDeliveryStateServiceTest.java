@@ -57,7 +57,7 @@ class NotificationPushDeliveryStateServiceTest {
     @Test
     void marksPushNotRequestedWhenPreferenceIsDisabled() {
         UUID notificationId = UUID.randomUUID();
-        Notification notification = pendingNotification(42L);
+        Notification notification = pendingNotification();
         when(notificationRepository.findByIdForUpdate(notificationId)).thenReturn(Optional.of(notification));
         when(preferenceService.isPushEnabled(42L, NotificationType.SECURITY_ALERT)).thenReturn(false);
 
@@ -70,7 +70,7 @@ class NotificationPushDeliveryStateServiceTest {
     void createsWhitelistedPushAttemptForActiveTargets() {
         UUID notificationId = UUID.randomUUID();
         UUID registrationId = UUID.randomUUID();
-        Notification notification = pendingNotification(42L);
+        Notification notification = pendingNotification();
         when(notification.getId()).thenReturn(notificationId);
         when(notification.getPayloadJson()).thenReturn("payload");
         DeviceRegistration registration = org.mockito.Mockito.mock(DeviceRegistration.class);
@@ -110,11 +110,11 @@ class NotificationPushDeliveryStateServiceTest {
         verify(notification).markPushFailed();
     }
 
-    private Notification pendingNotification(Long recipientId) {
+    private Notification pendingNotification() {
         Notification notification = org.mockito.Mockito.mock(Notification.class);
         User recipient = org.mockito.Mockito.mock(User.class);
         when(notification.getRecipient()).thenReturn(recipient);
-        when(recipient.getId()).thenReturn(recipientId);
+        when(recipient.getId()).thenReturn(42L);
         when(notification.getType()).thenReturn(NotificationType.SECURITY_ALERT);
         when(notification.getPushStatus()).thenReturn(NotificationPushStatus.PENDING);
         when(notification.canAttemptPush(NOW, TestSchedulerProperties.defaults().notificationMaxAttempts()))

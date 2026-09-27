@@ -61,7 +61,7 @@ class MediaImageProcessorTest {
     @Test
     void rejectsImageAboveConfiguredDimensionLimitBeforeStorage() throws Exception {
         MediaImageProcessor processor = processor(2, 2, 4);
-        byte[] image = image("png", 3, 2);
+        byte[] image = image("png", 3);
 
         assertThatThrownBy(() -> processor.process(
                 file("image/png", image),
@@ -73,7 +73,7 @@ class MediaImageProcessorTest {
     @Test
     void removesExifMetadataAndAppendedContentByReencoding() throws Exception {
         MediaImageProcessor processor = processor(4096, 4096, 16_777_216);
-        byte[] jpeg = image("jpeg", 2, 2);
+        byte[] jpeg = image("jpeg", 2);
         byte[] secret = "Exif\0\0GUIDEMATE-SECRET".getBytes(StandardCharsets.ISO_8859_1);
         byte[] withMetadataAndTail = jpegWithAppSegmentAndTail(jpeg, secret);
 
@@ -90,8 +90,8 @@ class MediaImageProcessorTest {
 
     private static Stream<Arguments> supportedImages() throws Exception {
         return Stream.of(
-                Arguments.of("image/jpeg", image("jpeg", 2, 2), "image/jpeg", "jpg"),
-                Arguments.of("image/png", image("png", 2, 2), "image/png", "png"),
+                Arguments.of("image/jpeg", image("jpeg", 2), "image/jpeg", "jpg"),
+                Arguments.of("image/png", image("png", 2), "image/png", "png"),
                 Arguments.of(
                         "image/webp",
                         new ClassPathResource("media/valid.webp").getContentAsByteArray(),
@@ -121,8 +121,8 @@ class MediaImageProcessorTest {
         return new MockMultipartFile("file", "upload", contentType, content);
     }
 
-    private static byte[] image(String format, int width, int height) throws Exception {
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    private static byte[] image(String format, int width) throws Exception {
+        BufferedImage image = new BufferedImage(width, 2, BufferedImage.TYPE_INT_RGB);
         image.setRGB(0, 0, Color.BLUE.getRGB());
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         assertThat(ImageIO.write(image, format, output)).isTrue();

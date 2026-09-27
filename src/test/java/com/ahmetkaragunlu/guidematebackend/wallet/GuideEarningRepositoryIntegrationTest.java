@@ -11,7 +11,6 @@ import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

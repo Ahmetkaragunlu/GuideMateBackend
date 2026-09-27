@@ -2,6 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.common.exception;
 
 import com.ahmetkaragunlu.guidematebackend.common.exception.response.ErrorResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.MessageSource;
@@ -46,10 +47,14 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ErrorResponse> concurrent = handler.handleConcurrentUpdate(
                 new ObjectOptimisticLockingFailureException(User.class, 1L)
         );
+        ErrorResponse conflictBody = conflict.getBody();
+        ErrorResponse concurrentBody = concurrent.getBody();
 
-        assertThat(conflict.getBody()).extracting(ErrorResponse::code).isEqualTo("DATA_CONFLICT");
-        assertThat(concurrent.getBody()).extracting(ErrorResponse::code).isEqualTo("CONCURRENT_UPDATE");
-        assertThat(conflict.getBody().message()).doesNotContain("private database detail");
+        Assertions.assertNotNull(conflictBody);
+        Assertions.assertNotNull(concurrentBody);
+        assertThat(conflictBody.code()).isEqualTo("DATA_CONFLICT");
+        assertThat(concurrentBody.code()).isEqualTo("CONCURRENT_UPDATE");
+        assertThat(conflictBody.message()).doesNotContain("private database detail");
     }
 
     @Test
@@ -57,8 +62,10 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ErrorResponse> response = handler.handleUnexpectedException(
                 new IllegalStateException("database password leaked")
         );
+        ErrorResponse body = response.getBody();
 
-        assertThat(response.getBody()).extracting(ErrorResponse::code).isEqualTo("INTERNAL_SERVER_ERROR");
-        assertThat(response.getBody().message()).doesNotContain("database password leaked");
+        Assertions.assertNotNull(body);
+        assertThat(body.code()).isEqualTo("INTERNAL_SERVER_ERROR");
+        assertThat(body.message()).doesNotContain("database password leaked");
     }
 }

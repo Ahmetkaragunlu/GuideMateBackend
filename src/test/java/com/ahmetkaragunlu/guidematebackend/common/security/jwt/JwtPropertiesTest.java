@@ -31,7 +31,7 @@ class JwtPropertiesTest {
 
     @Test
     void rejectsInvalidOrWeakSecret() {
-        assertThatThrownBy(() -> properties("not-base64", Duration.ofDays(30)))
+        assertThatThrownBy(() -> createProperties("not-base64", Duration.ofDays(30)))
                 .isInstanceOf(IllegalArgumentException.class);
 
         String weakSecret = Base64.getEncoder().encodeToString("too-short".getBytes(StandardCharsets.UTF_8));
@@ -54,7 +54,7 @@ class JwtPropertiesTest {
                 "guidemate-api"
         )).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> properties(VALID_SECRET, Duration.ofMinutes(15)))
+        assertThatThrownBy(() -> createProperties(VALID_SECRET, Duration.ofMinutes(15)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -69,8 +69,8 @@ class JwtPropertiesTest {
         )).isInstanceOf(IllegalArgumentException.class);
     }
 
-    private JwtProperties properties(String secret, Duration refreshExpiration) {
-        return new JwtProperties(
+    private void createProperties(String secret, Duration refreshExpiration) {
+        new JwtProperties(
                 secret,
                 Duration.ofMinutes(15),
                 refreshExpiration,

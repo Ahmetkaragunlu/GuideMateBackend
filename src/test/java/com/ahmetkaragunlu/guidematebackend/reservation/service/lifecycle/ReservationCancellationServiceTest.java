@@ -99,7 +99,7 @@ class ReservationCancellationServiceTest {
     void rejectsStaleReservationVersionAfterLockingSession() {
         User tourist = tourist();
         UUID reservationId = UUID.randomUUID();
-        Reservation reservation = lockedReservation(reservationId, 3L);
+        Reservation reservation = lockedReservation(reservationId);
 
         assertThatThrownBy(() -> service.cancel(
                 tourist,
@@ -116,7 +116,7 @@ class ReservationCancellationServiceTest {
     void rejectsReservationThatIsAlreadyCompleted() {
         User tourist = tourist();
         UUID reservationId = UUID.randomUUID();
-        Reservation reservation = lockedReservation(reservationId, 3L);
+        Reservation reservation = lockedReservation(reservationId);
         when(reservation.getStatus()).thenReturn(ReservationStatus.COMPLETED);
 
         assertThatThrownBy(() -> service.cancel(
@@ -134,7 +134,7 @@ class ReservationCancellationServiceTest {
     void cancelsWithoutRefundAndPublishesBothParticipantNotifications() {
         User tourist = tourist();
         UUID reservationId = UUID.randomUUID();
-        Reservation reservation = lockedReservation(reservationId, 3L);
+        Reservation reservation = lockedReservation(reservationId);
         when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
         TourSession session = org.mockito.Mockito.mock(TourSession.class);
         Tour tour = org.mockito.Mockito.mock(Tour.class);
@@ -187,7 +187,7 @@ class ReservationCancellationServiceTest {
         return tourist;
     }
 
-    private Reservation lockedReservation(UUID reservationId, long version) {
+    private Reservation lockedReservation(UUID reservationId) {
         Reservation reservation = org.mockito.Mockito.mock(Reservation.class);
         when(reservationRepository.findByTourist_IdAndCancellationIdempotencyKey(
                 org.mockito.ArgumentMatchers.eq(42L),
@@ -196,7 +196,7 @@ class ReservationCancellationServiceTest {
         when(reservationRepository.findOwnedDetails(reservationId, 42L)).thenReturn(Optional.of(reservation));
         when(reservationRepository.findOwnedByIdForUpdate(reservationId, 42L)).thenReturn(Optional.of(reservation));
         when(reservation.getId()).thenReturn(reservationId);
-        when(reservation.getVersion()).thenReturn(version);
+        when(reservation.getVersion()).thenReturn(3L);
         return reservation;
     }
 }

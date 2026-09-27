@@ -1,8 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.media.storage;
 
 import com.ahmetkaragunlu.guidematebackend.media.config.MediaProperties;
-import com.ahmetkaragunlu.guidematebackend.media.storage.LocalMediaStorage;
-import com.ahmetkaragunlu.guidematebackend.media.storage.MediaStorageException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.util.unit.DataSize;

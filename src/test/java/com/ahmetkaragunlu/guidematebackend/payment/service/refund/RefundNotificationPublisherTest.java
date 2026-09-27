@@ -69,6 +69,8 @@ class RefundNotificationPublisherTest {
         assertThat(command.payload()).containsEntry("reservationId", reservationId.toString());
         assertThat(command.payload()).containsEntry("tourId", tourId.toString());
         assertThat(command.payload()).containsEntry("amountMinor", 1_000L);
+        assertThat(command.payload()).containsEntry("currencyCode", "USD");
         assertThat(command.payload()).containsEntry("chargeAmountMinor", 900L);
+        assertThat(command.payload()).containsEntry("chargeCurrencyCode", "EUR");
     }
 }

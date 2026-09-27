@@ -1,8 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.common.security.jwt;
 
-import com.ahmetkaragunlu.guidematebackend.common.security.jwt.JwtProperties;
+
 import com.ahmetkaragunlu.guidematebackend.support.MutableClock;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

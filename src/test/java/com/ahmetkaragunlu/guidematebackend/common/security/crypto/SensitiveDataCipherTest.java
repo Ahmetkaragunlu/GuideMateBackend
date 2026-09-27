@@ -1,6 +1,5 @@
 package com.ahmetkaragunlu.guidematebackend.common.security.crypto;
 
-import com.ahmetkaragunlu.guidematebackend.common.security.crypto.DataProtectionProperties;
 import org.junit.jupiter.api.Test;
 
 import java.util.Base64;

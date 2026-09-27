@@ -9,7 +9,6 @@ import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationComm
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPayloadCodec;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationService;
-import com.ahmetkaragunlu.guidematebackend.user.domain.AccountStatus;
 import com.ahmetkaragunlu.guidematebackend.user.domain.Role;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

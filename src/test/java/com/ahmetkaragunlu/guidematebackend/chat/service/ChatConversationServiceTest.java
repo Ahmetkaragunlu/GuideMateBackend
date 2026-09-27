@@ -64,8 +64,8 @@ class ChatConversationServiceTest {
 
     @Test
     void rejectsParticipantsWithSameRole() {
-        User first = participant(RoleType.ROLE_TOURIST);
-        User second = participant(RoleType.ROLE_TOURIST);
+        User first = participant();
+        User second = participant();
         when(first.getId()).thenReturn(1L);
         when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(first));
         when(userRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(second));
@@ -89,12 +89,12 @@ class ChatConversationServiceTest {
         verifyNoInteractions(conversationRepository);
     }
 
-    private User participant(RoleType roleType) {
+    private User participant() {
         User user = mock(User.class);
         Role role = mock(Role.class);
         when(user.getAccountStatus()).thenReturn(AccountStatus.ACTIVE);
         when(user.getRole()).thenReturn(role);
-        when(user.hasRole(any(RoleType.class))).thenAnswer(invocation -> invocation.getArgument(0) == roleType);
+        when(user.hasRole(any(RoleType.class))).thenAnswer(invocation -> invocation.getArgument(0) == RoleType.ROLE_TOURIST);
         return user;
     }
 

@@ -53,7 +53,7 @@ class MessageBundleContractTest {
 
         assertThat(violations)
                 .extracting(ConstraintViolation::getMessage)
-                .containsExactly("Profil foto\u011Fraf\u0131 se\u00E7ilmelidir");
+                .containsExactly("Profil fotoğrafı seçilmelidir");
         validator.close();
     }
 
@@ -66,7 +66,7 @@ class MessageBundleContractTest {
 
         assertThat(violations)
                 .extracting(ConstraintViolation::getMessage)
-                .containsExactly("Puan en fazla 5 olmal\u0131d\u0131r");
+                .containsExactly("Puan en fazla 5 olmalıdır");
         validator.close();
     }
 
@@ -99,7 +99,7 @@ class MessageBundleContractTest {
 
         assertThat(validator.validate(new WithdrawalRequest(null, 1)))
                 .extracting(ConstraintViolation::getMessage)
-                .containsExactly("Banka hesab\u0131 se\u00E7ilmelidir");
+                .containsExactly("Banka hesabı seçilmelidir");
         validator.close();
     }
 

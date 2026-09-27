@@ -63,7 +63,7 @@ class AdminAccountSeederTest {
     }
 
     @Test
-    void createsActiveAdminWithEncodedPassword() throws Exception {
+    void createsActiveAdminWithEncodedPassword() {
         Role role = mock(Role.class);
         when(role.getName()).thenReturn(RoleType.ROLE_ADMIN.name());
         when(userRepository.findByEmailWithRole("admin@example.com")).thenReturn(Optional.empty());

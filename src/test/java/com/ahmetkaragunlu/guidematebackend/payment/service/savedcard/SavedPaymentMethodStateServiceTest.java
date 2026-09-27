@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,7 +55,7 @@ class SavedPaymentMethodStateServiceTest {
         when(dataCipher.encrypt("card-token")).thenReturn("encrypted-card");
         when(methodRepository.findByUserIdForUpdate(42L)).thenReturn(new ArrayList<>());
 
-        service.capture(42L, card("customer-key", "card-token", "0006"));
+        service.capture(42L, card("0006"));
 
         verify(customerRepository).saveAndFlush(any(PaymentProviderCustomer.class));
         verify(methodRepository).save(org.mockito.ArgumentMatchers.argThat(method ->
@@ -75,16 +74,16 @@ class SavedPaymentMethodStateServiceTest {
         when(dataCipher.fingerprint("card-token")).thenReturn("card-fingerprint");
         when(methodRepository.findByUserIdForUpdate(42L)).thenReturn(new ArrayList<>());
 
-        assertThatThrownBy(() -> service.capture(42L, card("customer-key", "card-token", "12AB")))
+        assertThatThrownBy(() -> service.capture(42L, card("12AB")))
                 .isInstanceOfSatisfying(BusinessException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.SAVED_CARD_SYNC_FAILED));
         verify(methodRepository, never()).save(any());
     }
 
-    private ProviderCardDetails card(String customerKey, String token, String lastFourDigits) {
+    private ProviderCardDetails card(String lastFourDigits) {
         return new ProviderCardDetails(
-                customerKey,
-                token,
+                "customer-key",
+                "card-token",
                 "Kişisel kart",
                 "Test Bank",
                 "1",

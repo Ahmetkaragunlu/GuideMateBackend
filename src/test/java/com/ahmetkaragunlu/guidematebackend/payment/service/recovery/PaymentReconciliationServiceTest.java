@@ -7,6 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.payment.processing.PaymentVerificationService;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +59,7 @@ class PaymentReconciliationServiceTest {
         when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
         when(payment.getMethod()).thenReturn(PaymentMethod.WALLET);
 
-        assertError(() -> service.reconcile(paymentId), ErrorCode.PAYMENT_VERIFICATION_FAILED);
+        assertError(() -> service.reconcile(paymentId));
     }
 
     @Test
@@ -70,12 +71,12 @@ class PaymentReconciliationServiceTest {
         when(payment.getProviderTokenEncrypted()).thenReturn("corrupt");
         when(dataCipher.decrypt("corrupt")).thenThrow(new IllegalArgumentException("cipher detail"));
 
-        assertError(() -> service.reconcile(paymentId), ErrorCode.PAYMENT_VERIFICATION_FAILED);
+        assertError(() -> service.reconcile(paymentId));
     }
 
-    private void assertError(org.assertj.core.api.ThrowableAssert.ThrowingCallable action, ErrorCode code) {
+    private void assertError(ThrowableAssert.ThrowingCallable action) {
         assertThatThrownBy(action)
                 .isInstanceOfSatisfying(BusinessException.class, exception ->
-                        assertThat(exception.getErrorCode()).isEqualTo(code));
+                        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.PAYMENT_VERIFICATION_FAILED));
     }
 }
