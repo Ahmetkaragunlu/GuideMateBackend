@@ -12,7 +12,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.VerifiedPaym
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentEventRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.payment.ProviderFailureCodeMapper;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class PaymentResultService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentEventRepository paymentEventRepository;
-    private final ReservationBookingService reservationBookingService;
+    private final ReservationFinalizationService reservationFinalizationService;
     private final PaymentSettlementService settlementService;
     private final ProviderFailureCodeMapper failureCodeMapper;
     private final SensitiveDataCipher dataCipher;
@@ -44,7 +44,7 @@ public class PaymentResultService {
         Payment snapshot = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
         if (snapshot.getReservation() != null) {
-            reservationBookingService.lockSessionForReservation(snapshot.getReservation().getId());
+            reservationFinalizationService.lockSessionForReservation(snapshot.getReservation().getId());
         }
         Payment payment = paymentRepository.findByIdForUpdate(paymentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));

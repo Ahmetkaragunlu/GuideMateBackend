@@ -10,7 +10,8 @@ import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.checkout.Hos
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.quote.PaymentQuoteStateService;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +46,8 @@ class PaymentIntentServiceTest {
     @Mock
     private ReservationBookingService reservationBookingService;
     @Mock
+    private ReservationFinalizationService reservationFinalizationService;
+    @Mock
     private IdempotencyKeyPolicy idempotencyKeyPolicy;
     @Mock
     private SensitiveDataCipher dataCipher;
@@ -59,6 +62,7 @@ class PaymentIntentServiceTest {
                 paymentRepository,
                 userRepository,
                 reservationBookingService,
+                reservationFinalizationService,
                 idempotencyKeyPolicy,
                 dataCipher,
                 paymentQuoteStateService,
@@ -125,9 +129,9 @@ class PaymentIntentServiceTest {
 
         service.failInitialization(paymentId, "CARD_DECLINED");
 
-        verify(reservationBookingService).lockSessionForReservation(reservationId);
+        verify(reservationFinalizationService).lockSessionForReservation(reservationId);
         verify(payment).fail("CARD_DECLINED");
-        verify(reservationBookingService).expire(reservationId);
+        verify(reservationFinalizationService).expire(reservationId);
     }
 
     @Test

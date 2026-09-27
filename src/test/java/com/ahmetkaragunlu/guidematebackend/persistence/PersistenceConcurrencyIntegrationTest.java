@@ -20,12 +20,12 @@ import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
-import com.ahmetkaragunlu.guidematebackend.reservation.dto.CancelReservationRequest;
-import com.ahmetkaragunlu.guidematebackend.reservation.dto.ReservationCancellationResponse;
+import com.ahmetkaragunlu.guidematebackend.reservation.dto.request.CancelReservationRequest;
+import com.ahmetkaragunlu.guidematebackend.reservation.dto.response.ReservationCancellationResponse;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationCapacityService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.lifecycle.ReservationCancellationService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourChangeSnapshot;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;
@@ -92,7 +92,7 @@ class PersistenceConcurrencyIntegrationTest {
     @Autowired
     private RefundRepository refundRepository;
     @Autowired
-    private ReservationService reservationService;
+    private ReservationCancellationService reservationCancellationService;
     @Autowired
     private ReservationBookingService reservationBookingService;
     @Autowired
@@ -276,13 +276,13 @@ class PersistenceConcurrencyIntegrationTest {
         Reservation reservation = reservationRepository.findById(payment.getReservation().getId()).orElseThrow();
         String cancellationKey = "wallet-cancel-" + UUID.randomUUID();
 
-        ReservationCancellationResponse first = reservationService.cancel(
+        ReservationCancellationResponse first = reservationCancellationService.cancel(
                 tourist,
                 reservation.getId(),
                 cancellationKey,
                 new CancelReservationRequest(reservation.getVersion(), "Plans changed")
         );
-        ReservationCancellationResponse retry = reservationService.cancel(
+        ReservationCancellationResponse retry = reservationCancellationService.cancel(
                 tourist,
                 reservation.getId(),
                 cancellationKey,

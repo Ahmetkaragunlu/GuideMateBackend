@@ -2,8 +2,8 @@ package com.ahmetkaragunlu.guidematebackend.review.mapper;
 
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.review.domain.Review;
-import com.ahmetkaragunlu.guidematebackend.review.dto.ReviewResponse;
-import com.ahmetkaragunlu.guidematebackend.review.dto.TourReviewResponse;
+import com.ahmetkaragunlu.guidematebackend.review.dto.response.ReviewResponse;
+import com.ahmetkaragunlu.guidematebackend.review.dto.response.TourReviewResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

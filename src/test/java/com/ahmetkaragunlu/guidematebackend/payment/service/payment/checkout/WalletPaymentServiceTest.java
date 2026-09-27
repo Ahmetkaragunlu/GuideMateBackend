@@ -6,8 +6,9 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentPurpose;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
@@ -42,6 +43,7 @@ class WalletPaymentServiceTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private UserRepository userRepository;
     @Mock private ReservationBookingService reservationBookingService;
+    @Mock private ReservationFinalizationService reservationFinalizationService;
     @Mock private WalletAccountService walletAccountService;
     @Mock private GuideEarningService guideEarningService;
     @Mock private IdempotencyKeyPolicy idempotencyKeyPolicy;
@@ -54,6 +56,7 @@ class WalletPaymentServiceTest {
                 paymentRepository,
                 userRepository,
                 reservationBookingService,
+                reservationFinalizationService,
                 walletAccountService,
                 guideEarningService,
                 idempotencyKeyPolicy,
@@ -84,7 +87,7 @@ class WalletPaymentServiceTest {
         when(walletAccountService.getOrCreateForUpdate(tourist)).thenReturn(wallet);
         when(paymentRepository.saveAndFlush(any(Payment.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(reservationBookingService.finalizeAfterPaymentVerification(reservation.getId()))
+        when(reservationFinalizationService.finalizeAfterPaymentVerification(reservation.getId()))
                 .thenReturn(new ReservationFinalizationResult(reservation, false));
 
         Payment payment = service.purchaseTour(tourist, sessionId, 2, "wallet-key");

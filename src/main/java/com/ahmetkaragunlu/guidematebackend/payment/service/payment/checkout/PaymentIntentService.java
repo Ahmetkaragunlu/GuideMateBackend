@@ -13,7 +13,8 @@ import com.ahmetkaragunlu.guidematebackend.payment.gateway.provider.checkout.Hos
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.quote.PaymentQuoteStateService;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
@@ -33,6 +34,7 @@ public class PaymentIntentService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final ReservationBookingService reservationBookingService;
+    private final ReservationFinalizationService reservationFinalizationService;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final SensitiveDataCipher dataCipher;
     private final PaymentQuoteStateService paymentQuoteStateService;
@@ -134,7 +136,7 @@ public class PaymentIntentService {
         }
         payment.fail(providerFailureCode);
         if (payment.getReservation() != null) {
-            reservationBookingService.expire(payment.getReservation().getId());
+            reservationFinalizationService.expire(payment.getReservation().getId());
         }
     }
 
@@ -153,7 +155,7 @@ public class PaymentIntentService {
         }
         payment.cancel();
         if (payment.getReservation() != null) {
-            reservationBookingService.expire(payment.getReservation().getId());
+            reservationFinalizationService.expire(payment.getReservation().getId());
         }
         return payment;
     }
@@ -185,7 +187,7 @@ public class PaymentIntentService {
         Payment snapshot = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
         if (snapshot.getReservation() != null) {
-            reservationBookingService.lockSessionForReservation(snapshot.getReservation().getId());
+            reservationFinalizationService.lockSessionForReservation(snapshot.getReservation().getId());
         }
     }
 

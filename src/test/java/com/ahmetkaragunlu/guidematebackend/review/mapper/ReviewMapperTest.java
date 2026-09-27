@@ -4,7 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.review.domain.Review;
-import com.ahmetkaragunlu.guidematebackend.review.dto.TourReviewResponse;
+import com.ahmetkaragunlu.guidematebackend.review.dto.response.TourReviewResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import org.junit.jupiter.api.Test;
 

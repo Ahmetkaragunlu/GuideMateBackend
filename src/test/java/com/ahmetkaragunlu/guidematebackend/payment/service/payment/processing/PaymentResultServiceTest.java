@@ -12,7 +12,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentEventReposi
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.service.payment.ProviderFailureCodeMapper;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +42,7 @@ class PaymentResultServiceTest {
     @Mock
     private PaymentEventRepository paymentEventRepository;
     @Mock
-    private ReservationBookingService reservationBookingService;
+    private ReservationFinalizationService reservationFinalizationService;
     @Mock
     private PaymentSettlementService settlementService;
     @Mock
@@ -59,7 +59,7 @@ class PaymentResultServiceTest {
         service = new PaymentResultService(
                 paymentRepository,
                 paymentEventRepository,
-                reservationBookingService,
+                reservationFinalizationService,
                 settlementService,
                 failureCodeMapper,
                 dataCipher,

@@ -3,7 +3,7 @@ package com.ahmetkaragunlu.guidematebackend.tour.service;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationLifecycleService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.lifecycle.ReservationLifecycleService;
 import com.ahmetkaragunlu.guidematebackend.support.TestSchedulerProperties;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;

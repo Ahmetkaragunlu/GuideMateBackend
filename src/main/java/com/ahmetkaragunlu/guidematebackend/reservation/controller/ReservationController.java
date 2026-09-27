@@ -3,10 +3,11 @@ package com.ahmetkaragunlu.guidematebackend.reservation.controller;
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationTripStatus;
-import com.ahmetkaragunlu.guidematebackend.reservation.dto.CancelReservationRequest;
-import com.ahmetkaragunlu.guidematebackend.reservation.dto.ReservationCancellationResponse;
-import com.ahmetkaragunlu.guidematebackend.reservation.dto.ReservationResponse;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationService;
+import com.ahmetkaragunlu.guidematebackend.reservation.dto.request.CancelReservationRequest;
+import com.ahmetkaragunlu.guidematebackend.reservation.dto.response.ReservationCancellationResponse;
+import com.ahmetkaragunlu.guidematebackend.reservation.dto.response.ReservationResponse;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.lifecycle.ReservationCancellationService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.query.ReservationQueryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -41,7 +42,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReservationController {
 
-    private final ReservationService reservationService;
+    private final ReservationQueryService reservationQueryService;
+    private final ReservationCancellationService reservationCancellationService;
 
     @Operation(summary = "List authenticated tourist trips")
     @GetMapping("/me")
@@ -51,7 +53,7 @@ public class ReservationController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size,
             @AuthenticationPrincipal User currentUser
     ) {
-        return ResponseEntity.ok(reservationService.getMyTrips(currentUser, status, page, size));
+        return ResponseEntity.ok(reservationQueryService.getMyTrips(currentUser, status, page, size));
     }
 
     @Operation(summary = "Get an authenticated tourist-owned reservation")
@@ -60,7 +62,7 @@ public class ReservationController {
             @PathVariable UUID reservationId,
             @AuthenticationPrincipal User currentUser
     ) {
-        return ResponseEntity.ok(reservationService.getOwnedReservation(currentUser, reservationId));
+        return ResponseEntity.ok(reservationQueryService.getOwnedReservation(currentUser, reservationId));
     }
 
     @Operation(summary = "Cancel an authenticated tourist-owned reservation")
@@ -74,7 +76,7 @@ public class ReservationController {
             @Valid @RequestBody CancelReservationRequest request,
             @AuthenticationPrincipal User currentUser
     ) {
-        return ResponseEntity.ok(reservationService.cancel(
+        return ResponseEntity.ok(reservationCancellationService.cancel(
                 currentUser,
                 reservationId,
                 idempotencyKey,

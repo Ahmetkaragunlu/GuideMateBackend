@@ -5,8 +5,8 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentPurpose
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.service.refund.PaymentRefundService;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
 import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
@@ -22,7 +22,7 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class PaymentSettlementService {
 
-    private final ReservationBookingService reservationBookingService;
+    private final ReservationFinalizationService reservationFinalizationService;
     private final PaymentRefundService refundService;
     private final WalletAccountService walletAccountService;
     private final GuideEarningService guideEarningService;
@@ -46,7 +46,7 @@ public class PaymentSettlementService {
 
         Reservation reservation = payment.getReservation();
         if (previousStatus == PaymentStatus.CANCELLED) {
-            reservationBookingService.expire(reservation.getId());
+            reservationFinalizationService.expire(reservation.getId());
             refundService.requestFullRefund(
                     payment.getId(),
                     payment.getUser(),
@@ -55,7 +55,7 @@ public class PaymentSettlementService {
             return;
         }
         ReservationFinalizationResult finalization =
-                reservationBookingService.finalizeAfterPaymentVerification(reservation.getId());
+                reservationFinalizationService.finalizeAfterPaymentVerification(reservation.getId());
         if (finalization.refundRequired()) {
             refundService.requestFullRefund(
                     payment.getId(),
@@ -69,7 +69,7 @@ public class PaymentSettlementService {
 
     void expireReservationAfterFailure(Payment payment) {
         if (payment.getReservation() != null) {
-            reservationBookingService.expire(payment.getReservation().getId());
+            reservationFinalizationService.expire(payment.getReservation().getId());
         }
     }
 

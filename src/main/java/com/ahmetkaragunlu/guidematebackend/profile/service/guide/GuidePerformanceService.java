@@ -4,8 +4,8 @@ import com.ahmetkaragunlu.guidematebackend.profile.domain.GuidePerformanceSummar
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.GuideParticipantSummary;
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
+import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
+import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSessionStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.GuideCompletedSessionCount;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;

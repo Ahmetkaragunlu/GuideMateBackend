@@ -8,8 +8,9 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentMethod;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentPurpose;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
@@ -33,6 +34,7 @@ public class WalletPaymentService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final ReservationBookingService reservationBookingService;
+    private final ReservationFinalizationService reservationFinalizationService;
     private final WalletAccountService walletAccountService;
     private final GuideEarningService guideEarningService;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
@@ -84,7 +86,7 @@ public class WalletPaymentService {
                 )
         );
         ReservationFinalizationResult finalization =
-                reservationBookingService.finalizeAfterPaymentVerification(reservation.getId());
+                reservationFinalizationService.finalizeAfterPaymentVerification(reservation.getId());
         if (finalization.refundRequired()) {
             throw new BusinessException(ErrorCode.DATA_CONFLICT);
         }

@@ -2,10 +2,10 @@ package com.ahmetkaragunlu.guidematebackend.review.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
-import com.ahmetkaragunlu.guidematebackend.review.dto.CreateReviewRequest;
-import com.ahmetkaragunlu.guidematebackend.review.dto.ReviewResponse;
-import com.ahmetkaragunlu.guidematebackend.review.dto.TourReviewResponse;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
+import com.ahmetkaragunlu.guidematebackend.review.dto.request.CreateReviewRequest;
+import com.ahmetkaragunlu.guidematebackend.review.dto.response.ReviewResponse;
+import com.ahmetkaragunlu.guidematebackend.review.dto.response.TourReviewResponse;
+import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.review.service.ReviewService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;

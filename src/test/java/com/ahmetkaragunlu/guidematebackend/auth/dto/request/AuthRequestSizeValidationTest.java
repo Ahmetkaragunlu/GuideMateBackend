@@ -3,6 +3,8 @@ package com.ahmetkaragunlu.guidematebackend.auth.dto.request;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -15,7 +17,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AuthRequestSizeValidationTest {
 
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
+    private static final Validator VALIDATOR = VALIDATOR_FACTORY.getValidator();
+
+    @AfterAll
+    static void closeValidatorFactory() {
+        VALIDATOR_FACTORY.close();
+    }
 
     @ParameterizedTest
     @MethodSource("oversizedAuthRequests")
@@ -61,7 +69,7 @@ class AuthRequestSizeValidationTest {
     }
 
     private Set<ConstraintViolation<Object>> sizeViolations(Object request) {
-        return validator.validate(request).stream()
+        return VALIDATOR.validate(request).stream()
                 .filter(violation -> "Size".equals(
                         violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName()
                 ))

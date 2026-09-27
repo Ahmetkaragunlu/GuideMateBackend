@@ -8,7 +8,7 @@ import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
+import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.tour.config.TourProperties;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;

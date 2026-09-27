@@ -4,7 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.common.config.application.AppProperti
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaUrlFactory;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewAggregate;
+import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourApprovalStatus;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSession;

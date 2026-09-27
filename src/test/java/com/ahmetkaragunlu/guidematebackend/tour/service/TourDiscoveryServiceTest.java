@@ -2,8 +2,8 @@ package com.ahmetkaragunlu.guidematebackend.tour.service;
 
 import com.ahmetkaragunlu.guidematebackend.common.validation.LanguageCodePolicy;
 import com.ahmetkaragunlu.guidematebackend.profile.repository.GuideProfileRepository;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationCapacityService;
-import com.ahmetkaragunlu.guidematebackend.review.service.ReviewQueryService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationCapacityService;
+import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewQueryService;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.TourSearchSort;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.TourSearchRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.mapper.TourMapper;

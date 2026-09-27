@@ -5,8 +5,8 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentPurpose
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentStatus;
 import com.ahmetkaragunlu.guidematebackend.payment.service.refund.PaymentRefundService;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationFinalizationResult;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
@@ -36,7 +36,7 @@ class PaymentSettlementServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-08-13T00:00:00Z");
 
-    @Mock private ReservationBookingService reservationBookingService;
+    @Mock private ReservationFinalizationService reservationFinalizationService;
     @Mock private PaymentRefundService refundService;
     @Mock private WalletAccountService walletAccountService;
     @Mock private GuideEarningService guideEarningService;
@@ -46,7 +46,7 @@ class PaymentSettlementServiceTest {
     @BeforeEach
     void setUp() {
         service = new PaymentSettlementService(
-                reservationBookingService,
+                reservationFinalizationService,
                 refundService,
                 walletAccountService,
                 guideEarningService,
@@ -60,7 +60,7 @@ class PaymentSettlementServiceTest {
 
         service.settleSuccessful(fixture.payment(), PaymentStatus.TIMEOUT);
 
-        verify(reservationBookingService).finalizeAfterPaymentVerification(fixture.reservation().getId());
+        verify(reservationFinalizationService).finalizeAfterPaymentVerification(fixture.reservation().getId());
         verify(guideEarningService).createPending(fixture.reservation());
         verify(refundService, never()).requestFullRefund(any(), any(), any());
     }
@@ -127,7 +127,7 @@ class PaymentSettlementServiceTest {
         when(payment.getPurpose()).thenReturn(PaymentPurpose.TOUR_BOOKING);
         when(payment.getReservation()).thenReturn(reservation);
         when(reservation.getId()).thenReturn(reservationId);
-        when(reservationBookingService.finalizeAfterPaymentVerification(reservationId))
+        when(reservationFinalizationService.finalizeAfterPaymentVerification(reservationId))
                 .thenReturn(new ReservationFinalizationResult(reservation, refundRequired));
         return new SettlementFixture(paymentId, payment, reservation, user);
     }

@@ -6,7 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.RefundRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.PurchaseSnapshot;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.PurchaseSnapshotCodec;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.snapshot.PurchaseSnapshotCodec;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarning;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;

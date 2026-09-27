@@ -10,8 +10,8 @@ import com.ahmetkaragunlu.guidematebackend.payment.dto.response.PaymentQuoteResp
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRate;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRateProvider;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRateUnavailableException;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationPurchasePreview;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationPurchasePreview;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import lombok.RequiredArgsConstructor;

@@ -7,7 +7,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.domain.checkout.PaymentFxQuot
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.PaymentPurpose;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentFxQuoteRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationPurchasePreview;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationPurchasePreview;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;

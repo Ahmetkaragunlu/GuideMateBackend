@@ -6,7 +6,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.checkout.PaymentFxQuote;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRate;
 import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRateProvider;
-import com.ahmetkaragunlu.guidematebackend.reservation.service.ReservationBookingService;
+import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
