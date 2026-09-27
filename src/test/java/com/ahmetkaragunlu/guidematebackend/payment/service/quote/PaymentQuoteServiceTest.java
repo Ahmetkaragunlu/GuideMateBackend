@@ -9,7 +9,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.gateway.exchange.ExchangeRate
 import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationBookingService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.PayoutMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.repository;
 
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.Withdrawal;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.WithdrawalStatus;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.Withdrawal;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.WithdrawalStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

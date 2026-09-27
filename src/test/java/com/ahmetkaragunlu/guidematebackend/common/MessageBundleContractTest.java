@@ -5,6 +5,7 @@ import com.ahmetkaragunlu.guidematebackend.profile.dto.request.UpdateUserAvatarR
 import com.ahmetkaragunlu.guidematebackend.review.dto.request.CreateReviewRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.query.TourSearchRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.search.TourSearchSort;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.request.WithdrawalRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -89,6 +90,16 @@ class MessageBundleContractTest {
         assertThat(validator.validate(request))
                 .extracting(ConstraintViolation::getMessage)
                 .containsExactly("Arama metni en fazla 100 karakter olabilir");
+        validator.close();
+    }
+
+    @Test
+    void resolvesWalletValidationFromCentralBundle() {
+        LocalValidatorFactoryBean validator = createValidator();
+
+        assertThat(validator.validate(new WithdrawalRequest(null, 1)))
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly("Banka hesab\u0131 se\u00E7ilmelidir");
         validator.close();
     }
 

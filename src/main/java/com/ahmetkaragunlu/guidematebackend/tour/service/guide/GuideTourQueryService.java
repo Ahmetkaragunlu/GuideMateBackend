@@ -19,7 +19,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.service.discovery.TourDetailQueryService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -57,7 +57,7 @@ public class GuideTourQueryService {
     private final ReservationCapacityService capacityService;
     private final ReviewQueryService reviewQueryService;
     private final TourDetailQueryService tourDetailQueryService;
-    private final GuideEarningService guideEarningService;
+    private final GuideEarningQueryService guideEarningService;
 
     private final Clock clock;
 

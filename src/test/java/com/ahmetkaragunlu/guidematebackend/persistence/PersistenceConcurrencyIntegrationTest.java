@@ -38,13 +38,13 @@ import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.RoleRepository;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.ledger.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarningStatus;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.earning.GuideEarningStatus;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.GuideEarningRepository;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.WalletLedgerRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletAccountService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletEntryCommand;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletAccountService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletEntryCommand;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -374,7 +374,7 @@ class PersistenceConcurrencyIntegrationTest {
         }
     }
 
-    private com.ahmetkaragunlu.guidematebackend.wallet.service.WalletBalance walletBalance(Long userId) {
+    private com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletBalance walletBalance(Long userId) {
         User user = userRepository.findById(userId).orElseThrow();
         return walletAccountService.getBalance(user);
     }

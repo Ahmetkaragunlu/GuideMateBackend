@@ -1,13 +1,13 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.mapper;
 
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.BankAccount;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarning;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.WalletLedgerEntry;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.Withdrawal;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.BankAccountResponse;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.GuideEarningResponse;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.WalletTransactionResponse;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.WithdrawalResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.BankAccount;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.earning.GuideEarning;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.ledger.WalletLedgerEntry;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.Withdrawal;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.BankAccountResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.GuideEarningResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.WalletTransactionResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.WithdrawalResponse;
 import org.springframework.stereotype.Component;
 
 @Component

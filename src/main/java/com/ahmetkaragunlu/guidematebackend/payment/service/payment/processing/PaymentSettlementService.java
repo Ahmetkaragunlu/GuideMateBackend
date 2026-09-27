@@ -7,11 +7,11 @@ import com.ahmetkaragunlu.guidematebackend.payment.service.refund.PaymentRefundS
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationFinalizationResult;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.ledger.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletAccountService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletEntryCommand;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningLifecycleService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletAccountService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletEntryCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +25,7 @@ public class PaymentSettlementService {
     private final ReservationFinalizationService reservationFinalizationService;
     private final PaymentRefundService refundService;
     private final WalletAccountService walletAccountService;
-    private final GuideEarningService guideEarningService;
+    private final GuideEarningLifecycleService guideEarningService;
     private final Clock clock;
 
     void settleSuccessful(Payment payment, PaymentStatus previousStatus) {

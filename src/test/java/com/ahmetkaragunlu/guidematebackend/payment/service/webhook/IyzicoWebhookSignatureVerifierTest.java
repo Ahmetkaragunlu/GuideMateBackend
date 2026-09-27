@@ -2,7 +2,7 @@ package com.ahmetkaragunlu.guidematebackend.payment.service.webhook;
 
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
 import com.ahmetkaragunlu.guidematebackend.payment.dto.request.IyzicoWebhookRequest;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.PayoutMode;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;

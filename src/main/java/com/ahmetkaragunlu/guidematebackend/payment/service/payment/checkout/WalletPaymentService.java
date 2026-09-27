@@ -13,11 +13,11 @@ import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.Reservati
 import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.ledger.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletAccountService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletEntryCommand;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningLifecycleService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletAccountService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletEntryCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +36,7 @@ public class WalletPaymentService {
     private final ReservationBookingService reservationBookingService;
     private final ReservationFinalizationService reservationFinalizationService;
     private final WalletAccountService walletAccountService;
-    private final GuideEarningService guideEarningService;
+    private final GuideEarningLifecycleService guideEarningService;
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final Clock clock;
 

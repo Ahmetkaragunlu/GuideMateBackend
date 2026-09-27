@@ -15,7 +15,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.mapper.TourMapper;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourRepository;
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningQueryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -53,7 +53,7 @@ class GuideTourQueryServiceTest {
     @Mock
     private TourDetailQueryService tourDetailQueryService;
     @Mock
-    private GuideEarningService guideEarningService;
+    private GuideEarningQueryService guideEarningService;
     @Mock
     private Clock clock;
 

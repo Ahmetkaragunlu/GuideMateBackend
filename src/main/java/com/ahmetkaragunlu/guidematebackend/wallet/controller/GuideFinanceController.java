@@ -3,18 +3,18 @@ package com.ahmetkaragunlu.guidematebackend.wallet.controller;
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.BankAccount;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.Withdrawal;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.AddBankAccountRequest;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.BankAccountResponse;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.GuideEarningResponse;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.MonthlyGuideEarningResponse;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.WithdrawalRequest;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.WithdrawalResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.BankAccount;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.Withdrawal;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.request.AddBankAccountRequest;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.BankAccountResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.GuideEarningResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.MonthlyGuideEarningResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.request.WithdrawalRequest;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.WithdrawalResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.mapper.WalletMapper;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.BankAccountService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WithdrawalService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.payout.BankAccountService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningQueryService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.payout.WithdrawalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -50,7 +50,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GuideFinanceController {
 
-    private final GuideEarningService guideEarningService;
+    private final GuideEarningQueryService guideEarningService;
     private final BankAccountService bankAccountService;
     private final WithdrawalService withdrawalService;
     private final WalletMapper walletMapper;

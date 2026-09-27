@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.payment.config;
 
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.PayoutMode;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;

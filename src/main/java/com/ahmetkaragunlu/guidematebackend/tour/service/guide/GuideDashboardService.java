@@ -11,7 +11,7 @@ import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuidePerformanceSummary;
 import com.ahmetkaragunlu.guidematebackend.profile.service.guide.GuidePerformanceService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class GuideDashboardService {
 
     private final GuidePerformanceService guidePerformanceService;
     private final TourProperties tourProperties;
-    private final GuideEarningService guideEarningService;
+    private final GuideEarningQueryService guideEarningService;
 
     private final Clock clock;
 

@@ -9,7 +9,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentFxQuoteRepo
 import com.ahmetkaragunlu.guidematebackend.tour.repository.TourSessionRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.PayoutMode;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;

@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.payment.config;
 
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.PayoutMode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.net.URI;

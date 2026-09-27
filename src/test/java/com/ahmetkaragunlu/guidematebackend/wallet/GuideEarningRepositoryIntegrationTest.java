@@ -17,10 +17,10 @@ import com.ahmetkaragunlu.guidematebackend.user.domain.RoleType;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.RoleRepository;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarning;
-import com.ahmetkaragunlu.guidematebackend.wallet.dto.MonthlyGuideEarningResponse;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.earning.GuideEarning;
+import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.MonthlyGuideEarningResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.repository.GuideEarningRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningQueryService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GuideEarningRepositoryIntegrationTest {
 
     @Autowired
-    private GuideEarningService earningService;
+    private GuideEarningQueryService earningService;
     @Autowired
     private GuideEarningRepository earningRepository;
     @Autowired

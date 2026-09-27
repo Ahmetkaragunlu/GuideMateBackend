@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.repository;
 
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerDirection;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.WalletLedgerEntry;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.ledger.LedgerDirection;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.ledger.WalletLedgerEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

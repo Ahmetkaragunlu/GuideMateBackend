@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.repository;
 
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.BankAccount;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.BankAccountStatus;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.BankAccount;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.BankAccountStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

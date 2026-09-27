@@ -20,7 +20,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.mapper.ReservationRespons
 import com.ahmetkaragunlu.guidematebackend.reservation.repository.ReservationRepository;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningLifecycleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ public class ReservationCancellationService {
     private final IdempotencyKeyPolicy idempotencyKeyPolicy;
     private final VersionPolicy versionPolicy;
     private final PaymentRefundService paymentRefundService;
-    private final GuideEarningService guideEarningService;
+    private final GuideEarningLifecycleService guideEarningService;
     private final ReservationFinalizationService finalizationService;
     private final PaymentIntentService paymentIntentService;
     private final NotificationPublisher notificationPublisher;

@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.support;
 
 import com.ahmetkaragunlu.guidematebackend.payment.config.PaymentProperties;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.PayoutMode;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.payout.PayoutMode;
 
 import java.net.URI;
 import java.time.Duration;

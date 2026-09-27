@@ -1,7 +1,9 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.repository;
 
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarning;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.GuideEarningStatus;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.earning.GuideEarning;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.earning.GuideEarningStatus;
+import com.ahmetkaragunlu.guidematebackend.wallet.repository.projection.MonthlyEarningSummary;
+import com.ahmetkaragunlu.guidematebackend.wallet.repository.projection.SessionEarningSummary;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

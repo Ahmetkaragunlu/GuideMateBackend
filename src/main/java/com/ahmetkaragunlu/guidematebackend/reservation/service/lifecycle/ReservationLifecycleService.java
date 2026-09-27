@@ -11,7 +11,7 @@ import com.ahmetkaragunlu.guidematebackend.notification.domain.NotificationType;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationCommand;
 import com.ahmetkaragunlu.guidematebackend.notification.service.NotificationPublisher;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningLifecycleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +33,7 @@ public class ReservationLifecycleService {
     private final ReservationRepository reservationRepository;
     private final CancellationPolicy cancellationPolicy;
     private final PaymentRefundService paymentRefundService;
-    private final GuideEarningService guideEarningService;
+    private final GuideEarningLifecycleService guideEarningService;
     private final PaymentIntentService paymentIntentService;
     private final NotificationPublisher notificationPublisher;
 

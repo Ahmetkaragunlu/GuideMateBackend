@@ -22,7 +22,7 @@ import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.Rese
 import com.ahmetkaragunlu.guidematebackend.tour.domain.tour.Tour;
 import com.ahmetkaragunlu.guidematebackend.tour.domain.session.TourSession;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningLifecycleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +52,7 @@ class ReservationCancellationServiceTest {
     @Mock private ReservationResponseAssembler responseAssembler;
     @Mock private CancellationPolicy cancellationPolicy;
     @Mock private PaymentRefundService paymentRefundService;
-    @Mock private GuideEarningService guideEarningService;
+    @Mock private GuideEarningLifecycleService guideEarningService;
     @Mock private ReservationFinalizationService finalizationService;
     @Mock private PaymentIntentService paymentIntentService;
     @Mock private NotificationPublisher notificationPublisher;

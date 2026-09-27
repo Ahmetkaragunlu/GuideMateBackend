@@ -8,7 +8,7 @@ import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.RefundRepository;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletAccountService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletAccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

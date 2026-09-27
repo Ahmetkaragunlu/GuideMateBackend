@@ -46,7 +46,7 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 
-    @Column(name = "google_subject", unique = true, length = 255)
+    @Column(name = "google_subject", unique = true)
     private String googleSubject;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -130,21 +130,6 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public String getPassword() {
         return password;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
     }
 
     @Override

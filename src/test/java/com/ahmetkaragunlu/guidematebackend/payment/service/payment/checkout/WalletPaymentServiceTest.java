@@ -11,11 +11,11 @@ import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.Reservati
 import com.ahmetkaragunlu.guidematebackend.reservation.service.finalization.ReservationFinalizationService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.user.repository.UserRepository;
-import com.ahmetkaragunlu.guidematebackend.wallet.domain.LedgerEntryType;
+import com.ahmetkaragunlu.guidematebackend.wallet.domain.ledger.LedgerEntryType;
 import com.ahmetkaragunlu.guidematebackend.wallet.domain.Wallet;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.GuideEarningService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletAccountService;
-import com.ahmetkaragunlu.guidematebackend.wallet.service.WalletEntryCommand;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.earning.GuideEarningLifecycleService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletAccountService;
+import com.ahmetkaragunlu.guidematebackend.wallet.service.account.WalletEntryCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +45,7 @@ class WalletPaymentServiceTest {
     @Mock private ReservationBookingService reservationBookingService;
     @Mock private ReservationFinalizationService reservationFinalizationService;
     @Mock private WalletAccountService walletAccountService;
-    @Mock private GuideEarningService guideEarningService;
+    @Mock private GuideEarningLifecycleService guideEarningService;
     @Mock private IdempotencyKeyPolicy idempotencyKeyPolicy;
 
     private WalletPaymentService service;
