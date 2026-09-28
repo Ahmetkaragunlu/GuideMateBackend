@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.review.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.review.dto.request.CreateReviewRequest;
 import com.ahmetkaragunlu.guidematebackend.review.dto.response.ReviewResponse;
 import com.ahmetkaragunlu.guidematebackend.review.dto.response.TourReviewResponse;

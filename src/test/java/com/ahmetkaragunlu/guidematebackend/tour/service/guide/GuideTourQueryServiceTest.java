@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.service.guide;
 
 import com.ahmetkaragunlu.guidematebackend.tour.service.discovery.TourDetailQueryService;
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.reservation.service.booking.ReservationCapacityService;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewAggregate;
 import com.ahmetkaragunlu.guidematebackend.review.service.query.ReviewQueryService;

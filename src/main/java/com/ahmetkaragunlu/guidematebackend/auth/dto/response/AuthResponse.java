@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.auth.dto.response;
 
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 
 public record AuthResponse(
         String accessToken,

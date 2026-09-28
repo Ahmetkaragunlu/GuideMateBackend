@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.profile.service.guide;
 
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuideProfile;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuidePerformanceSummary;

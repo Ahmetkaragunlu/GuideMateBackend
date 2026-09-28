@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.notification.service;
 
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
-import com.ahmetkaragunlu.guidematebackend.common.dto.UnreadCountResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.UnreadCountResponse;
 import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.notification.domain.Notification;

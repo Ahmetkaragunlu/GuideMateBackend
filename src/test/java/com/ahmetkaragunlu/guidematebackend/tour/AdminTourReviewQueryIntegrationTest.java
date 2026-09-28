@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour;
 
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
 import com.ahmetkaragunlu.guidematebackend.media.repository.MediaAssetRepository;

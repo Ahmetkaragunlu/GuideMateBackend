@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.review.mapper;
 
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;
 import com.ahmetkaragunlu.guidematebackend.review.domain.Review;

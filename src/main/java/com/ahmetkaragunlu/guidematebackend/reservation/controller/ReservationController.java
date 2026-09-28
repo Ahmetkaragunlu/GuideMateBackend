@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.ReservationTripStatus;
 import com.ahmetkaragunlu.guidematebackend.reservation.dto.request.CancelReservationRequest;
 import com.ahmetkaragunlu.guidematebackend.reservation.dto.response.ReservationCancellationResponse;

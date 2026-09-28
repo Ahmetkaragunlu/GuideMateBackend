@@ -2,8 +2,8 @@ package com.ahmetkaragunlu.guidematebackend.media.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaDeletionResponse;
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaUploadResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaDeletionResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaUploadResponse;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaContent;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.media.service.policy.MediaUploadPolicy;

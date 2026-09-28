@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.dto.response.tour;
 
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 
 import java.time.Instant;
 import java.util.List;

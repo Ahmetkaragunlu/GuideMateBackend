@@ -4,7 +4,7 @@ import com.ahmetkaragunlu.guidematebackend.common.exception.BusinessException;
 import com.ahmetkaragunlu.guidematebackend.common.exception.ErrorCode;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaAsset;
 import com.ahmetkaragunlu.guidematebackend.media.domain.MediaPurpose;
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.media.service.MediaService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

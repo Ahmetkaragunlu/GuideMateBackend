@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.reservation.mapper;
 
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.media.mapper.MediaReferenceMapper;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.PurchaseSnapshot;
 import com.ahmetkaragunlu.guidematebackend.reservation.domain.Reservation;

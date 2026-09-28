@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.session.CancelTourSessionRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.tour.CreateTourRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.session.CreateTourSessionRequest;

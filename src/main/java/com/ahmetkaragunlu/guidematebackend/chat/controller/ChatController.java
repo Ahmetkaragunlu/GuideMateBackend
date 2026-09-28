@@ -8,7 +8,7 @@ import com.ahmetkaragunlu.guidematebackend.chat.dto.request.SendChatMessageReque
 import com.ahmetkaragunlu.guidematebackend.chat.service.ChatConversationService;
 import com.ahmetkaragunlu.guidematebackend.chat.service.ChatMessageService;
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.common.dto.UnreadCountResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.UnreadCountResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

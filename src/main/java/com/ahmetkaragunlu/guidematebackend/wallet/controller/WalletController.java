@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.WalletResponse;
 import com.ahmetkaragunlu.guidematebackend.wallet.dto.response.WalletTransactionResponse;

@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.common.dto;
+package com.ahmetkaragunlu.guidematebackend.common.dto.response;
 
 import org.springframework.data.domain.Page;
 

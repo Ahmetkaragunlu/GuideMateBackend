@@ -1,8 +1,8 @@
 package com.ahmetkaragunlu.guidematebackend.notification.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
-import com.ahmetkaragunlu.guidematebackend.common.dto.UnreadCountResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.UnreadCountResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationPreferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.response.NotificationResponse;
 import com.ahmetkaragunlu.guidematebackend.notification.dto.request.MarkRelatedNotificationsReadRequest;

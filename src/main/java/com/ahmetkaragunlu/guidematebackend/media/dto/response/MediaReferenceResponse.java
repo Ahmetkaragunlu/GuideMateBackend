@@ -1,4 +1,4 @@
-package com.ahmetkaragunlu.guidematebackend.media.dto;
+package com.ahmetkaragunlu.guidematebackend.media.dto.response;
 
 import java.util.UUID;
 

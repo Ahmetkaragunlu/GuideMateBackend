@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.wallet.service.account;
 
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.payment.Payment;
 import com.ahmetkaragunlu.guidematebackend.payment.domain.refund.Refund;
 import com.ahmetkaragunlu.guidematebackend.payment.repository.PaymentRepository;

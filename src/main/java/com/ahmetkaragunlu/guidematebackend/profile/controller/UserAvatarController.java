@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.profile.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.profile.dto.request.UpdateUserAvatarRequest;
 import com.ahmetkaragunlu.guidematebackend.profile.service.avatar.UserAvatarService;
 import com.ahmetkaragunlu.guidematebackend.user.domain.User;

@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.profile.dto.response;
 
-import com.ahmetkaragunlu.guidematebackend.media.dto.MediaReferenceResponse;
+import com.ahmetkaragunlu.guidematebackend.media.dto.response.MediaReferenceResponse;
 import com.ahmetkaragunlu.guidematebackend.profile.domain.GuidePerformanceSummary;
 
 import java.util.List;

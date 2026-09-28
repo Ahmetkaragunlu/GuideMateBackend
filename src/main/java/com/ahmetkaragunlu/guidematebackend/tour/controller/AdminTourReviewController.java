@@ -1,7 +1,7 @@
 package com.ahmetkaragunlu.guidematebackend.tour.controller;
 
 import com.ahmetkaragunlu.guidematebackend.common.config.OpenApiConfig;
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.review.RejectTourReviewRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.review.AdminTourReviewDecisionResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.review.AdminTourReviewDetailResponse;

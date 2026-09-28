@@ -1,6 +1,6 @@
 package com.ahmetkaragunlu.guidematebackend.tour.controller;
 
-import com.ahmetkaragunlu.guidematebackend.common.dto.PageResponse;
+import com.ahmetkaragunlu.guidematebackend.common.dto.response.PageResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.request.query.TourSearchRequest;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.tour.TourDetailResponse;
 import com.ahmetkaragunlu.guidematebackend.tour.dto.response.tour.TourSearchItemResponse;
